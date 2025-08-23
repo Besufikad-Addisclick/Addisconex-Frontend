@@ -228,8 +228,8 @@ export default function DashboardPage() {
           page: "1", // Reset to page 1 on filter or category change
           searchQuery: selectedCategory, // Ensure searchQuery matches selectedCategory
         });
-        console.log('selectedCategory', selectedCategory);
-        console.log(response)
+        console.log("selectedCategory", selectedCategory);
+        console.log(response);
         setData(response);
         setVisibleCount(INITIAL_ITEMS);
       } catch (err: any) {
@@ -523,7 +523,7 @@ export default function DashboardPage() {
         </Sheet>
       </div>
 
-      <div className="hidden xl:block w-80 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <div className="hidden xl:block w-60 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
         <FilterSidebar
           filters={filters}
           onFilterChange={(newFilters) => {
@@ -784,7 +784,9 @@ export default function DashboardPage() {
                     </td>
                     <td className="px-4 py-4 text-center border-r border-gray-200 bg-blue-50/30">
                       <div className="font-medium text-gray-900">
-                        {material.market.avgPrice.toLocaleString()}
+                        {material.market.avgPrice.toLocaleString("en-US", {
+                          maximumFractionDigits: 2,
+                        })}
                       </div>
                     </td>
 
@@ -803,9 +805,12 @@ export default function DashboardPage() {
                         change={material.manufactured.change}
                       />
                     </td>
-                    <td className="px-4 py-4 text-center border-r border-gray-200 bg-green-50/30">
+                    
+                    <td className="px-4 py-4 text-center border-r border-gray-200 bg-blue-50/30">
                       <div className="font-medium text-gray-900">
-                        ETB {material.manufactured.avgPrice.toLocaleString()}
+                        {material.manufactured.avgPrice.toLocaleString("en-US", {
+                          maximumFractionDigits: 2,
+                        })}
                       </div>
                     </td>
 

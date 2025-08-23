@@ -65,7 +65,7 @@ const FilterSidebar = ({
   return (
     <div className={`bg-white rounded-lg p-6 shadow-sm ${className}`}>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Filter Subcontractors</h2>
+        <h2 className="text-xl font-semibold">Filter contractors</h2>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -280,10 +280,10 @@ const EmptyState = () => {
         <X className="h-16 w-16 sm:h-24 sm:w-24 text-gray-300" />
       </motion.div>
       <h3 className="text-lg sm:text-xl font-semibold text-gray-600 mb-2">
-        No Subcontractors Found
+        No Contractors Found
       </h3>
       <p className="text-gray-500 text-center max-w-md text-sm sm:text-base">
-        We couldn&apos;t find any subcontractors matching your search criteria. Try
+        We couldn&apos;t find any contractors matching your search criteria. Try
         adjusting your filters or search terms.
       </p>
     </motion.div>
@@ -337,7 +337,7 @@ export default function OtherContractorsPage() {
 
         if (!response.ok) {
           const errorData = await response.json();
-          throw new Error(errorData.error || `Failed to fetch subcontractors: ${response.status}`);
+          throw new Error(errorData.error || `Failed to fetch contractors: ${response.status}`);
         }
 
         const result = await response.json();
@@ -388,7 +388,7 @@ export default function OtherContractorsPage() {
           regions: normalizedData.regions.length > 0 ? normalizedData.regions : prev.regions,
         }));
       } catch (err: any) {
-        console.log("Error fetching subcontractors:", err.message);
+        console.log("Error fetching contractors:", err.message);
         setData({
           subcontractors: [],
           categories: [],
@@ -451,7 +451,7 @@ export default function OtherContractorsPage() {
             <X className="w-12 h-12 text-primary" />
           </motion.div>
           <p className="text-lg font-medium text-gray-700">
-            Loading Subcontractors...
+            Loading contractors...
           </p>
         </motion.div>
       </div>
@@ -512,11 +512,12 @@ export default function OtherContractorsPage() {
                 onClick={handleLoadMore}
                 disabled={isLoadingMore}
               >
-                Load More
+                {isLoadingMore ? "Loading more":"Load More"
+              }
               </Button>
-              {isLoadingMore && (
+              {/* {isLoadingMore && (
                 <p className="text-center text-gray-500 mt-4">Loading more...</p>
-              )}
+              )} */}
             </div>
           )}
         </div>

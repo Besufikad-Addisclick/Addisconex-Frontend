@@ -502,15 +502,18 @@ export default function ProfessionalsPage() {
       </div>
 
       <div className="flex-1 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        
           {data.subcontractors.length === 0 && data.next === null ? (
             <EmptyState />
           ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">{
             data.subcontractors.map((contractor) => (
               <SubcontractorCard key={contractor.id} contractor={contractor} />
             ))
+          }
+          </div>
           )}
-        </div>
+        
 
         {data.next && (
           <div className="flex justify-center mt-8 mb-8">
@@ -519,11 +522,10 @@ export default function ProfessionalsPage() {
               onClick={handleLoadMore}
               disabled={isLoadingMore}
             >
-              Load More
+              {isLoadingMore ? "Loading more":"Load More"
+              }
             </Button>
-            {isLoadingMore && (
-              <p className="text-center text-gray-500 mt-4">Loading more...</p>
-            )}
+            
           </div>
         )}
       </div>

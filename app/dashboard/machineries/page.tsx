@@ -41,32 +41,7 @@ import {
 import MachineryAd from "@/components/ads/MachineryAd";
 
 // Mock ads data
-const adsData = [
-  {
-    id: "1",
-    title: "Premium Construction Tools",
-    description: "Get 20% off on all power tools",
-    imageUrl:
-      "https://images.pexels.com/photos/162553/keys-workshop-mechanic-tools-162553.jpeg",
-    link: "#",
-  },
-  {
-    id: "2",
-    title: "Heavy Machinery Financing",
-    description: "Low interest rates available",
-    imageUrl:
-      "https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg",
-    link: "#",
-  },
-  {
-    id: "3",
-    title: "Equipment Insurance",
-    description: "Protect your investment today",
-    imageUrl:
-      "https://images.pexels.com/photos/416405/pexels-photo-416405.jpeg",
-    link: "#",
-  },
-];
+
 
 // Fallback image URL for missing images
 const FALLBACK_IMAGE_URL =
@@ -83,10 +58,8 @@ const MachineryCard = ({
   onClick,
   className = "",
 }: MachineryCardProps) => {
-  const imageSrc = machinery.imageUrl || FALLBACK_IMAGE_URL;
-  if (!machinery.imageUrl) {
-    // console.warn(`Missing imageUrl for machinery: ${machinery.name} (ID: ${machinery.id})`);
-  }
+  const imageSrc = machinery.imageUrl || machinery.machineryImageUrl || FALLBACK_IMAGE_URL;
+  
 
   return (
     <motion.div
@@ -131,13 +104,19 @@ const MachineryCard = ({
         <div className="mt-auto flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <p className="text-base sm:text-lg font-bold text-primary truncate">
-              ETB {Number(machinery.price).toLocaleString()}
+              {Number(machinery.price).toLocaleString()} ETB
             </p>
             <p className="text-xs text-gray-500">
-              {machinery.type === "rent" && machinery.rental_duration ? machinery.rental_duration : ""}
+              {machinery.type === "rent" && machinery.rental_duration
+                ? machinery.rental_duration
+                : ""}
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              {/* <PhoneCall className="h-4 w-4" /> */}
+              {machinery.supplier.phone}
             </p>
           </div>
-          <Button
+          {/* <Button
             size="sm"
             variant="ghost"
             onClick={(e) => {
@@ -147,7 +126,7 @@ const MachineryCard = ({
           >
             <PhoneCall className="h-4 w-4" />
             {machinery.supplier.phone}
-          </Button>
+          </Button> */}
         </div>
       </div>
     </motion.div>
@@ -757,13 +736,10 @@ export default function MachineriesPage() {
                       className="text-sm"
                       disabled={isLoadingMore}
                     >
-                      Load More
+                     {isLoadingMore ? "Loading more":"Load More"
+              }
                     </Button>
-                    {isLoadingMore && (
-                      <p className="text-center text-gray-500 mt-4">
-                        Loading more...
-                      </p>
-                    )}
+                   
                   </div>
                 )}
               </div>
@@ -801,7 +777,7 @@ export default function MachineriesPage() {
             <div className="space-y-4 sm:space-y-6">
               <div className="relative">
                 <img
-                  src={selectedMachinery.imageUrl || FALLBACK_IMAGE_URL}
+                  src={selectedMachinery.imageUrl || selectedMachinery.machineryImageUrl || FALLBACK_IMAGE_URL}
                   alt={selectedMachinery.name}
                   className="w-full h-48 sm:h-64 object-cover rounded-lg"
                 />
@@ -824,8 +800,11 @@ export default function MachineriesPage() {
                       {selectedMachinery.name}
                     </h2>
                     <p className="text-lg sm:text-xl font-semibold text-primary">
-                      ETB {Number(selectedMachinery.price).toLocaleString()}
-                      {selectedMachinery.type === "rent" && selectedMachinery.rental_duration ? selectedMachinery.rental_duration:""}
+                      {Number(selectedMachinery.price).toLocaleString()} ETB
+                      {selectedMachinery.type === "rent" &&
+                      selectedMachinery.rental_duration
+                        ? selectedMachinery.rental_duration
+                        : ""}
                     </p>
                   </div>
                   <div className="flex gap-2 justify-end">
@@ -902,6 +881,10 @@ export default function MachineriesPage() {
                         </p>
                         <p className="text-gray-600 text-sm truncate">
                           {selectedMachinery.supplier.company_address}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          {/* <PhoneCall className="h-4 w-4" /> */}
+                          {selectedMachinery.supplier.user_email}
                         </p>
                       </div>
                       <Button className="w-full sm:w-auto">

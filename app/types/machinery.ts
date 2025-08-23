@@ -32,6 +32,7 @@ export interface Machinery {
   category: string;
   price: string;
   imageUrl: string;
+  machineryImageUrl: string;
   location: string;
   rental_duration?: string;
   uploadedAt: string;
