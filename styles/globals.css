@@ -1,0 +1,17 @@
+@keyframes testimonials-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-testimonials-scroll {
+  animation: testimonials-scroll 40s linear infinite;
+}@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-10px); }
+  80% { transform: translateX(10px); }
+  100% { transform: translateX(0); }
+}
+.animate-shake {
+  animation: shake 0.7s cubic-bezier(.36,.07,.19,.97) both;
+}
