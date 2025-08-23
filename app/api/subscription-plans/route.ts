@@ -25,7 +25,7 @@ export async function GET() {
       try {
         errorData = JSON.parse(text);
       } catch (e) {
-        console.error('[subscription-plans] Fetch error:', text);
+        // console.error('[subscription-plans] Fetch error:', text);
         return NextResponse.json(
           { error: `Failed to fetch subscription plans: ${response.statusText}`, status: response.status },
           { status: response.status }
