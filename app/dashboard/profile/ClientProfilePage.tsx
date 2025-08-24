@@ -26,6 +26,7 @@ import {
 } from "@ant-design/icons";
 import { User, Shield, Bell, CreditCard, Lock, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getSession } from "next-auth/react";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -109,6 +110,7 @@ export default function ClientProfilePage() {
     "Somali",
     "Afar",
     "Chinese",
+    "English",
   ];
   const skillOptions = [
     "Project Management",
@@ -126,6 +128,8 @@ export default function ClientProfilePage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      const session = await getSession();
+      console.log("Session user type:", session?.user?.userType);
       setLoading(true);
       try {
         const response = await fetch(`/api/profile`, {
@@ -290,7 +294,7 @@ export default function ClientProfilePage() {
       (values.keyProjects || []).forEach((project: any, index: number) => {
         const fileList = project.image;
         if (fileList && fileList.length > 0 && fileList[0].originFileObj) {
-          formData.append( 
+          formData.append(
             `key_projects[${index}][image]`,
             fileList[0].originFileObj
           );
@@ -553,604 +557,685 @@ export default function ClientProfilePage() {
     </Card>
   );
 
-  const renderProfileSettings = () => (
-    <Card title="Profile Information" className="shadow-sm">
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleProfileSave}
-        className="space-y-4"
-      >
-        {/* Basic User Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Form.Item
-            name="profilePicture"
-            label="Profile Picture"
-            valuePropName="fileList"
-            getValueFromEvent={(e) => {
-              if (Array.isArray(e)) return e;
-              return e && e.fileList ? e.fileList : [];
-            }}
-          >
-            <Upload
-              beforeUpload={() => false}
-              accept=".jpg,.jpeg,.png,.gif"
-              maxCount={1}
-              listType="picture"
+  const renderProfileSettings = () => {
+    const userRole = userProfile?.user_type ?? "custom_role";
+
+    return (
+      <Card title="Profile Information" className="shadow-sm">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleProfileSave}
+          className="space-y-4"
+        >
+          {/* Basic User Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Form.Item
+              name="profilePicture"
+              label="Profile Picture"
+              valuePropName="fileList"
+              getValueFromEvent={(e) => {
+                if (Array.isArray(e)) return e;
+                return e && e.fileList ? e.fileList : [];
+              }}
             >
-              <Button icon={<UploadOutlined />}>Upload Profile Picture</Button>
-            </Upload>
-          </Form.Item>
+              <Upload
+                beforeUpload={() => false}
+                accept=".jpg,.jpeg,.png,.gif"
+                maxCount={1}
+                listType="picture"
+              >
+                <Button icon={<UploadOutlined />}>
+                  Upload Profile Picture
+                </Button>
+              </Upload>
+            </Form.Item>
 
-          <Form.Item
-            name="firstName"
-            label="First Name"
-            rules={[
-              { required: true, message: "Please enter your first name" },
-            ]}
-          >
-            <Input prefix={<UserOutlined />} placeholder="Enter first name" />
-          </Form.Item>
-          <Form.Item
-            name="lastName"
-            label="Last Name"
-            rules={[{ required: true, message: "Please enter your last name" }]}
-          >
-            <Input prefix={<UserOutlined />} placeholder="Enter last name" />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              {
-                required: true,
-                type: "email",
-                message: "Please enter a valid email",
-              },
-            ]}
-          >
-            <Input
-              prefix={<MailOutlined />}
-              disabled
-              placeholder="Email address"
-            />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            label="Phone Number"
-            rules={[
-              { required: true, message: "Please enter your phone number" },
-            ]}
-          >
-            <Input prefix={<PhoneOutlined />} placeholder="Phone number" />
-          </Form.Item>
-        </div>
-
-        <Divider orientation="left">Company Information</Divider>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Form.Item
-            name="companyName"
-            label="Company Name"
-            rules={[
-              { required: true, message: "Please enter your company name" },
-            ]}
-          >
-            <Input prefix={<Building />} placeholder="Company name" />
-          </Form.Item>
-          <Form.Item
-            name="companyAddress"
-            label="Company Address"
-            rules={[
-              { required: true, message: "Please enter your company address" },
-            ]}
-          >
-            <Input placeholder="Enter company address" />
-          </Form.Item>
-          <Form.Item name="website" label="Website">
-            <Input
-              prefix={<GlobalOutlined />}
-              placeholder="https://example.com"
-            />
-          </Form.Item>
-          <Form.Item
-            name="contactPerson"
-            label="Contact Person"
-            rules={[
-              { required: true, message: "Please enter a contact person" },
-            ]}
-          >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="Contact person name"
-            />
-          </Form.Item>
-        </div>
-
-        <Form.Item name="description" label="Description">
-          <TextArea rows={3} placeholder="Describe your company..." />
-        </Form.Item>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Form.Item
-            name="region"
-            label="Region"
-            rules={[{ required: true, message: "Please select a region" }]}
-          >
-            <Select placeholder="Select a region" allowClear>
-              {regions.map((region) => (
-                <Option key={region.id} value={region.id}>
-                  {region.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item name="establishedYear" label="Established Year">
-            <Input
-              type="number"
-              prefix={<CalendarOutlined />}
-              placeholder="Year"
-            />
-          </Form.Item>
-          <Form.Item name="teamSize" label="Team Size">
-            <Input
-              type="number"
-              prefix={<TeamOutlined />}
-              placeholder="Number of employees"
-            />
-          </Form.Item>
-        </div>
-
-        <Divider orientation="left">Additional Details</Divider>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Form.Item name="employmentStatus" label="Employment Status">
-            <Select placeholder="Select employment status" allowClear>
-              <Option value="full_time">Full Time</Option>
-              <Option value="part_time">Part Time</Option>
-              <Option value="self_employed">Self Employed</Option>
-              <Option value="freelance">Freelance</Option>
-              <Option value="unemployed">Unemployed</Option>
-              <Option value="student">Student</Option>
-              <Option value="retired">Retired</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="maritalStatus" label="Marital Status">
-            <Select placeholder="Select marital status" allowClear>
-              <Option value="single">Single</Option>
-              <Option value="married">Married</Option>
-              <Option value="divorced">Divorced</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="age" label="Age">
-            <Input type="number" min={0} placeholder="Enter age" />
-          </Form.Item>
-
-          <Form.Item name="jobType" label="Job Type">
-            <Select placeholder="Select job type" allowClear>
-              <Option value="permanent">Permanent</Option>
-              <Option value="temporary">Temporary</Option>
-              <Option value="contract">Contract</Option>
-              <Option value="internship">Internship</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="gender" label="Gender">
-            <Select placeholder="Select gender" allowClear>
-              <Option value="male">Male</Option>
-              <Option value="female">Female</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="skills" label="Skills">
-            <Select
-              mode="tags"
-              placeholder="Add skills"
-              tokenSeparators={[","]}
-              options={skillOptions.map((s) => ({ value: s, label: s }))}
-            />
-          </Form.Item>
-
-          <Form.Item name="highestQualification" label="Highest Qualification">
-            <Select placeholder="Select qualification" allowClear>
-              <Option value="no_formal_education">No Formal Education</Option>
-              <Option value=" high_school">High School Diploma</Option>
-              <Option value="associate">Associate Degree</Option>
-              <Option value="bachelor">Bachelor&apos;s Degree</Option>
-              <Option value="master">Master&apos;s Degree</Option>
-              <Option value="phd">PhD</Option>
-              <Option value="professional">Professional Degree</Option>
-              <Option value="diploma">Diploma</Option>
-              <Option value="certificate">Certificate</Option>
-              <Option value="other">Other</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="languages" label="Languages">
-            <Select
-              mode="tags"
-              placeholder="Add languages"
-              tokenSeparators={[","]}
-              options={languageOptions.map((l) => ({ value: l, label: l }))}
-            />
-          </Form.Item>
-
-          <Form.Item name="references" label="References">
-            <TextArea
-              rows={3}
-              placeholder="Enter references or additional info"
-            />
-          </Form.Item>
-
-          <Form.Item name="salaryMin" label="Minimum Salary">
-            <Input
-              type="number"
-              min={0}
-              step="0.01"
-              placeholder="Minimum salary"
-            />
-          </Form.Item>
-
-          <Form.Item name="salaryMax" label="Maximum Salary">
-            <Input
-              type="number"
-              min={0}
-              step="0.01"
-              placeholder="Maximum salary"
-            />
-          </Form.Item>
-
-          <Form.Item name="salaryNegotiable" valuePropName="checked">
-            <Checkbox>Salary Negotiable</Checkbox>
-          </Form.Item>
-
-          <Form.Item name="yearOfExperience" label="Years of Experience">
-            <Input type="number" min={0} placeholder="Years of experience" />
-          </Form.Item>
-          <Form.Item name="grade" label="Grade">
-            <Select placeholder="Select grade" allowClear>
-              {[...Array(11)].map((_, index) => {
-                const gradeNumber = index + 1;
-                return (
-                  <Option key={gradeNumber} value={`grade_${gradeNumber}`}>
-                    {`Grade ${gradeNumber}`}
+            <Form.Item
+              name="firstName"
+              label="First Name"
+              rules={[
+                { required: true, message: "Please enter your first name" },
+              ]}
+            >
+              <Input prefix={<UserOutlined />} placeholder="Enter first name" />
+            </Form.Item>
+            <Form.Item
+              name="lastName"
+              label="Last Name"
+              rules={[
+                { required: true, message: "Please enter your last name" },
+              ]}
+            >
+              <Input prefix={<UserOutlined />} placeholder="Enter last name" />
+            </Form.Item>
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                {
+                  required: true,
+                  type: "email",
+                  message: "Please enter a valid email",
+                },
+              ]}
+            >
+              <Input
+                prefix={<MailOutlined />}
+                disabled
+                placeholder="Email address"
+              />
+            </Form.Item>
+            <Form.Item
+              name="phone"
+              label="Phone Number"
+              rules={[
+                { required: true, message: "Please enter your phone number" },
+                {
+                  pattern: /^\+2519\d{8}$/,
+                  message:
+                    "Enter a valid Ethiopian phone number like +251912345678",
+                },
+              ]}
+            >
+              <Input prefix={<PhoneOutlined />} placeholder="Phone number" />
+            </Form.Item>
+            <Form.Item
+              name="region"
+              label="Region"
+              rules={[{ required: true, message: "Please select a region" }]}
+            >
+              <Select placeholder="Select a region" allowClear>
+                {regions.map((region) => (
+                  <Option key={region.id} value={region.id}>
+                    {region.name}
                   </Option>
-                );
-              })}
-            </Select>
-          </Form.Item>
-        </div>
-
-        <Divider orientation="left">Equipment</Divider>
-        <Form.List name="equipment">
-          {(fields, { add, remove }) => (
+                ))}
+              </Select>
+            </Form.Item>
+          </div>
+          {userRole !== "admin" && userRole !== "professionals" && (
             <>
-              {fields.map(({ key, name, ...restField }) => (
-                <div key={key} className="flex gap-4 items-end mb-4">
-                  <Form.Item
-                    {...restField}
-                    name={[name, "name"]}
-                    label="Equipment Name"
-                    className="flex-1"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Please enter equipment name",
-                      },
-                    ]}
-                  >
-                    <Input placeholder="Equipment name" />
-                  </Form.Item>
+              <Divider orientation="left">Company Information</Divider>
 
-                  <Form.Item
-                    {...restField}
-                    name={[name, "quantity"]}
-                    label="Quantity"
-                    className="w-32"
-                    rules={[
-                      { required: true, message: "Please enter quantity" },
-                    ]}
-                  >
-                    <Input type="number" placeholder="Qty" />
-                  </Form.Item>
-
-                  <Button
-                    type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => remove(name)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-              <Form.Item>
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item
+                  name="companyName"
+                  label="Company Name"
+                  rules={[
+                    {
+                      required:
+                        userRole !== "admin" && userRole !== "professionals",
+                      message: "Please enter your company name",
+                    },
+                  ]}
                 >
-                  Add Equipment
-                </Button>
-              </Form.Item>
+                  <Input prefix={<Building />} placeholder="Company name" />
+                </Form.Item>
+                <Form.Item
+                  name="companyAddress"
+                  label="Company Address"
+                  rules={[
+                    {
+                      required:
+                        userRole !== "admin" && userRole !== "professionals",
+                      message: "Please enter your company address",
+                    },
+                  ]}
+                >
+                  <Input placeholder="Enter company address" />
+                </Form.Item>
+                <Form.Item name="website" label="Website">
+                  <Input
+                    prefix={<GlobalOutlined />}
+                    placeholder="https://example.com"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="contactPerson"
+                  label="Contact Person"
+                  rules={[
+                    {
+                      required:
+                        userRole !== "admin" && userRole !== "professionals",
+                      message: "Please enter a contact person",
+                    },
+                  ]}
+                >
+                  <Input
+                    prefix={<UserOutlined />}
+                    placeholder="Contact person name"
+                  />
+                </Form.Item>
+                <Form.Item name="establishedYear" label="Established Year">
+                  <Input
+                    type="number"
+                    prefix={<CalendarOutlined />}
+                    placeholder="Year"
+                  />
+                </Form.Item>
+                <Form.Item name="teamSize" label="Team Size">
+                  <Input
+                    type="number"
+                    prefix={<TeamOutlined />}
+                    placeholder="Number of employees"
+                  />
+                </Form.Item>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item name="description" label="Description">
+                  <TextArea rows={3} placeholder="Describe your company..." />
+                </Form.Item>
+              </div>
             </>
           )}
-        </Form.List>
-
-        <Divider orientation="left">Key Projects</Divider>
-        <Form.List name="keyProjects">
-          {(fields, { add, remove }) => (
+          {userRole == "professionals" && (
             <>
-              {fields.map(({ key, name, ...restField }) => {
-                const currentProject = userProfile?.key_projects?.[name];
-                return (
-                  <Card
-                    key={key}
-                    className="mb-4 border-2 border-dashed border-gray-300"
-                  >
-                    <Form.Item {...restField} name={[name, "id"]} hidden>
-                      <Input type="hidden" />
-                    </Form.Item>
+              <Divider orientation="left">Additional Details</Divider>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Form.Item
-                        {...restField}
-                        name={[name, "name"]}
-                        label="Project Name"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter project name",
-                          },
-                        ]}
-                      >
-                        <Input placeholder="Project name" />
-                      </Form.Item>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Form.Item name="employmentStatus" label="Employment Status">
+                  <Select placeholder="Select employment status" allowClear>
+                    <Option value="full_time">Full Time</Option>
+                    <Option value="part_time">Part Time</Option>
+                    <Option value="self_employed">Self Employed</Option>
+                    <Option value="freelance">Freelance</Option>
+                    <Option value="unemployed">Unemployed</Option>
+                    <Option value="student">Student</Option>
+                    <Option value="retired">Retired</Option>
+                  </Select>
+                </Form.Item>
 
-                      <Form.Item
-                        {...restField}
-                        name={[name, "location"]}
-                        label="Location"
-                        rules={[
-                          { required: true, message: "Please enter location" },
-                        ]}
-                      >
-                        <Input placeholder="Project location" />
-                      </Form.Item>
-                    </div>
+                <Form.Item name="maritalStatus" label="Marital Status">
+                  <Select placeholder="Select marital status" allowClear>
+                    <Option value="single">Single</Option>
+                    <Option value="married">Married</Option>
+                    <Option value="divorced">Divorced</Option>
+                  </Select>
+                </Form.Item>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Form.Item
-                        {...restField}
-                        name={[name, "year"]}
-                        label="Year"
-                        rules={[
-                          { required: true, message: "Please enter year" },
-                        ]}
-                      >
-                        <Input type="number" placeholder="Year" />
-                      </Form.Item>
-                      <Form.Item
-                      {...restField}
-                      name={[name, "description"]}
-                      label="Description"
-                      rules={[
-                        { required: true, message: "Please enter description" },
-                      ]}
-                    >
-                      <TextArea placeholder="Project description" rows={3} />
-                    </Form.Item>
-                    </div>
+                <Form.Item name="age" label="Age">
+                  <Input type="number" min={0} placeholder="Enter age" />
+                </Form.Item>
 
-                    
+                <Form.Item name="jobType" label="Job Type">
+                  <Select placeholder="Select job type" allowClear>
+                    <Option value="permanent">Permanent</Option>
+                    <Option value="temporary">Temporary</Option>
+                    <Option value="contract">Contract</Option>
+                    <Option value="internship">Internship</Option>
+                  </Select>
+                </Form.Item>
 
-                    <Form.Item
-                      {...restField}
-                      name={[name, "image"]}
-                      label="Project Image"
-                      valuePropName="fileList"
-                      getValueFromEvent={(e) => {
-                        if (Array.isArray(e)) return e;
-                        return e && e.fileList ? e.fileList : [];
-                      }}
-                    >
-                      <Upload
-                        beforeUpload={() => false}
-                        accept=".jpg,.jpeg,.png,.gif"
-                        maxCount={1}
-                        defaultFileList={
-                          currentProject?.image
-                            ? [
-                                {
-                                  uid: "-1",
-                                  name:
-                                    currentProject.image.split("/").pop() ||
-                                    "image",
-                                  status: "done",
-                                  url: currentProject.image,
-                                },
-                              ]
-                            : []
-                        }
-                        listType="picture"
-                      >
-                        <Button icon={<UploadOutlined />}>Upload Image</Button>
-                      </Upload>
-                    </Form.Item>
+                <Form.Item name="gender" label="Gender">
+                  <Select placeholder="Select gender" allowClear>
+                    <Option value="male">Male</Option>
+                    <Option value="female">Female</Option>
+                  </Select>
+                </Form.Item>
 
-                    <Button
-                      type="text"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => remove(name)}
-                    >
-                      Remove Project
-                    </Button>
-                  </Card>
-                );
-              })}
-              <Form.Item>
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
+                <Form.Item name="skills" label="Skills">
+                  <Select
+                    mode="tags"
+                    placeholder="Add skills"
+                    tokenSeparators={[","]}
+                    options={skillOptions.map((s) => ({ value: s, label: s }))}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="highestQualification"
+                  label="Highest Qualification"
                 >
-                  Add Key Project
-                </Button>
-              </Form.Item>
-            </>
-          )}
-        </Form.List>
+                  <Select placeholder="Select qualification" allowClear>
+                    <Option value="no_formal_education">
+                      No Formal Education
+                    </Option>
+                    <Option value=" high_school">High School Diploma</Option>
+                    <Option value="associate">Associate Degree</Option>
+                    <Option value="bachelor">Bachelor&apos;s Degree</Option>
+                    <Option value="master">Master&apos;s Degree</Option>
+                    <Option value="phd">PhD</Option>
+                    <Option value="professional">Professional Degree</Option>
+                    <Option value="diploma">Diploma</Option>
+                    <Option value="certificate">Certificate</Option>
+                    <Option value="other">Other</Option>
+                  </Select>
+                </Form.Item>
 
-        <Divider orientation="left">Documents</Divider>
+                <Form.Item name="languages" label="Languages">
+                  <Select
+                    mode="tags"
+                    placeholder="Add languages"
+                    tokenSeparators={[","]}
+                    options={languageOptions.map((l) => ({
+                      value: l,
+                      label: l,
+                    }))}
+                  />
+                </Form.Item>
 
-        <Form.List name="documents">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => {
-                const currentDoc = userProfile?.documents?.[name];
-                return (
-                  <Card
-                    key={key}
-                    className="mb-4 border-2 border-dashed border-gray-300"
-                  >
-                    <Form.Item {...restField} name={[name, "id"]} hidden>
-                      <Input type="hidden" />
-                    </Form.Item>
+                <Form.Item name="references" label="References">
+                  <TextArea
+                    rows={3}
+                    placeholder="Enter references or additional info"
+                  />
+                </Form.Item>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Form.Item
-                        {...restField}
-                        name={[name, "file_type"]}
-                        label="Document Type"
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please select document type",
-                          },
-                        ]}
-                      >
-                        <Select placeholder="Select document type">
-                          <Option value="license">Business License</Option>
-                          <Option value="tax_id">Tax Identification</Option>
-                          <Option value="certificate">Certificate</Option>
-                          <Option value="insurance">
-                            Insurance Certificate
-                          </Option>
-                          <Option value="other">Other</Option>
-                        </Select>
-                      </Form.Item>
+                <Form.Item name="salaryMin" label="Minimum Salary">
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    placeholder="Minimum salary"
+                  />
+                </Form.Item>
 
-                      <Form.Item
-                        {...restField}
-                        name={[name, "file"]}
-                        label="File"
-                        valuePropName="fileList"
-                        getValueFromEvent={(e) => {
-                          if (Array.isArray(e)) return e;
-                          return e && e.fileList ? e.fileList : [];
-                        }}
-                        rules={[
-                          {
-                            required: !currentDoc?.id,
-                            message: "Please upload a file",
-                          },
-                        ]}
-                      >
-                        <Upload
-                          beforeUpload={() => false}
-                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                          maxCount={1}
-                          defaultFileList={
-                            currentDoc?.file
-                              ? [
-                                  {
-                                    uid: currentDoc.id,
-                                    name:
-                                      currentDoc.file.split("/").pop() ||
-                                      "document",
-                                    status: "done",
-                                    url: currentDoc.file,
-                                  },
-                                ]
-                              : []
-                          }
+                <Form.Item name="salaryMax" label="Maximum Salary">
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    placeholder="Maximum salary"
+                  />
+                </Form.Item>
+
+                <Form.Item name="salaryNegotiable" valuePropName="checked">
+                  <Checkbox>Salary Negotiable</Checkbox>
+                </Form.Item>
+
+                <Form.Item name="yearOfExperience" label="Years of Experience">
+                  <Input
+                    type="number"
+                    min={0}
+                    placeholder="Years of experience"
+                  />
+                </Form.Item>
+                <Form.Item name="grade" label="Grade">
+                  <Select placeholder="Select grade" allowClear>
+                    {[...Array(11)].map((_, index) => {
+                      const gradeNumber = index + 1;
+                      return (
+                        <Option
+                          key={gradeNumber}
+                          value={`grade_${gradeNumber}`}
                         >
-                          <Button icon={<UploadOutlined />}>Upload File</Button>
-                        </Upload>
-                      </Form.Item>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Form.Item
-                        {...restField}
-                        name={[name, "issued_date"]}
-                        label="Issued Date"
-                      >
-                        <Input type="date" />
-                      </Form.Item>
-
-                      <Form.Item
-                        {...restField}
-                        name={[name, "expiry_date"]}
-                        label="Expiry Date"
-                      >
-                        <Input type="date" />
-                      </Form.Item>
-                      <Form.Item
-                      {...restField}
-                      name={[name, "issued_by"]}
-                      label="Issued By"
-                    >
-                      <Input placeholder="Enter issuer" />
-                    </Form.Item>
-                    </div>
-
-                    
-
-                    <Button
-                      type="text"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => remove(name)}
-                    >
-                      Remove Document
-                    </Button>
-                  </Card>
-                );
-              })}
-
-              <Form.Item>
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
-                >
-                  Add Document
-                </Button>
-              </Form.Item>
+                          {`Grade ${gradeNumber}`}
+                        </Option>
+                      );
+                    })}
+                  </Select>
+                </Form.Item>
+              </div>
             </>
           )}
-        </Form.List>
+          {(userRole == "contractors" || userRole == "subcontractors") && (
+            <>
+              <Divider orientation="left">Equipment</Divider>
+              <Form.List name="equipment">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="flex gap-4 items-end mb-4">
+                        <Form.Item
+                          {...restField}
+                          name={[name, "name"]}
+                          label="Equipment Name"
+                          className="flex-1"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please enter equipment name",
+                            },
+                          ]}
+                        >
+                          <Input placeholder="Equipment name" />
+                        </Form.Item>
 
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            className="bg-blue-600 hover:bg-blue-700 border-blue-600"
-          >
-            Save Changes
-          </Button>
-        </Form.Item>
-      </Form>
-    </Card>
-  );
+                        <Form.Item
+                          {...restField}
+                          name={[name, "quantity"]}
+                          label="Quantity"
+                          className="w-32"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please enter quantity",
+                            },
+                          ]}
+                        >
+                          <Input type="number" placeholder="Qty" />
+                        </Form.Item>
+
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => remove(name)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Form.Item>
+                      <Button
+                        type="dashed"
+                        onClick={() => add()}
+                        block
+                        icon={<PlusOutlined />}
+                      >
+                        Add Equipment
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+            </>
+          )}
+          {userRole !== "suppliers" &&
+            userRole !== "individuals" &&
+            userRole !== "admin" && (
+              <>
+                <Divider orientation="left">Key Projects</Divider>
+                <Form.List name="keyProjects">
+                  {(fields, { add, remove }) => (
+                    <>
+                      {fields.map(({ key, name, ...restField }) => {
+                        const currentProject =
+                          userProfile?.key_projects?.[name];
+                        return (
+                          <Card
+                            key={key}
+                            className="mb-4 border-2 border-dashed border-gray-300"
+                          >
+                            <Form.Item
+                              {...restField}
+                              name={[name, "id"]}
+                              hidden
+                            >
+                              <Input type="hidden" />
+                            </Form.Item>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <Form.Item
+                                {...restField}
+                                name={[name, "name"]}
+                                label="Project Name"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Please enter project name",
+                                  },
+                                ]}
+                              >
+                                <Input placeholder="Project name" />
+                              </Form.Item>
+
+                              <Form.Item
+                                {...restField}
+                                name={[name, "location"]}
+                                label="Location"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Please enter location",
+                                  },
+                                ]}
+                              >
+                                <Input placeholder="Project location" />
+                              </Form.Item>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <Form.Item
+                                {...restField}
+                                name={[name, "year"]}
+                                label="Year"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Please enter year",
+                                  },
+                                ]}
+                              >
+                                <Input type="number" placeholder="Year" />
+                              </Form.Item>
+                              <Form.Item
+                                {...restField}
+                                name={[name, "description"]}
+                                label="Description"
+                                rules={[
+                                  {
+                                    required: true,
+                                    message: "Please enter description",
+                                  },
+                                ]}
+                              >
+                                <TextArea
+                                  placeholder="Project description"
+                                  rows={3}
+                                />
+                              </Form.Item>
+                            </div>
+
+                            <Form.Item
+                              {...restField}
+                              name={[name, "image"]}
+                              label="Project Image"
+                              valuePropName="fileList"
+                              getValueFromEvent={(e) => {
+                                if (Array.isArray(e)) return e;
+                                return e && e.fileList ? e.fileList : [];
+                              }}
+                            >
+                              <Upload
+                                beforeUpload={() => false}
+                                accept=".jpg,.jpeg,.png,.gif"
+                                maxCount={1}
+                                defaultFileList={
+                                  currentProject?.image
+                                    ? [
+                                        {
+                                          uid: "-1",
+                                          name:
+                                            currentProject.image
+                                              .split("/")
+                                              .pop() || "image",
+                                          status: "done",
+                                          url: currentProject.image,
+                                        },
+                                      ]
+                                    : []
+                                }
+                                listType="picture"
+                              >
+                                <Button icon={<UploadOutlined />}>
+                                  Upload Image
+                                </Button>
+                              </Upload>
+                            </Form.Item>
+
+                            <Button
+                              type="text"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => remove(name)}
+                            >
+                              Remove Project
+                            </Button>
+                          </Card>
+                        );
+                      })}
+                      <Form.Item>
+                        <Button
+                          type="dashed"
+                          onClick={() => add()}
+                          block
+                          icon={<PlusOutlined />}
+                        >
+                          Add Key Project
+                        </Button>
+                      </Form.Item>
+                    </>
+                  )}
+                </Form.List>
+              </>
+            )}
+          {userRole !== "individuals" && userRole !== "admin" && (
+            <>
+              <Divider orientation="left">Documents</Divider>
+
+              <Form.List name="documents">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => {
+                      const currentDoc = userProfile?.documents?.[name];
+                      return (
+                        <Card
+                          key={key}
+                          className="mb-4 border-2 border-dashed border-gray-300"
+                        >
+                          <Form.Item {...restField} name={[name, "id"]} hidden>
+                            <Input type="hidden" />
+                          </Form.Item>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "file_type"]}
+                              label="Document Type"
+                              rules={[
+                                {
+                                  required: true,
+                                  message: "Please select document type",
+                                },
+                              ]}
+                            >
+                              <Select placeholder="Select document type">
+                                <Option value="license">
+                                  Business License
+                                </Option>
+                                <Option value="tax_id">
+                                  Tax Identification
+                                </Option>
+                                <Option value="certificate">Certificate</Option>
+                                <Option value="insurance">
+                                  Insurance Certificate
+                                </Option>
+                                <Option value="other">Other</Option>
+                              </Select>
+                            </Form.Item>
+
+                            <Form.Item
+                              {...restField}
+                              name={[name, "file"]}
+                              label="File"
+                              valuePropName="fileList"
+                              getValueFromEvent={(e) => {
+                                if (Array.isArray(e)) return e;
+                                return e && e.fileList ? e.fileList : [];
+                              }}
+                              rules={[
+                                {
+                                  required: !currentDoc?.id,
+                                  message: "Please upload a file",
+                                },
+                              ]}
+                            >
+                              <Upload
+                                beforeUpload={() => false}
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                maxCount={1}
+                                defaultFileList={
+                                  currentDoc?.file
+                                    ? [
+                                        {
+                                          uid: currentDoc.id,
+                                          name:
+                                            currentDoc.file.split("/").pop() ||
+                                            "document",
+                                          status: "done",
+                                          url: currentDoc.file,
+                                        },
+                                      ]
+                                    : []
+                                }
+                              >
+                                <Button icon={<UploadOutlined />}>
+                                  Upload File
+                                </Button>
+                              </Upload>
+                            </Form.Item>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <Form.Item
+                              {...restField}
+                              name={[name, "issued_date"]}
+                              label="Issued Date"
+                            >
+                              <Input type="date" />
+                            </Form.Item>
+
+                            <Form.Item
+                              {...restField}
+                              name={[name, "expiry_date"]}
+                              label="Expiry Date"
+                            >
+                              <Input type="date" />
+                            </Form.Item>
+                            <Form.Item
+                              {...restField}
+                              name={[name, "issued_by"]}
+                              label="Issued By"
+                            >
+                              <Input placeholder="Enter issuer" />
+                            </Form.Item>
+                          </div>
+
+                          <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => remove(name)}
+                          >
+                            Remove Document
+                          </Button>
+                        </Card>
+                      );
+                    })}
+
+                    <Form.Item>
+                      <Button
+                        type="dashed"
+                        onClick={() => add()}
+                        block
+                        icon={<PlusOutlined />}
+                      >
+                        Add Document
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+            </>
+          )}
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              className="bg-blue-600 hover:bg-blue-700 border-blue-600"
+            >
+              Save Changes
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+    );
+  };
 
   if (error) {
     return (

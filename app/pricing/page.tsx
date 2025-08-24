@@ -136,9 +136,19 @@ export default function PricingPage() {
                       <span className="text-3xl font-bold text-gray-800">
                         {pkg.price} ETB
                       </span>
+                      {selectedPlan != "professionals" && (
                       <span className="text-gray-500 text-sm ml-2">
-                        /{selectedPlanData.duration_months} months
+                        /{selectedPlanData.duration_months >= 12
+                            ? `${selectedPlanData.duration_months / 12} year${
+                                selectedPlanData.duration_months / 12 > 1
+                                  ? "s"
+                                  : ""
+                              }`
+                            : `${selectedPlanData.duration_months} month${
+                                selectedPlanData.duration_months > 1 ? "s" : ""
+                              }`}
                       </span>
+                      )}
                     </div>
                     <p className="mt-4 text-gray-600">{pkg.description}</p>
                     <ul className="mt-6 space-y-3 flex-1">

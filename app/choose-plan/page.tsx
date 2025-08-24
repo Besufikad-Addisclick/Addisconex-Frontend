@@ -259,6 +259,7 @@ export default function ChoosePlanPage() {
               <div key={plan.id} className="w-full">
                 <div className="p-6 text-center">
                   <h2 className="text-2xl font-bold">{plan.name} Plan</h2>
+                  {plan.name != "professionals" && (
                   <p className="text-gray-600">
                     Duration:{" "}
                     {plan.duration_months >= 12
@@ -269,6 +270,7 @@ export default function ChoosePlanPage() {
                           plan.duration_months > 1 ? "s" : ""
                         }`}
                   </p>
+                  )}
                 </div>
 
                 <div className="mx-auto max-w-fit">
@@ -299,6 +301,7 @@ export default function ChoosePlanPage() {
                             <span className="text-3xl font-bold text-gray-800">
                               {pkg.price} ETB
                             </span>
+                            {plan.name != "professionals" && (
                             <span className="text-gray-500 text-sm ml-2">
                               /
                               {plan.duration_months >= 12
@@ -309,6 +312,7 @@ export default function ChoosePlanPage() {
                                     plan.duration_months > 1 ? "s" : ""
                                   }`}
                             </span>
+                            )}
                           </div>
                           {pkg.has_free_trial && (
                             <p className="mt-2 text-sm text-green-600">

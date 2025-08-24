@@ -58,13 +58,13 @@ const DashboardHeader = memo(() => {
       label: 'Home',
       path: '/dashboard',
       icon: <Home className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'finishing_subcontractors', 'consultants', 'admin'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','professionals','individuals'],
     },
     {
       label: 'Post',
       path: null,
       icon: <PlusCircle className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'finishing_subcontractors', 'consultants', 'admin'],
+      allowedTypes: [ 'suppliers', 'admin'],
       submenu: [
     {
       label: 'Material Prices',
@@ -82,37 +82,37 @@ const DashboardHeader = memo(() => {
       label: 'Machineries',
       path: '/dashboard/machineries',
       icon: <Wrench className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'finishing_subcontractors', 'consultants', 'admin'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
     },
     {
       label: 'Subcontractors',
       path: '/dashboard/subcontractors',
       icon: <Building2 className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'finishing_subcontractors', 'consultants', 'admin'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
     },
     {
       label: 'Consultants',
       path: '/dashboard/consultants',
       icon: <Building className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'finishing_subcontractors', 'consultants', 'admin'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
     },
     {
       label: 'Contractors',
       path: '/dashboard/othercontractors',
       icon: <Building className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'finishing_subcontractors', 'consultants', 'admin'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
     },
     {
       label: 'Agencies',
       path: '/dashboard/agencies',
       icon: <Building className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'finishing_subcontractors', 'consultants', 'admin'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
     },
     {
       label: 'Professionals',
       path: '/dashboard/professionals',
       icon: <Building className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'finishing_subcontractors', 'consultants', 'admin'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','professionals','individuals'],
     },
   ];
 

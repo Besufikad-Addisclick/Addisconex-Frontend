@@ -164,6 +164,7 @@ export default function PricingPage() {
                         <span className="text-3xl font-bold text-gray-800">
                           {pkg.price} ETB
                         </span>
+                        {selectedPlan != "professionals" && (
                         <span className="text-gray-500 text-sm ml-2">
                           /
                           {selectedPlanData.duration_months >= 12
@@ -176,6 +177,7 @@ export default function PricingPage() {
                                 selectedPlanData.duration_months > 1 ? "s" : ""
                               }`}
                         </span>
+                        )}
                       </div>
                       {pkg.has_free_trial && (
                         <p className="mt-2 text-sm text-green-600">
