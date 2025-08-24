@@ -38,6 +38,7 @@ export async function PUT(request: Request) {
 
   try {
     const formData = await request.formData();  
+    console.log('Received formData:', Array.from(formData.entries()));
     const backendRes = await fetch(`${API_URL}/auth/profile/`, {
       method: "PUT",
       headers: { 
@@ -47,9 +48,16 @@ export async function PUT(request: Request) {
     });
 
     const data = await backendRes.json();
+    if (!backendRes.ok) {
+      // Return the exact error from the backend
+      return NextResponse.json(
+        { error: data.detail || data, status: backendRes.status },
+        { status: backendRes.status }
+      );
+    }
     return NextResponse.json(data, { status: backendRes.status });
   } catch (error) {
-    console.error('Profile update error:', error);
+    console.log('Profile update error:', error);
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
   }
 }

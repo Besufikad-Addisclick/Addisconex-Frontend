@@ -47,7 +47,7 @@ interface UserProfile {
     website: string | null;
     description: string | null;
     contact_person: string;
-    region: { id: number; name: string; note: string };
+    region: number;
     established_year: number | null;
     team_size: number | null;
     equipment: any[];
@@ -71,7 +71,6 @@ interface UserProfile {
     name: string;
     location: string;
     year: number;
-    value: string;
     description: string;
     image?: string | null;
   }>;
@@ -155,7 +154,8 @@ export default function ClientProfilePage() {
             ? [
                 {
                   uid: "-1",
-                  name: data.profile_picture.split("/").pop() || "profile-picture",
+                  name:
+                    data.profile_picture.split("/").pop() || "profile-picture",
                   status: "done",
                   url: data.profile_picture,
                 },
@@ -166,7 +166,7 @@ export default function ClientProfilePage() {
           website: data.user_details?.website,
           description: data.user_details?.description,
           contactPerson: data.user_details?.contact_person,
-          region: data.user_details?.region.id,
+          region: data.user_details?.region,
           establishedYear: data.user_details?.established_year,
           teamSize: data.user_details?.team_size,
           equipment: data.user_details?.equipment || [],
@@ -237,7 +237,10 @@ export default function ClientProfilePage() {
         values.profilePicture.length > 0 &&
         values.profilePicture[0].originFileObj
       ) {
-        formData.append("profile_picture", values.profilePicture[0].originFileObj);
+        formData.append(
+          "profile_picture",
+          values.profilePicture[0].originFileObj
+        );
       }
 
       const userDetailsData = {
@@ -279,7 +282,6 @@ export default function ClientProfilePage() {
           name: project.name,
           location: project.location,
           year: parseInt(project.year),
-          value: project.value,
           description: project.description,
         })
       );
@@ -288,13 +290,13 @@ export default function ClientProfilePage() {
       (values.keyProjects || []).forEach((project: any, index: number) => {
         const fileList = project.image;
         if (fileList && fileList.length > 0 && fileList[0].originFileObj) {
-          formData.append(
+          formData.append( 
             `key_projects[${index}][image]`,
             fileList[0].originFileObj
           );
         }
       });
-      console
+      console;
 
       formData.append("key_projects", JSON.stringify(keyProjectsData));
 
@@ -327,11 +329,35 @@ export default function ClientProfilePage() {
       });
 
       const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(
-          result.detail || result.message || "Failed to update profile"
-        );
+        // Dynamic error handling
+        let errorMessage = "Failed to update profile";
+        if (result.error) {
+          if (typeof result.error === "object") {
+            // Handle field-specific errors (e.g., website, description, region)
+            const fieldErrors = Object.entries(result.error)
+              .map(([field, errors]) => {
+                // Convert field name to human-readable format
+                const fieldName = field
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (c) => c.toUpperCase());
+                // Join multiple errors for the same field
+                const errorMessages = Array.isArray(errors)
+                  ? errors.join(", ")
+                  : errors;
+                return `${fieldName}: ${errorMessages}`;
+              })
+              .join("; ");
+            errorMessage = `Failed to update profile: ${fieldErrors}`;
+          } else if (result.error.detail) {
+            errorMessage = `Failed to update profile: ${result.error.detail}`;
+          } else {
+            errorMessage = `Failed to update profile: ${JSON.stringify(
+              result.error
+            )}`;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       toast({
@@ -348,7 +374,9 @@ export default function ClientProfilePage() {
             ? [
                 {
                   uid: "-1",
-                  name: result.profile_picture.split("/").pop() || "profile-picture",
+                  name:
+                    result.profile_picture.split("/").pop() ||
+                    "profile-picture",
                   status: "done",
                   url: result.profile_picture,
                 },
@@ -359,7 +387,7 @@ export default function ClientProfilePage() {
           website: result.user_details?.website,
           description: result.user_details?.description,
           contactPerson: result.user_details?.contact_person,
-          region: result.user_details?.region.id,
+          region: result.user_details?.region,
           establishedYear: result.user_details?.established_year,
           teamSize: result.user_details?.team_size,
           equipment: result.user_details?.equipment || [],
@@ -408,7 +436,12 @@ export default function ClientProfilePage() {
         });
       }
     } catch (error: any) {
-      console.error("Error updating profile:", error);
+      console.log("Error updating profile:", error);
+      toast({
+        title: "Error!",
+        description: error.message || "Failed to update profile",
+        variant: "destructive", // Use this if your toast component supports error styling
+      });
       message.error(error.message || "Failed to update profile");
     } finally {
       setLoading(false);
@@ -444,7 +477,7 @@ export default function ClientProfilePage() {
     }
   };
 
-const renderSecuritySettings = () => (
+  const renderSecuritySettings = () => (
     <Card title="Security Settings" className="shadow-sm">
       <Form
         form={passwordForm}
@@ -455,7 +488,9 @@ const renderSecuritySettings = () => (
         <Form.Item
           name="currentPassword"
           label="Current Password"
-          rules={[{ required: true, message: "Please enter your current password" }]}
+          rules={[
+            { required: true, message: "Please enter your current password" },
+          ]}
         >
           <Input.Password placeholder="Current password" />
         </Form.Item>
@@ -477,7 +512,8 @@ const renderSecuritySettings = () => (
             { required: true, message: "Please confirm your new password" },
             ({ getFieldValue }) => ({
               validator(_, value) {
-                if (!value || getFieldValue("newPassword") === value) return Promise.resolve();
+                if (!value || getFieldValue("newPassword") === value)
+                  return Promise.resolve();
                 return Promise.reject(new Error("Passwords do not match"));
               },
             }),
@@ -549,7 +585,9 @@ const renderSecuritySettings = () => (
           <Form.Item
             name="firstName"
             label="First Name"
-            rules={[{ required: true, message: "Please enter your first name" }]}
+            rules={[
+              { required: true, message: "Please enter your first name" },
+            ]}
           >
             <Input prefix={<UserOutlined />} placeholder="Enter first name" />
           </Form.Item>
@@ -895,20 +933,7 @@ const renderSecuritySettings = () => (
                       >
                         <Input type="number" placeholder="Year" />
                       </Form.Item>
-
                       <Form.Item
-                        {...restField}
-                        name={[name, "value"]}
-                        label="Value"
-                        rules={[
-                          { required: true, message: "Please enter value" },
-                        ]}
-                      >
-                        <Input placeholder="Project value" />
-                      </Form.Item>
-                    </div>
-
-                    <Form.Item
                       {...restField}
                       name={[name, "description"]}
                       label="Description"
@@ -918,6 +943,9 @@ const renderSecuritySettings = () => (
                     >
                       <TextArea placeholder="Project description" rows={3} />
                     </Form.Item>
+                    </div>
+
+                    
 
                     <Form.Item
                       {...restField}
@@ -1057,7 +1085,7 @@ const renderSecuritySettings = () => (
                       </Form.Item>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Form.Item
                         {...restField}
                         name={[name, "issued_date"]}
@@ -1073,15 +1101,16 @@ const renderSecuritySettings = () => (
                       >
                         <Input type="date" />
                       </Form.Item>
-                    </div>
-
-                    <Form.Item
+                      <Form.Item
                       {...restField}
                       name={[name, "issued_by"]}
                       label="Issued By"
                     >
                       <Input placeholder="Enter issuer" />
                     </Form.Item>
+                    </div>
+
+                    
 
                     <Button
                       type="text"
@@ -1122,7 +1151,6 @@ const renderSecuritySettings = () => (
       </Form>
     </Card>
   );
-  
 
   if (error) {
     return (
@@ -1133,7 +1161,6 @@ const renderSecuritySettings = () => (
       </div>
     );
   }
-
 
   if (!userProfile) {
     return (
@@ -1205,12 +1232,12 @@ const renderSecuritySettings = () => (
         </div>
 
         <div className="lg:col-span-3">
-        {activeTab === "profile" && renderProfileSettings()}
-        {activeTab === "security" && renderSecuritySettings()}
-        {activeTab === "notifications" && renderNotificationSettings()}
-        {activeTab === "payment" && renderPaymentSettings()}
-        {activeTab === "privacy" && renderPrivacySettings()}
-      </div>
+          {activeTab === "profile" && renderProfileSettings()}
+          {activeTab === "security" && renderSecuritySettings()}
+          {activeTab === "notifications" && renderNotificationSettings()}
+          {activeTab === "payment" && renderPaymentSettings()}
+          {activeTab === "privacy" && renderPrivacySettings()}
+        </div>
       </div>
 
       <Modal

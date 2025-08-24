@@ -12,14 +12,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // useEffect(() => {
-  //   if (status === 'loading') return; // Still loading
-    
-  //   if (status === 'unauthenticated') {
-  //     router.push('/auth/login');
-  //     return;
-  //   }
-  // },  [session, status, router]);
+  useEffect(() => {
+    if (status === 'loading') return; // Still loading
+    console.log('Session status:', status);
+    if (status === 'unauthenticated') {
+      router.push('/auth/login');
+      return;
+    }
+  },  [session, status, router]);
 
   if (status === 'loading') {
     return (
