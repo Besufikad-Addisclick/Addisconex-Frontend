@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-white text-lg font-semibold mb-4">ConstructMate</h3>
+            <h3 className="text-white text-lg font-semibold mb-4">AddisCon-EX</h3>
             <p className="mb-4">
               Your trusted partner in construction material procurement and price tracking.
             </p>
@@ -96,7 +96,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-2" />
-                <span>info@constructmate.com</span>
+                <span>info@addiscinex.com</span>
               </li>
             </ul>
           </div>
@@ -104,7 +104,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p>&copy; {new Date().getFullYear()} ConstructMate. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} AddisCon-EX. All rights reserved.</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link href="/privacy" className="hover:text-white transition-colors">
                 Privacy Policy

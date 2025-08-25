@@ -55,11 +55,11 @@ const signupSchema = z
       [
         "contractors",
         "suppliers",
-        "finishing_subcontractors",
+        "subcontractors",
         "consultants",
-        "individuals",
+        "investors",
         "professionals",
-        "labor_agencies",
+        "agencies",
       ],
       {
         required_error: "Please select a user type",
@@ -300,15 +300,15 @@ export default function SignupPage() {
                       <SelectContent>
                         <SelectItem value="suppliers">Suppliers</SelectItem>
                         <SelectItem value="contractors">Contractors</SelectItem>
-                        <SelectItem value="finishing_subcontractors">
+                        <SelectItem value="subcontractors">
                           Subcontractors
                         </SelectItem>
                         <SelectItem value="consultants">Consultants</SelectItem>
-                        <SelectItem value="individuals">Individuals</SelectItem>
+                        <SelectItem value="investors">Investors</SelectItem>
                         <SelectItem value="professionals">
                           Professionals
                         </SelectItem>
-                        <SelectItem value="labor_agencies">Agencies</SelectItem>
+                        <SelectItem value="agencies">Agencies</SelectItem>
                       </SelectContent>
                     </Select>
                     {errors.user_type && (

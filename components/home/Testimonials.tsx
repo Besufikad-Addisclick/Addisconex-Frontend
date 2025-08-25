@@ -22,7 +22,7 @@ const testimonials: Testimonial[] = [
     role: 'Construction Manager',
     company: 'ABC Construction',
     image: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg',
-    content: 'ConstructMate has revolutionized how we source materials. The real-time price tracking saves us both time and money.',
+    content: 'AddisCon-EX has revolutionized how we source materials. The real-time price tracking saves us both time and money.',
     rating: 5,
   },
   {
@@ -53,7 +53,7 @@ const Testimonials = memo(() => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Clients Say</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Hear from construction professionals who have transformed their material procurement process with ConstructMate.
+            Hear from construction professionals who have transformed their material procurement process with AddisCon-EX.
           </p>
         </div>
         {/* Zigzag infinite horizontal scroll */}

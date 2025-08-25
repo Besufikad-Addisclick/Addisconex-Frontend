@@ -123,9 +123,24 @@ export default function LoginPage() {
         description: "You have been logged in successfully.",
       });
       
-      // Force session refresh and redirect
-      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure session is set
-      window.location.href = "/dashboard"; // Hard redirect to trigger middleware
+      // Wait for session to be established, then redirect
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      const checkSession = async () => {
+        const session = await getSession();
+        if (session && attempts < maxAttempts) {
+          window.location.href = "/dashboard"; // Hard redirect to trigger middleware
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(checkSession, 200);
+        } else {
+          // Fallback if session doesn't establish
+          window.location.href = "/dashboard";
+        }
+      };
+      
+      checkSession();
     } catch (err: any) {
       console.error("Caught error:", err);
       if (

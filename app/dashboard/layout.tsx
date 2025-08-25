@@ -4,21 +4,38 @@
 import { SessionProvider } from 'next-auth/react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import './../globals.css';
+
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'loading') return; // Still loading
     console.log('Session status:', status);
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
+    console.log('Session:', session);
+    
+    if (status === 'loading') {
+      setAuthLoading(true);
       return;
     }
+    
+    
+    // if (session?.error === 'RefreshAccessTokenError') {
+    //   console.log('Token refresh failed, redirecting to login');
+    //   router.push('/auth/login');
+    //   return;
+    // }
+    
+    // if (status === 'unauthenticated' || !session?.user) {
+    //   setAuthLoading(false);
+    //   router.push('/auth/login');
+    //   return;
+    // }
   },  [session, status, router]);
 
   if (status === 'loading') {

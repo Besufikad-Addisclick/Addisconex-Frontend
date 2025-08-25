@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"; // Ensure NextRequest is imported
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from '@/lib/auth'; 
 
 interface Region {
   id: string;
