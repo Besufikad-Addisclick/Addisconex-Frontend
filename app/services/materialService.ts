@@ -6,7 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 interface FilterParams {
   searchQuery?: string;
   selectedRegion?: string;
-  selectedVerification?: string;
+  selectedPriceType?: string;
   minPrice?: string;
   maxPrice?: string;
   sort_by?: string;
@@ -23,15 +23,16 @@ export const fetchMaterialDetail = async (
     if (filters.selectedRegion && filters.selectedRegion !== 'all') {
       queryParams.append('region', filters.selectedRegion);
     }
-    if (filters.selectedVerification && filters.selectedVerification !== 'all') {
-      queryParams.append('verification', filters.selectedVerification);
+    if (filters.selectedPriceType && filters.selectedPriceType !== 'all') {
+      queryParams.append('suppliersType', filters.selectedPriceType);
     }
     if (filters.minPrice) queryParams.append('min_price', filters.minPrice);
     if (filters.maxPrice) queryParams.append('max_price', filters.maxPrice);
     
     if (filters.sort_by) queryParams.append('sort_by', filters.sort_by);
+    console.log("fetchMaterialDetail filters",filters);
 
-    const url = `${API_URL}/materials/materials/${materialId}/?${queryParams.toString()}`;
+    const url = `${API_URL}/materials/${materialId}/?${queryParams.toString()}`;
 
     const response = await fetch(url, {
       method: 'GET',

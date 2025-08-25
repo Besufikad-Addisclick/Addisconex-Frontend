@@ -225,7 +225,7 @@ export default function ContactPage() {
             {isSuccess && (
               <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
                 <CheckCircle className="h-5 w-5 text-green-600" />
-                <span className="text-green-800 font-medium">Message sent successfully! We'll get back to you soon.</span>
+                <span className="text-green-800 font-medium">Message sent successfully! We&apos;ll get back to you soon.</span>
               </div>
             )}
 

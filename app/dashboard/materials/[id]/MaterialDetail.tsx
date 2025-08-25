@@ -19,7 +19,7 @@ import { fetchMaterialDetail } from './../../../services/materialService';
 import { MaterialDetailResponse, Price } from './../../../types/material';
 import AdsSection from '@/components/ads/AdsSection';
 
-const verificationStatus = ['all', 'verified', 'unverified'];
+const supplierStatus = ['all', 'manufacturer', 'market'];
 
 const ITEMS_PER_PAGE = 5;
 
@@ -33,7 +33,7 @@ interface FilterSidebarProps {
   filters: {
     searchQuery: string;
     selectedRegion: string;
-    selectedVerification: string;
+    selectedPriceType: string;
     minPrice: string;
     maxPrice: string;
   };
@@ -93,17 +93,17 @@ const FilterSidebar = ({ className = "", filters, regions, onFilterChange, onCle
 
       {/* Verification Status */}
       <div className="mb-6">
-        <h3 className="font-semibold mb-4">Verification Status</h3>
+        <h3 className="font-semibold mb-4">Price</h3>
         <RadioGroup 
-          value={filters.selectedVerification} 
-          onValueChange={(value) => onFilterChange({ ...filters, selectedVerification: value })}
+          value={filters.selectedPriceType} 
+          onValueChange={(value) => onFilterChange({ ...filters, selectedPriceType: value })}
         >
-          {verificationStatus.map((status) => (
-            <div key={status} className="flex items-center space-x-2">
-              <RadioGroupItem value={status} id={`verification-${status}`} />
-              <Label htmlFor={`verification-${status}`}>
-                {status === 'all' ? 'All Suppliers' : 
-                 status === 'verified' ? 'Verified Only' : 'Unverified Only'}
+          {supplierStatus.map((pricetype) => (
+            <div key={pricetype} className="flex items-center space-x-2">
+              <RadioGroupItem value={pricetype} id={`verification-${pricetype}`} />
+              <Label htmlFor={`verification-${pricetype}`}>
+                {pricetype === 'all' ? 'All Suppliers' : 
+                 pricetype === 'market' ? 'Market Only' : 'Manufacturer Only'}
               </Label>
             </div>
           ))}
@@ -183,7 +183,7 @@ export default function MaterialDetail() {
   const [filters, setFilters] = useState({
     searchQuery: '',
     selectedRegion: 'all',
-    selectedVerification: 'all',
+    selectedPriceType: 'all',
     minPrice: '',
     maxPrice: ''
   });
@@ -213,7 +213,7 @@ export default function MaterialDetail() {
     setFilters({
       searchQuery: '',
       selectedRegion: 'all',
-      selectedVerification: 'all',
+      selectedPriceType: 'all',
       minPrice: '',
       maxPrice: ''
     });
@@ -306,7 +306,7 @@ export default function MaterialDetail() {
       </div>
 
       {/* Desktop Filter Sidebar */}
-      <div className="hidden xl:block w-80 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <div className="hidden xl:block w-60 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
         <FilterSidebar 
           filters={filters}
           regions={regions}

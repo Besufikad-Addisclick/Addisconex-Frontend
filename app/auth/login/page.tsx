@@ -122,39 +122,10 @@ export default function LoginPage() {
         title: "Success!",
         description: "You have been logged in successfully.",
       });
-      router.push("/dashboard");
       
-      // Check subscription status after login
-      // try {
-      //   const session = await getSession();
-      //   if (session?.accessToken) {
-      //     const response = await fetch('/api/check-subscriptions', {
-      //       method: 'GET',
-      //       headers: {
-      //         'Authorization': `Bearer ${session.accessToken}`,
-      //         'Content-Type': 'application/json',
-      //       },
-      //     });
-          
-      //     if (response.ok) {
-      //       const subscriptionData = await response.json();
-            
-      //       if (subscriptionData.has_active_subscription) {
-      //         router.push("/dashboard");
-      //       } else if (subscriptionData.active_subscription && subscriptionData.active_subscription.status === 'pending') {
-      //         router.push("/checkout");
-      //       } else {
-      //         router.push("/choose-plan");
-      //       }
-      //     } else {
-      //       // Fallback to choose-plan if subscription check fails
-      //       router.push("/choose-plan");
-      //     }
-      //   }
-      // } catch (error) {
-      //   console.error('Subscription check failed:', error);
-      //   router.push("/choose-plan");
-      // }
+      // Force session refresh and redirect
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure session is set
+      window.location.href = "/dashboard"; // Hard redirect to trigger middleware
     } catch (err: any) {
       console.error("Caught error:", err);
       if (

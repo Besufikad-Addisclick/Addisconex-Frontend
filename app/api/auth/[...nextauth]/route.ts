@@ -94,6 +94,10 @@ export const authOptions: NextAuthOptions = {
       else if (new URL(url).origin === baseUrl) return url
       return baseUrl
     },
+    async signIn({ user, account, profile, email, credentials }) {
+      // Allow sign in
+      return true
+    },
   },
   pages: {
     signIn: '/auth/login',

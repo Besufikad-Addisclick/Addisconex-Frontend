@@ -29,13 +29,16 @@ const VALIDATION_RULES = {
   }
 };
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+
 export async function POST(request: NextRequest) {
   try {
     const body: ContactMessage = await request.json();
     
+
     // Validate required fields
     const { name, email, subject, message } = body;
-    
+
     // Check required fields
     if (!name?.trim()) {
       return NextResponse.json(
@@ -43,21 +46,21 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (!email?.trim()) {
       return NextResponse.json(
         { error: 'Email is required' },
         { status: 400 }
       );
     }
-    
+
     if (!subject?.trim()) {
       return NextResponse.json(
         { error: 'Subject is required' },
         { status: 400 }
       );
     }
-    
+
     if (!message?.trim()) {
       return NextResponse.json(
         { error: 'Message is required' },
@@ -72,7 +75,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (name.trim().length > VALIDATION_RULES.name.maxLength) {
       return NextResponse.json(
         { error: `Name must be no more than ${VALIDATION_RULES.name.maxLength} characters long` },
@@ -96,7 +99,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (subject.trim().length > VALIDATION_RULES.subject.maxLength) {
       return NextResponse.json(
         { error: `Subject must be no more than ${VALIDATION_RULES.subject.maxLength} characters long` },
@@ -111,7 +114,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     if (message.trim().length > VALIDATION_RULES.message.maxLength) {
       return NextResponse.json(
         { error: `Message must be no more than ${VALIDATION_RULES.message.maxLength} characters long` },
@@ -119,34 +122,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Here you would typically:
-    // 1. Save to database
-    // 2. Send email notification
-    // 3. Log the contact request
-    
-    // For now, we'll just log and return success
-    console.log('Contact form submission:', {
-      name: name.trim(),
-      email: email.trim(),
-      subject: subject.trim(),
-      message: message.trim(),
-      timestamp: new Date().toISOString()
+    // Forward the request to the backend
+    const backendResponse = await fetch(`${apiUrl}/send-message/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     });
 
-    // TODO: Implement actual message sending logic
-    // Example: Save to database, send email, etc.
+    if (!backendResponse.ok) {
+      const errorData = await backendResponse.json();
+      console.error('Backend error:', errorData);
+      return NextResponse.json(
+        { error: errorData.error || 'Failed to send message' },
+        { status: backendResponse.status }
+      );
+    }
 
-    return NextResponse.json(
-      { 
-        success: true, 
-        message: 'Message sent successfully! We will get back to you soon.' 
-      },
-      { status: 200 }
-    );
+    const data = await backendResponse.json();
+    return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error processing contact form:', error);
-    
     return NextResponse.json(
       { error: 'Internal server error. Please try again later.' },
       { status: 500 }
