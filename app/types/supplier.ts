@@ -82,7 +82,10 @@ export interface Machinery {
     contact_person: string;
   };
   featured: boolean;
-  specifications: string | null;
+  specification: string  | null;
+  status: "available" | "sold" | "rented" | "pending" | "archived";
+
+
 }
 
 export interface Supplier {
@@ -149,6 +152,8 @@ export interface MachineryPrice {
   price: string;
   featured: boolean;
   price_date: string;
+  specification: string  | null;
+  status: "available" | "sold" | "rented" | "pending" | "archived";
   created_at: string;
   updated_at: string;
 }

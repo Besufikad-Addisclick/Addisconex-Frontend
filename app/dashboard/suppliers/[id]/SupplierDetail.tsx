@@ -126,7 +126,7 @@ export default function SupplierDetail() {
           className="mb-2"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Material Details
+          GO BACK
         </Button>
 
         {/* Supplier Header */}

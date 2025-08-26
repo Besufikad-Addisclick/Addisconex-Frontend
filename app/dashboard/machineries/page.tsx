@@ -17,6 +17,7 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,9 +40,9 @@ import {
   MachineriesData,
 } from "@/app/types/machinery";
 import MachineryAd from "@/components/ads/MachineryAd";
+import Link from "next/link";
 
 // Mock ads data
-
 
 // Fallback image URL for missing images
 const FALLBACK_IMAGE_URL =
@@ -58,8 +59,8 @@ const MachineryCard = ({
   onClick,
   className = "",
 }: MachineryCardProps) => {
-  const imageSrc = machinery.imageUrl || machinery.machineryImageUrl || FALLBACK_IMAGE_URL;
-  
+  const imageSrc =
+    machinery.imageUrl || machinery.machineryImageUrl || FALLBACK_IMAGE_URL;
 
   return (
     <motion.div
@@ -106,16 +107,17 @@ const MachineryCard = ({
             <p className="text-base sm:text-lg font-bold text-primary truncate">
               {Number(machinery.price).toLocaleString()} ETB
             </p>
-            <p className="text-xs text-gray-500">
-              {machinery.type === "rent" && machinery.rental_duration
-                ? machinery.rental_duration
-                : ""}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              {/* <PhoneCall className="h-4 w-4" /> */}
-              {machinery.supplier.phone}
-            </p>
+
+            <div className="flex justify-between text-xs text-gray-500 mt-2">
+              <span>
+                {machinery.type === "rent" && machinery.rental_duration
+                  ? machinery.rental_duration
+                  : ""}
+              </span>
+              <span>{machinery.supplier.phone}</span>
+            </div>
           </div>
+
           {/* <Button
             size="sm"
             variant="ghost"
@@ -414,7 +416,7 @@ export default function MachineriesPage() {
         }
 
         const result = await response.json();
-        console.log("API Response:", result);
+        // console.log("API Response:", result);
 
         // Map backend response (user) to frontend expected structure (supplier)
         const normalizedData: MachineriesData = {
@@ -692,6 +694,7 @@ export default function MachineriesPage() {
                         machinery={machinery}
                         className="w-full"
                         onClick={() => {
+                          // console.log(machinery);
                           setSelectedMachinery(machinery);
                           setIsDetailOpen(true);
                         }}
@@ -736,10 +739,8 @@ export default function MachineriesPage() {
                       className="text-sm"
                       disabled={isLoadingMore}
                     >
-                     {isLoadingMore ? "Loading more":"Load More"
-              }
+                      {isLoadingMore ? "Loading more" : "Load More"}
                     </Button>
-                   
                   </div>
                 )}
               </div>
@@ -777,7 +778,11 @@ export default function MachineriesPage() {
             <div className="space-y-4 sm:space-y-6">
               <div className="relative">
                 <img
-                  src={selectedMachinery.imageUrl || selectedMachinery.machineryImageUrl || FALLBACK_IMAGE_URL}
+                  src={
+                    selectedMachinery.imageUrl ||
+                    selectedMachinery.machineryImageUrl ||
+                    FALLBACK_IMAGE_URL
+                  }
                   alt={selectedMachinery.name}
                   className="w-full h-48 sm:h-64 object-cover rounded-lg"
                 />
@@ -843,24 +848,11 @@ export default function MachineriesPage() {
                   <h3 className="font-semibold mb-3 text-sm sm:text-base">
                     Specifications
                   </h3>
-                  {selectedMachinery.specifications ? (
+                  {selectedMachinery.specification ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {Object.entries(selectedMachinery.specifications).map(
-                        ([key, value]) =>
-                          value && (
-                            <div
-                              key={key}
-                              className="flex justify-between text-sm"
-                            >
-                              <span className="text-gray-600 truncate pr-2">
-                                {key}:
-                              </span>
-                              <span className="font-medium text-right">
-                                {value}
-                              </span>
-                            </div>
-                          )
-                      )}
+                      <div className="flex justify-between text-sm">
+                        {selectedMachinery.specification}
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500">
@@ -890,6 +882,15 @@ export default function MachineriesPage() {
                       <Button className="w-full sm:w-auto">
                         <PhoneCall className="h-4 w-4 mr-2" />
                         {selectedMachinery.supplier.phone}
+                      </Button>
+
+                      <Button size="sm" asChild variant="success">
+                        <Link
+                          href={`/dashboard/suppliers/${selectedMachinery.supplier?.user_id}?materialId=weiuoruw`}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Supplier Profile
+                        </Link>
                       </Button>
                     </div>
                   </div>

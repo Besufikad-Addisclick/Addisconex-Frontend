@@ -7,6 +7,7 @@ export interface Supplier {
   region_name: string;
   rating: number;
   user_email?: string;
+  user_id?: string;
 }
 
 export interface Region {
@@ -40,7 +41,8 @@ export interface Machinery {
   year: number;
   supplier: Supplier;
   featured: boolean;
-  specifications: { [key: string]: string | null | undefined } | null;
+  specification: string  | null;
+  status: "available" | "sold" | "rented" | "pending" | "archived";
 }
 
 export interface MachineriesData {

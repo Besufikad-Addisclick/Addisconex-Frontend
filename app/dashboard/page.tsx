@@ -197,7 +197,7 @@ export default function DashboardPage() {
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [filters, setFilters] = useState({
-    searchQuery: "Cement & Concrete", // Default to Cement & Concrete
+    searchQuery: "Concrete Work", // Default to Cement 
     selectedRegion: "all",
     minPrice: "",
     maxPrice: "",
@@ -228,7 +228,7 @@ export default function DashboardPage() {
           page: "1", // Reset to page 1 on filter or category change
           searchQuery: selectedCategory, // Ensure searchQuery matches selectedCategory
         });
-        console.log("selectedCategory", selectedCategory);
+        // console.log("selectedCategory", selectedCategory);
         console.log(response);
         setData(response);
         setVisibleCount(INITIAL_ITEMS);
@@ -287,13 +287,14 @@ export default function DashboardPage() {
 
   const clearFilters = () => {
     setFilters({
-      searchQuery: selectedCategory, // Preserve selected category
+      searchQuery: "Concrete Work", // Preserve selected category
       selectedRegion: "all",
       minPrice: "",
       maxPrice: "",
       page: "1",
       page_size: INITIAL_ITEMS.toString(),
     });
+    setSelectedCategory("Concrete Work");
     setVisibleCount(INITIAL_ITEMS);
   };
 
@@ -322,43 +323,8 @@ export default function DashboardPage() {
       );
     }
 
-    // Sort materials
-    // filtered.sort((a, b) => {
-    //   let aValue, bValue;
-    //   switch (sortBy) {
-    //     case "name":
-    //       aValue = a.name;
-    //       bValue = b.name;
-    //       break;
-    //     case "marketMinPrice":
-    //       aValue = a.market.minPrice;
-    //       bValue = b.market.minPrice;
-    //       break;
-    //     case "marketMaxPrice":
-    //       aValue = a.market.maxPrice;
-    //       bValue = b.market.maxPrice;
-    //       break;
-    //     case "marketAvgPrice":
-    //       aValue = a.market.avgPrice;
-    //       bValue = b.market.avgPrice;
-    //       break;
-    //     case "marketChange":
-    //       aValue = a.market.change;
-    //       bValue = b.market.change;
-    //       break;
-    //     default:
-    //       aValue = a.name;
-    //       bValue = b.name;
-    //   }
 
-    //   if (typeof aValue === "string") {
-    //     return sortOrder === "asc"
-    //       ? aValue.localeCompare(bValue)
-    //       : bValue.localeCompare(aValue);
-    //   } else {
-    //     return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
-    //   }
-    // });
+   
     filtered.sort((a, b) => {
       let aValue: string | number, bValue: string | number;
       switch (sortBy) {

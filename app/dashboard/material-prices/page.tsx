@@ -24,7 +24,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { fetchMaterialPrices, addNewMaterial } from "../../utils/api";
+import { getSession } from "next-auth/react";
 import { Supplier, Category } from "@/app/types/supplier";
 
 interface Material {
@@ -76,7 +76,7 @@ interface Materials {
 
 export default function PricesPage() {
   const { toast } = useToast();
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const router = useRouter();
   const [supplierMaterials, setSupplierMaterials] = useState<Material[]>([]);
   const [materialsList, setMaterialsList] = useState<Material[]>([]);
@@ -98,16 +98,21 @@ export default function PricesPage() {
   const [filteredMaterials, setFilteredMaterials] = useState<Materials[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState("");
+  const [userID, setUserID] = useState("");
 
   // Set user type, supplier ID, and fetch suppliers/categories for admins
   useEffect(() => {
-    if (!user) return;
-
-    const userType = user.user_type as "admin" | "supplier";
-    const userId = user.id as string;
-
     const initializeData = async () => {
       try {
+        const session = await getSession();
+        console.log("Session user type:", session?.user?.userType);
+        if (!session) return;
+
+        const userType = session?.user?.userType as "admin" | "supplier";
+        setUserRole (userType);
+        const userId = session?.user?.id as string;
+        setUserID(userId);
         setLoading(true);
 
         if (userType === "admin") {
@@ -146,76 +151,78 @@ export default function PricesPage() {
         } else {
           setSelectedSupplier(userId);
           const response = await fetch(`/api/suppliers/${userId}`, {
-          method: "GET",
-          credentials: "include",
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || `Failed to fetch materials: ${response.status}`);
-        }
+            method: "GET",
+            credentials: "include",
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.error || `Failed to fetch materials: ${response.status}`
+            );
+          }
 
-        const data = await response.json();
-        console.log("[PricesPage] Fetched supplier data:", data);
+          const data = await response.json();
+          console.log("[PricesPage] Fetched supplier data:", data);
 
-        // Map material prices to supplierMaterials
-        const mappedMaterials = (data.material_prices || []).map((m: any) => {
-          console.log(`[PricesPage] Mapping material price: ${m.id}`);
-          return {
-            id: m.id,
-            name: m.name || m.material?.name || "Unknown",
-            specification: m.specification || m.material?.specification || "",
-            unit: m.unit || m.material?.unit || "",
-            lastPrice: parseFloat(m.price) || 0,
-            priceDate: m.price_date || "",
-          };
-        });
-        setSupplierMaterials(mappedMaterials);
-        console.log("[PricesPage] Mapped materials:", mappedMaterials);
+          // Map material prices to supplierMaterials
+          const mappedMaterials = (data.material_prices || []).map((m: any) => {
+            console.log(`[PricesPage] Mapping material price: ${m.id}`);
+            return {
+              id: m.id,
+              name: m.name || m.material?.name || "Unknown",
+              specification: m.specification || m.material?.specification || "",
+              unit: m.unit || m.material?.unit || "",
+              lastPrice: parseFloat(m.price) || 0,
+              priceDate: m.price_date || "",
+            };
+          });
+          setSupplierMaterials(mappedMaterials);
+          console.log("[PricesPage] Mapped materials:", mappedMaterials);
 
-        // Set initial prices and useLastPrice
-        setPrices(
-          mappedMaterials.reduce(
-            (acc: { [key: string]: string }, material: any) => ({
-              ...acc,
-              [material.id]: "",
-            }),
-            {}
-          )
-        );
-        setUseLastPrice(
-          mappedMaterials.reduce(
-            (acc: { [key: string]: boolean }, material: any) => ({
-              ...acc,
-              [material.id]: false,
-            }),
-            {}
-          )
-        );
+          // Set initial prices and useLastPrice
+          setPrices(
+            mappedMaterials.reduce(
+              (acc: { [key: string]: string }, material: any) => ({
+                ...acc,
+                [material.id]: "",
+              }),
+              {}
+            )
+          );
+          setUseLastPrice(
+            mappedMaterials.reduce(
+              (acc: { [key: string]: boolean }, material: any) => ({
+                ...acc,
+                [material.id]: false,
+              }),
+              {}
+            )
+          );
 
-        // Filter unpriced materials
-        const pricedMaterialIds = new Set(
-          (data.material_prices || []).map((mp: any) => mp.material.id)
-        );
-        const unpricedMaterials = data.materials.filter(
-          (m: { id: string }) => !pricedMaterialIds.has(m.id)
-        );
-        setFilteredMaterials(unpricedMaterials);
-        console.log("[PricesPage] Unpriced materials:", unpricedMaterials);
+          // Filter unpriced materials
+          const pricedMaterialIds = new Set(
+            (data.material_prices || []).map((mp: any) => mp.material.id)
+          );
+          const unpricedMaterials = data.materials.filter(
+            (m: { id: string }) => !pricedMaterialIds.has(m.id)
+          );
+          setFilteredMaterials(unpricedMaterials);
+          console.log("[PricesPage] Unpriced materials:", unpricedMaterials);
 
-        // Transform categories to include unpriced materials
-        const categoriesWithMaterials = data.categories.map(
-          (cat: { id: number; name: string }) => ({
-            id: cat.id,
-            name: cat.name,
-            materials: unpricedMaterials
-              .filter((m: { category: number }) => m.category === cat.id) // Use cat.id
-              .map((m: { id: string; name: string }) => ({
-                id: m.id,
-                name: m.name,
-              })),
-          })
-        );
-        setCategories(categoriesWithMaterials);
+          // Transform categories to include unpriced materials
+          const categoriesWithMaterials = data.categories.map(
+            (cat: { id: number; name: string }) => ({
+              id: cat.id,
+              name: cat.name,
+              materials: unpricedMaterials
+                .filter((m: { category: number }) => m.category === cat.id) // Use cat.id
+                .map((m: { id: string; name: string }) => ({
+                  id: m.id,
+                  name: m.name,
+                })),
+            })
+          );
+          setCategories(categoriesWithMaterials);
         }
       } catch (error) {
         console.error("Error initializing data:", error);
@@ -230,28 +237,33 @@ export default function PricesPage() {
     };
 
     initializeData();
-  }, [user, toast, router]);
+  }, [toast, router]);
 
   // Derive filtered suppliers using useMemo
   const filteredSuppliers = useMemo(() => {
-    if (user?.user_type !== "admin") return allSuppliers;
+    if (userRole !== "admin") return allSuppliers;
     return allSuppliers.filter((supplier) =>
       supplier.user_details
-        ? supplier.user_details.company_name
+        ? supplier?.user_details?.company_name
         : supplier.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery, allSuppliers, user]);
+  }, [searchQuery, allSuppliers, userRole]);
 
   // Fetch material prices based on selectedSupplier
 
   useEffect(() => {
-    if (!user) return;
-
-    const userType = user.user_type as "admin" | "supplier";
-    const userId = user.id as string;
+    
 
     const fetchMaterials = async () => {
       try {
+        const session = await getSession();
+        console.log("Session user type:", session?.user?.userType);
+        if (!session) return;
+
+        const userType = session?.user?.userType as "admin" | "supplier";
+        setUserRole (userType);
+        const userId = session?.user?.id as string;
+        setUserID(userId);
         setLoading(true);
 
         const response = await fetch(`/api/suppliers/${selectedSupplier}`, {
@@ -308,8 +320,6 @@ export default function PricesPage() {
           )
         );
         if (userType != "admin") {
-          
-
           // Transform categories to include materials from filteredMaterials
           const categoriesWithMaterials = data.categories.map(
             (cat: { id: any; name: any }) => ({
@@ -325,14 +335,14 @@ export default function PricesPage() {
           );
           setCategories(categoriesWithMaterials);
           const pricedMaterialIds = new Set(
-        (data.material_prices || []).map((mp: any) => mp.material.id)
-      );
+            (data.material_prices || []).map((mp: any) => mp.material.id)
+          );
           const unpricedMaterials = data.materials.filter(
-        (m: { id: string }) => !pricedMaterialIds.has(m.id)
-      );
+            (m: { id: string }) => !pricedMaterialIds.has(m.id)
+          );
 
-      setFilteredMaterials(unpricedMaterials);
-      console.log("[PricesPage] Unpriced materials:", unpricedMaterials);
+          setFilteredMaterials(unpricedMaterials);
+          console.log("[PricesPage] Unpriced materials:", unpricedMaterials);
         }
       } catch (error: any) {
         console.error(
@@ -394,21 +404,45 @@ export default function PricesPage() {
     }
   };
 
+  // const validatePrices = () => {
+  //   const errors: { [key: string]: string } = {};
+  //   Object.entries(prices).forEach(([materialId, price]) => {
+  //     if (!price) {
+  //       errors[materialId] = "Price is required";
+  //     } else {
+  //       const numPrice = parseFloat(price);
+  //       if (isNaN(numPrice) || numPrice <= 0) {
+  //         errors[materialId] = "Invalid price";
+  //       }
+  //     }
+  //   });
+  //   setPriceErrors(errors);
+  //   return Object.keys(errors).length === 0;
+  // };
   const validatePrices = () => {
-    const errors: { [key: string]: string } = {};
-    Object.entries(prices).forEach(([materialId, price]) => {
-      if (!price) {
-        errors[materialId] = "Price is required";
+  const errors: { [key: string]: string } = {};
+  let hasValidPrice = false;
+
+  Object.entries(prices).forEach(([materialId, price]) => {
+    if (price) {
+      const numPrice = parseFloat(price);
+      if (isNaN(numPrice) || numPrice <= 0) {
+        errors[materialId] = "Invalid price";
       } else {
-        const numPrice = parseFloat(price);
-        if (isNaN(numPrice) || numPrice <= 0) {
-          errors[materialId] = "Invalid price";
-        }
+        hasValidPrice = true; // At least one valid price found
       }
-    });
-    setPriceErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+    }
+    // Skip error if price is empty here, no error set
+  });
+
+  if (!hasValidPrice) {
+    errors["noValidPrice"] = "At least one valid price must be entered";
+  }
+
+  setPriceErrors(errors);
+  return Object.keys(errors).length === 0;
+};
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -657,7 +691,7 @@ export default function PricesPage() {
         .map((m) => ({ id: m.id, name: m.name }))
     : [];
 
-  if (!user || loading) {
+  if (!userRole || loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
         <motion.div
@@ -707,7 +741,7 @@ export default function PricesPage() {
         className="bg-white rounded-lg shadow-sm p-4 sm:p-6"
       >
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4">
-          {user.user_type === "admin" && (
+          {userRole && userRole === "admin" && (
             <div className="w-full sm:w-80">
               <Label
                 htmlFor="supplier-select"
@@ -892,7 +926,7 @@ export default function PricesPage() {
                 No materials available
               </p>
               <p className="text-sm text-gray-500 max-w-md">
-                {user.user_type === "admin"
+                {userRole &&  userRole === "admin"
                   ? "Select a supplier to view their materials or add a new material."
                   : "No materials found for your account. Add a new material to get started."}
               </p>

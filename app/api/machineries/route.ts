@@ -55,7 +55,7 @@ export async function GET(request: Request) {
     }
 
     const data = await response.json();
-
+// console.log('Raw machineries data:', data.results);
     // Normalize the response to match MachineriesData interface
     const normalizedData: MachineriesData = {
       suppliers: data.results || [],
@@ -66,6 +66,7 @@ export async function GET(request: Request) {
       previous: data.previous || null,
       count: data.count || null,
     };
+    // console.log('Machineries data fetched:', normalizedData);
 
     return NextResponse.json(normalizedData);
   } catch (error: any) {

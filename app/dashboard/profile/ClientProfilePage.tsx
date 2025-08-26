@@ -27,6 +27,8 @@ import {
 import { User, Shield, Bell, CreditCard, Lock, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getSession } from "next-auth/react";
+import { useRouter } from 'next/navigation';
+import { handleApiError } from '@/app/utils/apiErrorHandler';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -101,6 +103,7 @@ export default function ClientProfilePage() {
   const [passwordForm] = Form.useForm();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   // Predefined options for languages and skills
   const languageOptions = [
@@ -138,6 +141,13 @@ export default function ClientProfilePage() {
         });
         if (!response.ok) {
           const errorData = await response.json();
+          
+          // Handle 401 errors
+          if (response.status === 401) {
+            handleApiError({ status: 401, message: errorData.error }, router);
+            return;
+          }
+          
           throw new Error(
             errorData.error ||
               `Failed to fetch subcontractor: ${response.status}`
@@ -219,6 +229,10 @@ export default function ClientProfilePage() {
         });
       } catch (err: any) {
         console.error("Error fetching subcontractor:", err.message);
+        if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+          handleApiError(err, router);
+          return;
+        }
         setError(err.message);
       } finally {
         setLoading(false);
@@ -334,7 +348,12 @@ export default function ClientProfilePage() {
 
       const result = await response.json();
       if (!response.ok) {
+        const error = await response.json();
         // Dynamic error handling
+        if (response.status === 401) {
+          handleApiError({ status: 401, message: error.detail }, router);
+          return;
+        }
         let errorMessage = "Failed to update profile";
         if (result.error) {
           if (typeof result.error === "object") {
@@ -469,6 +488,10 @@ export default function ClientProfilePage() {
 
       if (!response.ok) {
         const error = await response.json();
+        if (response.status === 401) {
+          handleApiError({ status: 401, message: error.detail }, router);
+          return;
+        }
         throw new Error(error.detail || "Failed to change password");
       }
 

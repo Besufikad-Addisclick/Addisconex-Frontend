@@ -9,7 +9,7 @@ import Header from '@/components/layout/Header';
 import { auth, SubscriptionPlan } from '@/lib/auth';
 
 export default function PricingPage() {
-  const [selectedPlan, setSelectedPlan] = useState<string>('Suppliers');
+  const [selectedPlan, setSelectedPlan] = useState<string>('suppliers');
   const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

@@ -34,6 +34,8 @@ export async function PUT(request: NextRequest) {
     const year = formData.get("year")?.toString();
     const condition = formData.get("condition")?.toString();
     const rental_duration = formData.get("rental_duration")?.toString();
+    const specification = formData.get("specification")?.toString();
+    const status = formData.get("status")?.toString();
 
     if (!user_id || !machinery || !price) {
       console.error("[UpdateMaterial] Invalid payload:", { user_id, category, machinery, price });
@@ -54,6 +56,8 @@ export async function PUT(request: NextRequest) {
     if (year) backendFormData.append("year", year);
     if (condition) backendFormData.append("condition", condition);
     if (rental_duration) backendFormData.append("condition", rental_duration);
+    if (specification) backendFormData.append("specification", specification);
+    if (status) backendFormData.append("status", status);
 
     const url = `${API_BASE_URL}/add-machineries/${id}/`;
     console.log(`[UpdateMaterial] Fetching from backend: ${url}`);

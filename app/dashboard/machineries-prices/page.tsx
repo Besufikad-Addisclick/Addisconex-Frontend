@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import {
   Supplier,
@@ -31,6 +30,8 @@ import {
   Machinery,
   MachineryPrice,
 } from "@/app/types/supplier";
+import { getSession } from "next-auth/react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface NewMaterialForm {
   category: string;
@@ -42,6 +43,8 @@ interface NewMaterialForm {
   year: string;
   condition: string;
   rental_duration: string;
+  specification: string; // Object for key-value pairs
+  status: "available" | "sold" | "rented" | "pending" | "archived";
 }
 
 interface EditMaterialForm {
@@ -56,6 +59,8 @@ interface EditMaterialForm {
   year: string;
   condition: string;
   rental_duration: string;
+  specification: string | null; // Object for key-value pairs
+  status: "available" | "sold" | "rented" | "pending" | "archived";
 }
 
 interface FormErrors {
@@ -68,11 +73,12 @@ interface FormErrors {
   year?: string;
   condition?: string;
   rental_duration?: string;
+  specification?: string;
+  status?: string;
 }
 
 export default function MachineriesPrice() {
   const { toast } = useToast();
-  const { user } = useAuth();
   const router = useRouter();
   const [supplierMaterials, setSupplierMaterials] = useState<MachineryPrice[]>(
     []
@@ -90,6 +96,8 @@ export default function MachineriesPrice() {
     year: "",
     condition: "",
     rental_duration: "hour",
+    specification: "", // Initialize as empty object
+    status: "available",
   });
   const [editMaterial, setEditMaterial] = useState<EditMaterialForm | null>(
     null
@@ -105,15 +113,18 @@ export default function MachineriesPrice() {
   );
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState("");
+  const [userID, setUserID] = useState("");
 
   // Set user type, supplier ID, and fetch suppliers/categories for admins
   useEffect(() => {
-    if (!user) return;
-
-    const userType = user.user_type as "admin" | "supplier";
-    const userId = user.id as string;
-
     const initializeData = async () => {
+      const session = await getSession();
+      if (!session) return;
+      const userType = session?.user?.userType as "admin" | "supplier";
+      setUserRole(userType);
+      const userId = session?.user?.id as string;
+      setUserID(userId);
       try {
         setLoading(true);
 
@@ -165,7 +176,6 @@ export default function MachineriesPrice() {
           setCategories(categoriesWithMaterials);
         } else {
           setSelectedSupplier(userId);
-          //app\api\machineries\supplier-machineries\[id]\route.ts
           const response = await fetch(
             `/api/machineries/supplier-machineries/${userId}`,
             {
@@ -181,7 +191,10 @@ export default function MachineriesPrice() {
           }
 
           const data = await response.json();
-          console.log("[PricesPage] Fetched supplier data:", data);
+          console.log(
+            "[PricesPage] Fetched supplier data :",
+            data.machinery_prices
+          );
 
           // Map material prices
           const mappedMaterials = (data.machinery_prices || []).map(
@@ -197,6 +210,8 @@ export default function MachineriesPrice() {
                 rental_duration: m.rental_duration || "",
                 price: parseFloat(m.price) || 0,
                 price_date: m.price_date || "",
+                specification: m.specification || null,
+                status: m.status || "available",
               };
             }
           );
@@ -243,17 +258,17 @@ export default function MachineriesPrice() {
     };
 
     initializeData();
-  }, [user, toast, router]);
+  }, [toast, router]);
 
   // Derive filtered suppliers using useMemo
   const filteredSuppliers = useMemo(() => {
-    if (user?.user_type !== "admin") return allSuppliers;
+    if (userRole !== "admin") return allSuppliers;
     return allSuppliers.filter((supplier) =>
       supplier.user_details
         ? supplier.user_details.company_name
         : supplier.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery, allSuppliers, user]);
+  }, [searchQuery, allSuppliers, userRole]);
 
   // Fetch material prices based on selectedSupplier
 
@@ -262,10 +277,13 @@ export default function MachineriesPrice() {
   }, [selectedSupplier, toast, router]);
 
   const fetchMachineries = async () => {
-    if (!user) return;
+    const session = await getSession();
+    if (!session) return;
 
-    const userType = user.user_type as "admin" | "supplier";
-    const userId = user.id as string;
+    const userType = session?.user?.userType as "admin" | "supplier";
+    setUserRole(userType);
+    const userId = session?.user?.id as string;
+    setUserID(userId);
     try {
       setLoading(true);
       const response = await fetch(
@@ -275,7 +293,7 @@ export default function MachineriesPrice() {
           credentials: "include",
         }
       );
-      console.log(`[PricesPage] Response status: ${response.status}`);
+      // console.log(`[PricesPage] Response status: ${response.status}`);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -302,6 +320,8 @@ export default function MachineriesPrice() {
           rental_duration: m.rental_duration || "",
           price: parseFloat(m.price) || 0,
           price_date: m.price_date || "",
+          specification: m.specification || null,
+          status: m.status || "available",
         };
       });
       console.log("[PricesPage] Mapped materials:", mappedMaterials);
@@ -414,7 +434,6 @@ export default function MachineriesPrice() {
     }
   };
 
-  // Handle add new machinery
   const handleAddNewMaterial = async () => {
     if (!selectedSupplier) {
       toast({
@@ -443,6 +462,9 @@ export default function MachineriesPrice() {
       formData.append("year", newMaterial.year);
       formData.append("condition", newMaterial.condition);
       formData.append("rental_duration", newMaterial.rental_duration);
+      formData.append("specification", newMaterial.specification || "");
+      formData.append("status", newMaterial.status);
+      console.log("newMaterial", newMaterial);
       console.log("formData", formData);
 
       const response = await fetch(`/api/machineries/add-machineries`, {
@@ -473,6 +495,8 @@ export default function MachineriesPrice() {
         year: "",
         condition: "",
         rental_duration: "hour",
+        specification: "",
+        status: "available",
       });
       setImagePreview(null);
       setFormErrors({});
@@ -517,6 +541,9 @@ export default function MachineriesPrice() {
       formData.append("year", editMaterial.year);
       formData.append("condition", editMaterial.condition);
       formData.append("rental_duration", editMaterial.rental_duration);
+      formData.append("specification", editMaterial.specification || "");
+      formData.append("status", editMaterial.status);
+      
 
       const response = await fetch(
         `/api/machineries/add-machineries/${editMaterial.id}`,
@@ -603,7 +630,7 @@ export default function MachineriesPrice() {
         .map((m) => ({ id: m.id, name: m.name }))
     : [];
 
-  if (!user || loading) {
+  if (!userRole || loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
         <motion.div
@@ -653,7 +680,7 @@ export default function MachineriesPrice() {
         className="bg-white rounded-lg shadow-sm p-4 sm:p-6"
       >
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4">
-          {user.user_type === "admin" && (
+          {userRole === "admin" && (
             <div className="w-full sm:w-80">
               <Label
                 htmlFor="supplier-select"
@@ -944,6 +971,7 @@ export default function MachineriesPrice() {
                         </p>
                       )}
                     </div>
+
                     <div className="space-y-1">
                       <Label htmlFor="rental_duration">Rental Duration</Label>
                       <Select
@@ -982,6 +1010,69 @@ export default function MachineriesPrice() {
                         </p>
                       )}
                     </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="status">Status</Label>
+                      <Select
+                        value={editMaterial?.status || "available"}
+                        onValueChange={(value) => {
+                          setEditMaterial((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  status: value as EditMaterialForm["status"],
+                                }
+                              : prev
+                          );
+                          setFormErrors((prev) => ({ ...prev, status: "" }));
+                        }}
+                      >
+                        <SelectTrigger
+                          className={formErrors.status ? "border-red-500" : ""}
+                        >
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="available">Available</SelectItem>
+                          <SelectItem value="sold">Sold</SelectItem>
+                          <SelectItem value="rented">Rented</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="archived">Archived</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {formErrors.status && (
+                        <p className="text-sm text-red-500">
+                          {formErrors.status}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="specification">Specification</Label>
+                      <Textarea
+                        id="specification"
+                        value={newMaterial.specification}
+                        onChange={(e) => {
+                          setNewMaterial((prev) => ({
+                            ...prev,
+                            specification: e.target.value,
+                          }));
+                          setFormErrors((prev) => ({
+                            ...prev,
+                            specification: "",
+                          }));
+                        }}
+                        placeholder="Enter detailed specification..."
+                        className={
+                          formErrors.specification ? "border-red-500" : ""
+                        }
+                      />
+                      {formErrors.specification && (
+                        <p className="text-sm text-red-500">
+                          {formErrors.specification}
+                        </p>
+                      )}
+                    </div>
+
+                    
                   </div>
                   <div className="flex justify-end mt-4">
                     <Button onClick={handleAddNewMaterial}>
@@ -1122,8 +1213,8 @@ export default function MachineriesPrice() {
                             <Image
                               src={imagePreview}
                               alt="Preview"
-                              width={100}
-                              height={100}
+                              width={50}
+                              height={50}
                               className="object-cover rounded"
                             />
                           </div>
@@ -1289,6 +1380,72 @@ export default function MachineriesPrice() {
                           </p>
                         )}
                       </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="status">Status</Label>
+                        <Select
+                          value={editMaterial.status}
+                          onValueChange={(value) => {
+                            setEditMaterial((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    status: value as EditMaterialForm["status"],
+                                  }
+                                : prev
+                            );
+                            setFormErrors((prev) => ({ ...prev, status: "" }));
+                          }}
+                        >
+                          <SelectTrigger
+                            className={
+                              formErrors.status ? "border-red-500" : ""
+                            }
+                          >
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="available">Available</SelectItem>
+                            <SelectItem value="sold">Sold</SelectItem>
+                            <SelectItem value="rented">Rented</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="archived">Archived</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {formErrors.status && (
+                          <p className="text-sm text-red-500">
+                            {formErrors.status}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1 sm:col-span-2">
+                        <Label htmlFor="specification">Specification</Label>
+                        <Textarea
+                          id="specification"
+                          value={editMaterial.specification || ""}
+                          onChange={(e) => {
+                            setEditMaterial((prev) =>
+                              prev
+                                ? { ...prev, specification: e.target.value }
+                                : prev
+                            );
+                            setFormErrors((prev) => ({
+                              ...prev,
+                              specification: "",
+                            }));
+                          }}
+                          placeholder="Enter detailed specification..."
+                          className={
+                            formErrors.specification ? "border-red-500" : ""
+                          }
+                        />
+                        {formErrors.specification && (
+                          <p className="text-sm text-red-500">
+                            {formErrors.specification}
+                          </p>
+                        )}
+                      </div>
+
+                      
                     </div>
                     <div className="flex justify-end mt-4">
                       <Button onClick={handleEditMaterial}>
@@ -1324,7 +1481,7 @@ export default function MachineriesPrice() {
                 No machineries available
               </p>
               <p className="text-sm text-gray-500 max-w-md">
-                {user.user_type === "admin"
+                {userRole === "admin"
                   ? "Select a supplier to view their machineries or add a new machineries."
                   : "No machineries found for your account. Add a new machineries to get started."}
               </p>
@@ -1366,6 +1523,12 @@ export default function MachineriesPrice() {
                   </th>
                   <th className="text-left p-2 sm:p-4 font-semibold text-gray-600">
                     Condition
+                  </th>
+                  <th className="text-left p-2 sm:p-4 font-semibold text-gray-600">
+                   Specification
+                  </th>
+                  <th className="text-left p-2 sm:p-4 font-semibold text-gray-600">
+                    Status
                   </th>
 
                   <th className="text-left p-2 sm:p-4 font-semibold text-gray-600">
@@ -1438,6 +1601,12 @@ export default function MachineriesPrice() {
                     <td className="p-2 sm:p-4 capitalize">
                       {machineryPrice.condition}
                     </td>
+                    <td className="p-2 sm:p-4 capitalize">
+                      {machineryPrice.specification}
+                    </td>
+                    <td className="p-2 sm:p-4 capitalize">
+                      {machineryPrice.status}
+                    </td>
                     <td className="p-2 sm:p-4">
                       <div className="flex gap-2">
                         <Button
@@ -1457,6 +1626,8 @@ export default function MachineriesPrice() {
                               condition: machineryPrice.condition || "",
                               rental_duration:
                                 machineryPrice.rental_duration || "",
+                              specification: machineryPrice.specification || "",
+                              status: machineryPrice.status || "available",
                             });
                             setIsEditDialogOpen(true);
                           }}

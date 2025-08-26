@@ -6,7 +6,7 @@ import { SupplierMachineryPricesData } from "@/app/types/supplier";
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const { id } = await params; // Await params to resolve id
-  console.log(`[SupplierMachineryPrices API] Received request for supplier ID: ${id}`);
+  // console.log(`[SupplierMachineryPrices API] Received request for supplier ID: ${id}`);
 
   const session = await getServerSession(authOptions);
   if (!session?.accessToken) {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const url = `${API_BASE_URL}/machineries/prices/supplier/${id}/`;
-    console.log(`[SupplierMachineryPrices API] Fetching from backend: ${url}`);
+    // console.log(`[SupplierMachineryPrices API] Fetching from backend: ${url}`);
 
     const response = await fetch(url, {
       method: "GET",
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     const data = await response.json();
-    console.log(`[SupplierMachineryPrices API] Raw backend response for supplier ${id}:`, JSON.stringify(data, null, 2));
+    // console.log(`[SupplierMachineryPrices API] Raw backend response for supplier ${id}:`, JSON.stringify(data, null, 2));
 
     if (!response.ok) {
       console.error(`[SupplierMachineryPrices API] Backend error for supplier ${id}: ${response.status} - ${data.error || "Unknown error"}`);
@@ -46,11 +46,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         { status: response.status }
       );
     }
-
+// console.log('Raw supplier machinery prices data:', data.machinery_prices);
     // Format the data to match SupplierMachineryPricesData
     const formattedData: SupplierMachineryPricesData = {
       machinery_prices: (data.machinery_prices || []).map((price: any) => {
-        console.log(`[SupplierMachineryPrices API] Mapping machinery price: ${price.id}`);
+        // console.log(`[SupplierMachineryPrices API] Mapping machinery price: ${price.id}`);
         return {
           id: price.id,
           machinery: {
@@ -95,13 +95,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           image_url: price.image_url || null,
           price: price.price,
           featured: price.featured,
+          specification: price.specification,
+          status: price.status,
           price_date: price.price_date,
           created_at: price.created_at,
           updated_at: price.updated_at,
         };
       }),
       suppliers: (data.suppliers || []).map((supplier: any) => {
-        console.log(`[SupplierMachineryPrices API] Mapping supplier: ${supplier.id}`);
+        // console.log(`[SupplierMachineryPrices API] Mapping supplier: ${supplier.id}`);
         return {
           id: supplier.id,
           email: supplier.email,
@@ -132,7 +134,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         };
       }),
       categories: (data.categories || []).map((category: any) => {
-        console.log(`[SupplierMachineryPrices API] Mapping category: ${category.id}`);
+        // console.log(`[SupplierMachineryPrices API] Mapping category: ${category.id}`);
         return {
           id: category.id,
           name: category.name,
@@ -143,7 +145,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         };
       }),
       machineries: (data.machineries || []).map((machinery: any) => {
-        console.log(`[SupplierMachineryPrices API] Mapping machinery: ${machinery.id}`);
+        // console.log(`[SupplierMachineryPrices API] Mapping machinery: ${machinery.id}`);
         return {
           id: machinery.id,
           name: machinery.name,
@@ -171,15 +173,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       
     };
 
-    console.log(`[SupplierMachineryPrices API] Successfully fetched machinery prices for supplier ${id}:`, {
-      machinery_prices: formattedData.machinery_prices.length,
-      suppliers: formattedData.suppliers.length,
-      categories: formattedData.categories.length,
-      machineries: formattedData.machineries.length,
-    });
+    // console.log(`[SupplierMachineryPrices API] Successfully fetched machinery prices for supplier ${id}:`, {
+    //   machinery_prices: formattedData.machinery_prices.length,
+    //   suppliers: formattedData.suppliers.length,
+    //   categories: formattedData.categories.length,
+    //   machineries: formattedData.machineries.length,
+    // });
     return NextResponse.json(formattedData);
   } catch (error: any) {
-    console.error(`[SupplierMachineryPrices API] Error fetching machinery prices for supplier ${id}:`, error.message);
+    console.log(`[SupplierMachineryPrices API] Error fetching machinery prices for supplier ${id}:`, error.message);
     return NextResponse.json(
       {
         error: "Internal server error",
