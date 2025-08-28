@@ -17,6 +17,7 @@ import {
   Star,
   Phone,
   X,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,10 +38,14 @@ import {
   Category,
   SubcontractorsData,
 } from "@/app/types/subcontractor";
+import AdsSection from "@/components/ads/AdsSection";
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
   "https://via.placeholder.com/300x200?text=No+Image+Available";
+
+const truncate = (str: string, max: number) =>
+  (str && str.length > max ? str.substring(0, max) + '...' : (str || ''));
 
 interface FilterSidebarProps {
   className?: string;
@@ -185,12 +190,8 @@ const FilterSidebar = ({
 };
 
 const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
-  const imageSrc = contractor.imageUrl || FALLBACK_IMAGE_URL;
-  if (!contractor.imageUrl) {
-    console.warn(
-      `Missing imageUrl for subcontractor: ${contractor.name} (ID: ${contractor.id})`
-    );
-  }
+  const imageSrc = contractor.imageUrl || '/int.png';
+ 
 
   return (
     <motion.div
@@ -204,7 +205,7 @@ const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
             src={imageSrc}
             alt={contractor.name}
             className="w-full h-full object-cover"
-            style={{ maxHeight: "250px" }}
+            // style={{ maxHeight: "250px" }}
           />
         </div>
         <div className="flex-1 p-6">
@@ -243,10 +244,9 @@ const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
               <span>{contractor.yearsOfExperience}+ Years</span>
             </div>
             <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-gray-400" />
-              <span>
-                {contractor.companyAddress},
-                {contractor.region}
+              <MapPin className="h-5 w-16 text-gray-400" />
+              <span title={`${contractor.companyAddress}, ${contractor.region}`}>
+                {truncate(contractor.companyAddress || '', 10)}, {truncate(contractor.region || '', 10)}
               </span>
             </div>
           </div>
@@ -264,8 +264,9 @@ const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
               <Phone className="h-4 w-4 mr-2" />
               {contractor.phone}
             </Button>
-            <Button asChild>
+            <Button asChild variant="success">
               <Link href={`/dashboard/agencies/${contractor.id}`}>
+              <Eye/> {" "}
                 View Profile
               </Link>
             </Button>
@@ -537,7 +538,7 @@ export default function AgenciesPage() {
           {data.subcontractors.length === 0 && data.next === null ? (
             <EmptyState />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
               {data.subcontractors.map((contractor) => (
                 <SubcontractorCard
                   key={contractor.id}
@@ -564,6 +565,14 @@ export default function AgenciesPage() {
             </div>
           )}
         </div>
+      </div>
+      <div className="hidden xl:block w-80 flex-shrink-0">
+        <AdsSection
+          title="Sponsored Deals"
+          adType=""
+          display_location="ad_sections"
+          isFixed={true}
+        />
       </div>
     </div>
   );

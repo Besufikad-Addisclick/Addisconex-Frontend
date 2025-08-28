@@ -50,6 +50,7 @@ interface UserProfile {
     website: string | null;
     description: string | null;
     contact_person: string;
+    contact_person_phone: string | null;
     region: number;
     established_year: number | null;
     team_size: number | null;
@@ -180,6 +181,7 @@ export default function ClientProfilePage() {
           website: data.user_details?.website,
           description: data.user_details?.description,
           contactPerson: data.user_details?.contact_person,
+          contactPersonPhone: data.user_details?.contact_person_phone,
           region: data.user_details?.region,
           establishedYear: data.user_details?.established_year,
           teamSize: data.user_details?.team_size,
@@ -270,6 +272,7 @@ export default function ClientProfilePage() {
         website: values.website || null,
         description: values.description || null,
         contact_person: values.contactPerson,
+        contact_person_phone: values.contactPersonPhone,
         region: values.region,
         established_year: values.establishedYear
           ? parseInt(values.establishedYear)
@@ -413,6 +416,7 @@ export default function ClientProfilePage() {
           website: result.user_details?.website,
           description: result.user_details?.description,
           contactPerson: result.user_details?.contact_person,
+          contactPersonPhone: result.user_details?.contact_person_phone,
           region: result.user_details?.region,
           establishedYear: result.user_details?.established_year,
           teamSize: result.user_details?.team_size,
@@ -596,7 +600,7 @@ export default function ClientProfilePage() {
           className="space-y-4"
         >
           {/* Basic User Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Form.Item
               name="profilePicture"
               label="Profile Picture"
@@ -680,19 +684,19 @@ export default function ClientProfilePage() {
                 ))}
               </Select>
             </Form.Item>
-            {userRole !== "contractors" && (
-            <Form.Item name="grade" label="Grade">
-              <Select placeholder="Select grade" allowClear>
-                {[...Array(11)].map((_, index) => {
-                  const gradeNumber = index + 1;
-                  return (
-                    <Option key={gradeNumber} value={`grade_${gradeNumber}`}>
-                      {`Grade ${gradeNumber}`}
-                    </Option>
-                  );
-                })}
-              </Select>
-            </Form.Item>
+            {userRole == "contractors" && (
+              <Form.Item name="grade" label="Grade">
+                <Select placeholder="Select grade" allowClear>
+                  {[...Array(11)].map((_, index) => {
+                    const gradeNumber = index + 1;
+                    return (
+                      <Option key={gradeNumber} value={`grade_${gradeNumber}`}>
+                        {`Grade ${gradeNumber}`}
+                      </Option>
+                    );
+                  })}
+                </Select>
+              </Form.Item>
             )}
           </div>
           {userRole !== "admin" && userRole !== "professionals" && (
@@ -747,6 +751,24 @@ export default function ClientProfilePage() {
                     prefix={<UserOutlined />}
                     placeholder="Contact person name"
                   />
+                </Form.Item>
+                <Form.Item
+                  name="contactPersonPhone"
+                  label="Contact Person  phone"
+                  rules={[
+                    {
+                      required:
+                        userRole !== "admin" && userRole !== "professionals",
+                      message: "Please enter your phone number",
+                    },
+                    {
+                      pattern: /^\+2519\d{8}$/,
+                      message:
+                        "Enter a valid Ethiopian phone number like +251912345678",
+                    },
+                  ]}
+                >
+                  <Input prefix={<PhoneOutlined />} placeholder="phone number" />
                 </Form.Item>
                 <Form.Item name="establishedYear" label="Established Year">
                   <Input
@@ -898,7 +920,7 @@ export default function ClientProfilePage() {
           )}
           {(userRole == "contractors" || userRole == "subcontractors") && (
             <>
-              <Divider orientation="left">Equipment</Divider>
+              <Divider orientation="left">Available Machineries</Divider>
               <Form.List name="equipment">
                 {(fields, { add, remove }) => (
                   <>
@@ -907,16 +929,16 @@ export default function ClientProfilePage() {
                         <Form.Item
                           {...restField}
                           name={[name, "name"]}
-                          label="Equipment Name"
+                          label="Machinery Name"
                           className="flex-1"
                           rules={[
                             {
                               required: true,
-                              message: "Please enter equipment name",
+                              message: "Please enter machinery name",
                             },
                           ]}
                         >
-                          <Input placeholder="Equipment name" />
+                          <Input placeholder="machinery name" />
                         </Form.Item>
 
                         <Form.Item
@@ -951,7 +973,7 @@ export default function ClientProfilePage() {
                         block
                         icon={<PlusOutlined />}
                       >
-                        Add Equipment
+                        Add Machinery
                       </Button>
                     </Form.Item>
                   </>
@@ -1145,9 +1167,15 @@ export default function ClientProfilePage() {
                                 <Option value="tax_id">
                                   Tax Identification
                                 </Option>
+                                <Option value="grade_certificate">
+                                  Grade Certificate
+                                </Option>
                                 <Option value="certificate">Certificate</Option>
-                                <Option value="insurance">
-                                  Insurance Certificate
+                                <Option value="testimonials">
+                                  Testimonials{" "}
+                                </Option>
+                                <Option value="awardsAndRecognitions">
+                                  Awards & Recognitions
                                 </Option>
                                 <Option value="other">Other</Option>
                               </Select>
