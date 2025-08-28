@@ -100,6 +100,7 @@ export default function PricesPage() {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
   const [userID, setUserID] = useState("");
+  const [materialSearchQuery, setMaterialSearchQuery] = useState<string>("");
 
   // Set user type, supplier ID, and fetch suppliers/categories for admins
   useEffect(() => {
@@ -110,7 +111,7 @@ export default function PricesPage() {
         if (!session) return;
 
         const userType = session?.user?.userType as "admin" | "supplier";
-        setUserRole (userType);
+        setUserRole(userType);
         const userId = session?.user?.id as string;
         setUserID(userId);
         setLoading(true);
@@ -252,8 +253,6 @@ export default function PricesPage() {
   // Fetch material prices based on selectedSupplier
 
   useEffect(() => {
-    
-
     const fetchMaterials = async () => {
       try {
         const session = await getSession();
@@ -261,7 +260,7 @@ export default function PricesPage() {
         if (!session) return;
 
         const userType = session?.user?.userType as "admin" | "supplier";
-        setUserRole (userType);
+        setUserRole(userType);
         const userId = session?.user?.id as string;
         setUserID(userId);
         setLoading(true);
@@ -420,29 +419,28 @@ export default function PricesPage() {
   //   return Object.keys(errors).length === 0;
   // };
   const validatePrices = () => {
-  const errors: { [key: string]: string } = {};
-  let hasValidPrice = false;
+    const errors: { [key: string]: string } = {};
+    let hasValidPrice = false;
 
-  Object.entries(prices).forEach(([materialId, price]) => {
-    if (price) {
-      const numPrice = parseFloat(price);
-      if (isNaN(numPrice) || numPrice <= 0) {
-        errors[materialId] = "Invalid price";
-      } else {
-        hasValidPrice = true; // At least one valid price found
+    Object.entries(prices).forEach(([materialId, price]) => {
+      if (price) {
+        const numPrice = parseFloat(price);
+        if (isNaN(numPrice) || numPrice <= 0) {
+          errors[materialId] = "Invalid price";
+        } else {
+          hasValidPrice = true; // At least one valid price found
+        }
       }
+      // Skip error if price is empty here, no error set
+    });
+
+    if (!hasValidPrice) {
+      errors["noValidPrice"] = "At least one valid price must be entered";
     }
-    // Skip error if price is empty here, no error set
-  });
 
-  if (!hasValidPrice) {
-    errors["noValidPrice"] = "At least one valid price must be entered";
-  }
-
-  setPriceErrors(errors);
-  return Object.keys(errors).length === 0;
-};
-
+    setPriceErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -685,11 +683,22 @@ export default function PricesPage() {
   };
 
   // Filter materials based on selected category ID
-  const availableMaterials = newMaterial.category
-    ? filteredMaterials
-        .filter((m) => m.category === Number(newMaterial.category))
-        .map((m) => ({ id: m.id, name: m.name }))
-    : [];
+  // const availableMaterials = newMaterial.category
+  //   ? filteredMaterials
+  //       .filter((m) => m.category === Number(newMaterial.category))
+  //       .map((m) => ({ id: m.id, name: m.name }))
+  //   : [];
+  const availableMaterials = useMemo(() => {
+    const filteredByCategory = newMaterial.category
+      ? filteredMaterials
+          .filter((m) => m.category === Number(newMaterial.category))
+          .map((m) => ({ id: m.id, name: m.name }))
+      : [];
+    if (!materialSearchQuery) return filteredByCategory;
+    return filteredByCategory.filter((material) =>
+      material.name.toLowerCase().includes(materialSearchQuery.toLowerCase())
+    );
+  }, [newMaterial.category, filteredMaterials, materialSearchQuery]);
 
   if (!userRole || loading) {
     return (
@@ -842,22 +851,42 @@ export default function PricesPage() {
                           ...prev,
                           material: value,
                         }));
-
                         setFormErrors((prev) => ({ ...prev, material: "" }));
+                        setMaterialSearchQuery(""); // Reset search query on selection
                       }}
                       disabled={!newMaterial.category}
                     >
                       <SelectTrigger
+                        id="material"
                         className={formErrors.material ? "border-red-500" : ""}
                       >
                         <SelectValue placeholder="Select material" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableMaterials.map((material) => (
-                          <SelectItem key={material.id} value={material.id}>
-                            {material.name}
-                          </SelectItem>
-                        ))}
+                        <div className="px-2 py-2">
+                          <Input
+                            placeholder="Search materials..."
+                            value={materialSearchQuery}
+                            onChange={(e) =>
+                              setMaterialSearchQuery(e.target.value)
+                            }
+                            className="w-full"
+                            // prefix={
+                            //   <Search className="h-4 w-4 text-gray-500" />
+                            // }
+                          />
+                        </div>
+                        {availableMaterials.length > 0 ? (
+                          availableMaterials.map((material) => (
+                            <SelectItem key={material.id} value={material.id}>
+                              {material.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="px-4 py-2 text-sm text-gray-500">
+                            No materials found
+                          </div>
+                        )}
                       </SelectContent>
                     </Select>
                     {formErrors.material && (
@@ -926,7 +955,7 @@ export default function PricesPage() {
                 No materials available
               </p>
               <p className="text-sm text-gray-500 max-w-md">
-                {userRole &&  userRole === "admin"
+                {userRole && userRole === "admin"
                   ? "Select a supplier to view their materials or add a new material."
                   : "No materials found for your account. Add a new material to get started."}
               </p>

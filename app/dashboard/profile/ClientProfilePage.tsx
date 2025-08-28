@@ -470,6 +470,7 @@ export default function ClientProfilePage() {
       setLoading(false);
     }
   };
+
   const handlePasswordChange = async (values: any) => {
     setLoading(true);
     try {
