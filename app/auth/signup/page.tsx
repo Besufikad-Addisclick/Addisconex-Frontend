@@ -50,7 +50,9 @@ const signupSchema = z
     password2: z
       .string()
       .min(6, "Confirm password must be at least 6 characters"),
-    phone_number: z.string().min(1, "Phone number is required"), // Ensure phone number is required
+    phone_number: z
+      .string()
+      .regex(/^\+2519\d{8}$/, "Enter a valid Ethiopian phone number like +251912345678"),
     user_type: z.enum(
       [
         "contractors",
@@ -84,6 +86,7 @@ export default function SignupPage() {
     register,
     handleSubmit,
     setValue,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(signupSchema),
@@ -115,7 +118,50 @@ export default function SignupPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+        console.log('Registration error:', errorData);
+
+        let toastMessage = 'Registration failed';
+        if (errorData) {
+          const assignFieldError = (field: string, message: string) => {
+            try {
+              setError(field as any, { type: 'server', message });
+            } catch {}
+          };
+
+          if (typeof errorData === 'object') {
+            const aggregated: string[] = [];
+            for (const [key, val] of Object.entries(errorData)) {
+              if (Array.isArray(val)) {
+                const msg = (val as string[]).join(' ');
+                if (key === 'non_field_errors') {
+                  aggregated.push(msg);
+                } else {
+                  assignFieldError(key, msg);
+                }
+              } else if (typeof val === 'string') {
+                if (key === 'non_field_errors') {
+                  aggregated.push(val);
+                } else {
+                  assignFieldError(key, val);
+                }
+              }
+            }
+            if (aggregated.length > 0) {
+              toastMessage = aggregated[0];
+            } else if ((errorData as any).message) {
+              toastMessage = (errorData as any).message as string;
+            }
+          }
+        }
+
+        toast({
+          title: 'Error',
+          description: toastMessage,
+          variant: 'destructive',
+        });
+
+        setIsLoading(false);
+        return;
       }
       toast({
         title: "Success!",
@@ -125,6 +171,7 @@ export default function SignupPage() {
 
       router.push("/auth/login");
     } catch (error: any) {
+      
       toast({
         title: "Error",
         description:
@@ -269,7 +316,7 @@ export default function SignupPage() {
                       value={phoneNumber}
                       onChange={(value) => {
                         setPhoneNumber(value);
-                        setValue("phone_number", value); // Set the phone number value in the form
+                        setValue("phone_number", value ? `+${value}` : ""); // Ensure + prefix for submission/validation
                       }}
                       buttonClass="phone-input-button"
                       // containerStyle={{ border: "1px solid gray" }}

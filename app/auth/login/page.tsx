@@ -31,7 +31,7 @@ const schema = z
       .or(z.literal("")),
     phone_number: z
       .string()
-      .min(12, "Enter a valid phone number")
+      .regex(/^\+2519\d{8}$/, "Enter a valid Ethiopian phone number like +251912345678")
       .optional()
       .or(z.literal("")),
     password: z.string().min(1, "Password is required"),
@@ -142,7 +142,7 @@ export default function LoginPage() {
       
       checkSession();
     } catch (err: any) {
-      console.error("Caught error:", err);
+      console.log("Caught error:", err);
       if (
         err &&
         typeof err === "object" &&
@@ -199,7 +199,11 @@ export default function LoginPage() {
                       ? "border-b-2 border-orange-500 text-orange-600"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
-                  onClick={() => setLoginMethod("email")}
+                  onClick={() => {
+                    setLoginMethod("email");
+                    setPhoneNumber("");
+                    setValue("phone_number", "");
+                  }}
                 >
                   Email
                 </button>
@@ -210,7 +214,10 @@ export default function LoginPage() {
                       ? "border-b-2 border-orange-500 text-orange-600"
                       : "text-gray-500 hover:text-gray-700"
                   }`}
-                  onClick={() => setLoginMethod("phone")}
+                  onClick={() => {
+                    setLoginMethod("phone");
+                    setValue("email", "");
+                  }}
                 >
                   Phone Number
                 </button>
@@ -255,7 +262,7 @@ export default function LoginPage() {
                         value={phoneNumber}
                         onChange={(value) => {
                           setPhoneNumber(value);
-                          setValue("phone_number", value);
+                          setValue("phone_number", value ? `+${value}` : "");
                         }}
                        
                         countryCodeEditable={false}

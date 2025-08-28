@@ -183,7 +183,6 @@ export const login = async (
       'Content-Type': 'application/json',
     },
     body: body,
-    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -192,7 +191,7 @@ export const login = async (
     try {
       errorData = JSON.parse(text);
     } catch (e) {
-      console.error('Login error: Non-JSON response', text);
+      console.log('Login error: Non-JSON response', text);
       throw new Error(`Login failed: ${response.statusText} (Status: ${response.status})`);
     }
     console.log('Error:', errorData);

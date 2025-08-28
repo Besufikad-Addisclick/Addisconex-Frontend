@@ -17,24 +17,52 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
-          const loginUrl = credentials.email
-            ? `${apiUrl}/auth/login/`
-            : `${apiUrl}/auth/phone-login/`;
+          const email = (credentials.email ?? '').trim();
+          const phone = (credentials.phone_number ?? '').trim();
+          const password = credentials.password ?? '';
 
-          const body = credentials.email
-            ? { email: credentials.email, password: credentials.password }
-            : { phone_number: credentials.phone_number, password: credentials.password };
+          const usePhone = !email && !!phone;
+
+          const loginUrl = usePhone
+            ? `${apiUrl}/auth/phone-login/`
+            : `${apiUrl}/auth/login/`;
+
+          const body = usePhone
+            ? { phone_number: phone, password }
+            : { email, password };
 
           const response = await fetch(loginUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
             body: JSON.stringify(body),
           });
 
           if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Login error:', errorData);
-            throw new Error(errorData.detail || errorData.message || 'Invalid credentials');
+            let message = 'Invalid credentials';
+            try {
+              const errorData = await response.json();
+              console.error('Login error:', errorData);
+              message = (
+                errorData?.detail ||
+                errorData?.message ||
+                errorData?.error ||
+                (Array.isArray(errorData?.non_field_errors) ? errorData.non_field_errors.join(' ') : null) ||
+                // Fallback to join any field validation messages
+                (typeof errorData === 'object' && errorData
+                  ? Object.entries(errorData)
+                      .filter(([, v]) => Array.isArray(v))
+                      .map(([k, v]) => `${k}: ${(v as string[]).join(' ')}`)
+                      .join(' ')
+                  : null) ||
+                message
+              );
+            } catch (parseErr) {
+              console.error('Failed to parse login error response');
+            }
+            throw new Error(message);
           }
 
           const data = await response.json();
@@ -57,7 +85,7 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error: any) {
           console.error('Authentication error:', error.message);
-          return null;
+          throw new Error(error.message || 'Invalid credentials');
         }
       },
     }),

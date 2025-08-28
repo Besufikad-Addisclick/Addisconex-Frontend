@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,15 +8,14 @@ import { CheckCircle, LogOut } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function SubscriptionSuccessPage() {
-  const router = useRouter();
-
+  
   useEffect(() => {
     const timeout = setTimeout(() => {
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     }, 5000); // Redirect after 5 seconds
 
     return () => clearTimeout(timeout); // Cleanup timeout on unmount
-  }, [router]);
+  }, []);
 
   const handleLogout = () => {
     console.log("Logging out user...");
@@ -64,7 +62,9 @@ export default function SubscriptionSuccessPage() {
               </AlertDescription>
             </Alert>
             <Button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => {
+                window.location.href = "/dashboard";
+              }}
               className="bg-[#BF6818] hover:bg-[#a65c15] text-white font-semibold py-2 rounded-lg transition-colors"
             >
               Go to Dashboard Now
