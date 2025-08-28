@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const specification = formData.get("specification")?.toString();
     const status = formData.get("status")?.toString();
 
-    if (!user_id || !category || !machinery || !price || !image_file) {
+    if (!user_id || !category || !machinery || !price) {
       console.error("[AddNewMaterial] Invalid payload:", { user_id, category, machinery, price, image_file });
       return NextResponse.json(
         { message: "Invalid payload: Missing required fields (user_id, category, machinery, price, image_file)" },
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     backendFormData.append("category", category);
     backendFormData.append("machinery", machinery);
     backendFormData.append("price", price);
-    backendFormData.append("image_file", image_file);
+    if (image_file) backendFormData.append("image_file", image_file);
     if (type) backendFormData.append("type", type);
     if (location) backendFormData.append("location", location);
     if (year) backendFormData.append("year", year);

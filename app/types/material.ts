@@ -57,8 +57,8 @@ export interface Price {
   user_details: {
     id: string;
     user_details: {
-      company_name: string;
-      contact_person: string;
+      company_name?: string;
+      contact_person?: string;
       region: number;
     };
     manufacturer: boolean;

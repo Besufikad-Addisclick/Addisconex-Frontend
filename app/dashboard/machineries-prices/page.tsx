@@ -205,7 +205,7 @@ export default function MachineriesPrice() {
                 type: m.type || "",
                 year: m.year || "",
                 location: m.location || "",
-                image_url: m.image_url || "",
+                image_url: m.image_url || "/int.png",
                 condition: m.condition || "",
                 rental_duration: m.rental_duration || "",
                 price: parseFloat(m.price) || 0,
@@ -315,7 +315,7 @@ export default function MachineriesPrice() {
           type: m.type || "",
           year: m.year || "",
           location: m.location || "",
-          image_url: m.image_url || "",
+          image_url: m.image_url || "/int.png",
           condition: m.condition || "",
           rental_duration: m.rental_duration || "",
           price: parseFloat(m.price) || 0,
@@ -390,9 +390,9 @@ export default function MachineriesPrice() {
     } else if (isNaN(parseFloat(form.price)) || parseFloat(form.price) <= 0) {
       errors.price = "Invalid price";
     }
-    if (!form.image_file && !("image_url" in form && form.image_url)) {
-      errors.image_file = "Image is required";
-    }
+    // if (!form.image_file && !("image_url" in form && form.image_url)) {
+    //   errors.image_file = "Image is required";
+    // }
     if (!form.type) {
       errors.type = "Type is required";
     }
@@ -1546,7 +1546,7 @@ export default function MachineriesPrice() {
                       <div className="relative w-20 h-10 rounded overflow-hidden">
                         {machineryPrice.image_url ? (
                           <Image
-                            src={machineryPrice.image_url}
+                            src={machineryPrice.image_url }
                             alt={machineryPrice.machinery.name}
                             fill
                             className="object-cover"

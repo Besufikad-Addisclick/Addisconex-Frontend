@@ -141,7 +141,7 @@ export default function SupplierDetail() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <h1 className="text-2xl font-bold text-gray-900">{supplier.user_details.company_name}</h1>
+                      <h1 className="text-2xl font-bold text-gray-900">{supplier.user_details?.company_name}</h1>
                       {supplier.is_active && (
                         <Badge variant="secondary" className="bg-green-100 text-green-800">
                           Verified
@@ -172,11 +172,11 @@ export default function SupplierDetail() {
                     {copied ? <Check className="h-4 w-4 mr-2" /> : <Share2 className="h-4 w-4 mr-2" />}
                     {copied ? 'Copied!' : 'Share'}
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => (window.location.href = `tel:${supplier.phone_number}`)}>
                     <Phone className="h-4 w-4 mr-2" />
                     Call
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => { window.open(`mailto:${supplier.email}`, '_blank'); }} >
                     <Mail className="h-4 w-4 mr-2" />
                     Email
                   </Button>

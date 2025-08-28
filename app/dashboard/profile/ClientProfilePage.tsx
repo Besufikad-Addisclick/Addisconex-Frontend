@@ -27,8 +27,8 @@ import {
 import { User, Shield, Bell, CreditCard, Lock, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getSession } from "next-auth/react";
-import { useRouter } from 'next/navigation';
-import { handleApiError } from '@/app/utils/apiErrorHandler';
+import { useRouter } from "next/navigation";
+import { handleApiError } from "@/app/utils/apiErrorHandler";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -141,13 +141,13 @@ export default function ClientProfilePage() {
         });
         if (!response.ok) {
           const errorData = await response.json();
-          
+
           // Handle 401 errors
           if (response.status === 401) {
             handleApiError({ status: 401, message: errorData.error }, router);
             return;
           }
-          
+
           throw new Error(
             errorData.error ||
               `Failed to fetch subcontractor: ${response.status}`
@@ -229,7 +229,10 @@ export default function ClientProfilePage() {
         });
       } catch (err: any) {
         console.error("Error fetching subcontractor:", err.message);
-        if (err.message?.includes('401') || err.message?.includes('Unauthorized')) {
+        if (
+          err.message?.includes("401") ||
+          err.message?.includes("Unauthorized")
+        ) {
           handleApiError(err, router);
           return;
         }
@@ -677,6 +680,20 @@ export default function ClientProfilePage() {
                 ))}
               </Select>
             </Form.Item>
+            {userRole !== "contractors" && (
+            <Form.Item name="grade" label="Grade">
+              <Select placeholder="Select grade" allowClear>
+                {[...Array(11)].map((_, index) => {
+                  const gradeNumber = index + 1;
+                  return (
+                    <Option key={gradeNumber} value={`grade_${gradeNumber}`}>
+                      {`Grade ${gradeNumber}`}
+                    </Option>
+                  );
+                })}
+              </Select>
+            </Form.Item>
+            )}
           </div>
           {userRole !== "admin" && userRole !== "professionals" && (
             <>
@@ -875,21 +892,6 @@ export default function ClientProfilePage() {
                     min={0}
                     placeholder="Years of experience"
                   />
-                </Form.Item>
-                <Form.Item name="grade" label="Grade">
-                  <Select placeholder="Select grade" allowClear>
-                    {[...Array(11)].map((_, index) => {
-                      const gradeNumber = index + 1;
-                      return (
-                        <Option
-                          key={gradeNumber}
-                          value={`grade_${gradeNumber}`}
-                        >
-                          {`Grade ${gradeNumber}`}
-                        </Option>
-                      );
-                    })}
-                  </Select>
                 </Form.Item>
               </div>
             </>

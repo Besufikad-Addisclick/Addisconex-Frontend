@@ -58,7 +58,7 @@ const DashboardHeader = memo(() => {
       label: 'Home',
       path: '/dashboard',
       icon: <Home className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','professionals','individuals'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','professionals','individuals','agencies'],
     },
     {
       label: 'Post',
@@ -88,7 +88,7 @@ const DashboardHeader = memo(() => {
       label: 'Subcontractors',
       path: '/dashboard/subcontractors',
       icon: <Building2 className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals','agencies'],
     },
     {
       label: 'Consultants',
@@ -100,7 +100,7 @@ const DashboardHeader = memo(() => {
       label: 'Contractors',
       path: '/dashboard/othercontractors',
       icon: <Building className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals','agencies'],
     },
     {
       label: 'Agencies',

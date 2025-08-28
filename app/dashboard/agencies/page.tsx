@@ -521,7 +521,7 @@ export default function AgenciesPage() {
         </Sheet>
       </div>
 
-      <div className="hidden lg:block w-80 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <div className="hidden lg:block w-60 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
         <FilterSidebar
           filters={filters}
           onFilterChange={setFilters}
