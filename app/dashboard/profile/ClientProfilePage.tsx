@@ -69,6 +69,7 @@ interface UserProfile {
     salary_negotiable?: boolean;
     year_of_experience?: number | null;
     grade?: string | null;
+    category?: { id: string; name: string } | null;
   };
   key_projects: Array<{
     id: string;
@@ -92,6 +93,7 @@ interface UserProfile {
     name: string;
     note: string;
   }>;
+  categories: Array<{ id: string; name: string }>;
 }
 
 export default function ClientProfilePage() {
@@ -99,6 +101,7 @@ export default function ClientProfilePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [regions, setRegions] = useState<UserProfile["regions"]>([]);
+  const [categories, setCategories] = useState<UserProfile["categories"]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
@@ -158,6 +161,7 @@ export default function ClientProfilePage() {
         console.log("Fetched user profile:", data);
         setUserProfile(data);
         setRegions(data.regions);
+        setCategories((data as any).categories || []);
 
         // Populate form fields including profile_picture
         form.setFieldsValue({
@@ -201,6 +205,7 @@ export default function ClientProfilePage() {
           salaryNegotiable: data.user_details?.salary_negotiable ?? false,
           yearOfExperience: data.user_details?.year_of_experience ?? null,
           grade: data.user_details?.grade ?? null,
+          category: data.user_details?.category?.id || undefined,
           keyProjects: (data.key_projects || []).map((proj: any) => ({
             ...proj,
             image: proj.image
@@ -295,6 +300,7 @@ export default function ClientProfilePage() {
           ? parseInt(values.yearOfExperience)
           : null,
         grade: values.grade || null,
+        category: values.category || null,
       };
 
       formData.append("user_details", JSON.stringify(userDetailsData));
@@ -436,6 +442,7 @@ export default function ClientProfilePage() {
           salaryNegotiable: result.user_details?.salary_negotiable ?? false,
           yearOfExperience: result.user_details?.year_of_experience ?? null,
           grade: result.user_details?.grade ?? null,
+          category: result.user_details?.category?.id || undefined,
           keyProjects: (result.key_projects || []).map((proj: any) => ({
             ...proj,
             image: proj.image
@@ -685,19 +692,33 @@ export default function ClientProfilePage() {
               </Select>
             </Form.Item>
             {userRole == "contractors" && (
-              <Form.Item name="grade" label="Grade">
-                <Select placeholder="Select grade" allowClear>
-                  {[...Array(11)].map((_, index) => {
-                    const gradeNumber = index + 1;
-                    return (
-                      <Option key={gradeNumber} value={`grade_${gradeNumber}`}>
-                        {`Grade ${gradeNumber}`}
-                      </Option>
-                    );
-                  })}
-                </Select>
-              </Form.Item>
+              <>
+                <Form.Item name="grade" label="Grade">
+                  <Select placeholder="Select grade" allowClear>
+                    {[...Array(11)].map((_, index) => {
+                      const gradeNumber = index + 1;
+                      return (
+                        <Option
+                          key={gradeNumber}
+                          value={`grade_${gradeNumber}`}
+                        >
+                          {`Grade ${gradeNumber}`}
+                        </Option>
+                      );
+                    })}
+                  </Select>
+                </Form.Item>
+              </>
             )}
+            <Form.Item name="category" label="Area of Specialization">
+              <Select placeholder="Select category" allowClear>
+                {categories.map((cat) => (
+                  <Option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
           </div>
           {userRole !== "admin" && userRole !== "professionals" && (
             <>
@@ -768,7 +789,10 @@ export default function ClientProfilePage() {
                     },
                   ]}
                 >
-                  <Input prefix={<PhoneOutlined />} placeholder="phone number" />
+                  <Input
+                    prefix={<PhoneOutlined />}
+                    placeholder="phone number"
+                  />
                 </Form.Item>
                 <Form.Item name="establishedYear" label="Established Year">
                   <Input
@@ -786,9 +810,9 @@ export default function ClientProfilePage() {
                 </Form.Item>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Form.Item name="description" label="Description">
-                  <TextArea rows={3} placeholder="Describe your company..." />
+                  <TextArea rows={2} placeholder="Describe your company..." />
                 </Form.Item>
               </div>
             </>
