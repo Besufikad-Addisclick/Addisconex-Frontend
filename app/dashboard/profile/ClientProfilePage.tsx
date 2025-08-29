@@ -93,6 +93,7 @@ interface UserProfile {
     name: string;
     note: string;
   }>;
+  labor_categories: Array<{ category_id: string; category_name: string; team_size: number }>;
   categories: Array<{ id: string; name: string }>;
 }
 
@@ -219,6 +220,7 @@ export default function ClientProfilePage() {
                 ]
               : [], // Ensure image is an array
           })),
+          laborCategories: (data.labor_categories || []).map((lc: any) => ({ category_id: lc.category_id, team_size: lc.team_size ?? 0, })) || [], 
           documents:
             data.documents?.map((doc) => ({
               ...doc,
@@ -326,8 +328,14 @@ export default function ClientProfilePage() {
           );
         }
       });
-      console;
 
+      // Prepare labor categories 
+      const laborCategoriesData = (values.laborCategories || []).map((lc: any) => ({
+        category_id: lc.category_id,
+        team_size: lc.team_size ? parseInt(lc.team_size) : 0,
+      }))
+
+      formData.append("labor_categories", JSON.stringify(laborCategoriesData));
       formData.append("key_projects", JSON.stringify(keyProjectsData));
 
       const documentsData = (values.documents || []).map((doc: any) => ({
@@ -351,6 +359,7 @@ export default function ClientProfilePage() {
           }
         });
       }
+      console.log("Submitting formData:", Array.from(formData.entries()));
 
       const response = await fetch("/api/profile", {
         method: "PUT",
@@ -456,6 +465,7 @@ export default function ClientProfilePage() {
                 ]
               : [], // Ensure image is an array
           })),
+          laborCategories: (result.labor_categories || []).map((lc: any) => ({ category_id: lc.category_id, team_size: lc.team_size ?? 0, })) || [], 
           documents:
             result.documents?.map((doc: any) => ({
               ...doc,
@@ -1005,6 +1015,76 @@ export default function ClientProfilePage() {
               </Form.List>
             </>
           )}
+          {userRole === "agencies" && (
+            <>
+              <Divider orientation="left">Labor Categories</Divider>
+              <Form.List name="laborCategories">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, ...restField }) => (
+                      <div key={key} className="flex gap-4 items-end mb-4">
+                        <Form.Item
+                          {...restField}
+                          name={[name, "category_id"]}
+                          label="Category"
+                          className="flex-1"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please select a category",
+                            },
+                          ]}
+                        >
+                          <Select placeholder="Select category">
+                            {categories.map((cat) => (
+                              <Option key={cat.id} value={cat.id}>
+                                {cat.name}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+
+                        <Form.Item
+                          {...restField}
+                          name={[name, "team_size"]}
+                          label="Team Size"
+                          className="w-32"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please enter team size",
+                            },
+                          ]}
+                        >
+                          <Input type="number" placeholder="Team size" />
+                        </Form.Item>
+
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => remove(name)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Form.Item>
+                      <Button
+                        type="dashed"
+                        onClick={() => add()}
+                        block
+                        icon={<PlusOutlined />}
+                      >
+                        Add Labor Category
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+            </>
+          )}
+
           {userRole !== "suppliers" &&
             userRole !== "individuals" &&
             userRole !== "admin" && (
