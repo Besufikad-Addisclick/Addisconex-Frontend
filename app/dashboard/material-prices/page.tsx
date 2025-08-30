@@ -431,7 +431,6 @@ export default function PricesPage() {
           hasValidPrice = true; // At least one valid price found
         }
       }
-      // Skip error if price is empty here, no error set
     });
 
     if (!hasValidPrice) {
@@ -457,7 +456,7 @@ export default function PricesPage() {
     if (!validatePrices()) {
       toast({
         title: "Validation Error",
-        description: "Please correct the errors in the form",
+        description: "At least one valid price must be entered",
         variant: "destructive",
       });
       return;
@@ -465,12 +464,13 @@ export default function PricesPage() {
 
     try {
       console.log("prices", prices);
-
+      const pricedMaterials = Object.entries(prices).filter(([materialId, price]) => price !== "").reduce((acc, [materialId, price]) => ({ ...acc, [materialId]: price }), {})
+console.log("pricedMaterials",pricedMaterials)
       const payload = {
         user_id: selectedSupplier,
-        prices,
+        prices:pricedMaterials,
       };
-      const response = await fetch(`/api/material-prices/update`, {
+      const response = await fetch(`/api/material-price/update`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

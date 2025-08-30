@@ -694,8 +694,8 @@ export async function fetchSingleMaterial(materialId: string, page: string = '1'
     params.append('page', page);
     params.append('page_size', pageSize);
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/materials/single/${materialId}?${params.toString()}`, {
+  
+    const response = await fetch(`/api/materials/single/${materialId}?${params.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

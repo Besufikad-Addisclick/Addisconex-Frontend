@@ -879,7 +879,7 @@ export default function MachineriesPage() {
                           {selectedMachinery.supplier.user_email}
                         </p>
                       </div>
-                      <Button className="w-full sm:w-auto">
+                      <Button className="w-full sm:w-auto" onClick={() => (window.location.href = `tel:${selectedMachinery.supplier.phone}`)}>
                         <PhoneCall className="h-4 w-4 mr-2" />
                         {selectedMachinery.supplier.phone}
                       </Button>

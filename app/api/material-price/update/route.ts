@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const data = await request.json();
-    // console.log("[UpdateMaterialPrices] Sending payload:", JSON.stringify(data, null, 2));
+    console.log("[UpdateMaterialPrices] Sending payload:", JSON.stringify(data, null, 2));
 
     const url = `${API_BASE_URL}/materials/material-prices/update/`;
     // console.log(`[UpdateMaterialPrices] Fetching from backend: ${url}`);

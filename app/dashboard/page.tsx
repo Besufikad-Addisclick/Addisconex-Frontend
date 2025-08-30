@@ -518,7 +518,7 @@ export default function DashboardPage() {
               Avg Market Price
             </h3>
             <p className="text-2xl font-bold text-gray-900">
-              ETB {stats.avgMarketPrice.toLocaleString()}
+               {stats.avgMarketPrice.toLocaleString()} ETB
             </p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -526,7 +526,7 @@ export default function DashboardPage() {
               Avg Manufactured Price
             </h3>
             <p className="text-2xl font-bold text-gray-900">
-              ETB {stats.avgManufacturedPrice.toLocaleString()}
+               {stats.avgManufacturedPrice.toLocaleString()} ETB
             </p>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm border">

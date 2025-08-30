@@ -93,7 +93,11 @@ interface UserProfile {
     name: string;
     note: string;
   }>;
-  labor_categories: Array<{ category_id: string; category_name: string; team_size: number }>;
+  labor_categories: Array<{
+    category_id: string;
+    category_name: string;
+    team_size: number;
+  }>;
   categories: Array<{ id: string; name: string }>;
 }
 
@@ -220,7 +224,11 @@ export default function ClientProfilePage() {
                 ]
               : [], // Ensure image is an array
           })),
-          laborCategories: (data.labor_categories || []).map((lc: any) => ({ category_id: lc.category_id, team_size: lc.team_size ?? 0, })) || [], 
+          laborCategories:
+            (data.labor_categories || []).map((lc: any) => ({
+              category_id: lc.category_id,
+              team_size: lc.team_size ?? 0,
+            })) || [],
           documents:
             data.documents?.map((doc) => ({
               ...doc,
@@ -329,11 +337,13 @@ export default function ClientProfilePage() {
         }
       });
 
-      // Prepare labor categories 
-      const laborCategoriesData = (values.laborCategories || []).map((lc: any) => ({
-        category_id: lc.category_id,
-        team_size: lc.team_size ? parseInt(lc.team_size) : 0,
-      }))
+      // Prepare labor categories
+      const laborCategoriesData = (values.laborCategories || []).map(
+        (lc: any) => ({
+          category_id: lc.category_id,
+          team_size: lc.team_size ? parseInt(lc.team_size) : 0,
+        })
+      );
 
       formData.append("labor_categories", JSON.stringify(laborCategoriesData));
       formData.append("key_projects", JSON.stringify(keyProjectsData));
@@ -465,7 +475,11 @@ export default function ClientProfilePage() {
                 ]
               : [], // Ensure image is an array
           })),
-          laborCategories: (result.labor_categories || []).map((lc: any) => ({ category_id: lc.category_id, team_size: lc.team_size ?? 0, })) || [], 
+          laborCategories:
+            (result.labor_categories || []).map((lc: any) => ({
+              category_id: lc.category_id,
+              team_size: lc.team_size ?? 0,
+            })) || [],
           documents:
             result.documents?.map((doc: any) => ({
               ...doc,
@@ -680,9 +694,9 @@ export default function ClientProfilePage() {
               rules={[
                 { required: true, message: "Please enter your phone number" },
                 {
-                  pattern: /^\+2519\d{8}$/,
+                  pattern: /^\+?2519\d{8}$|09\d{8}$/,
                   message:
-                    "Enter a valid Ethiopian phone number like +251912345678",
+                    "Enter a valid Ethiopian phone number like +251912345678 or 0912345678",
                 },
               ]}
             >
@@ -1406,14 +1420,24 @@ export default function ClientProfilePage() {
   }
 
   if (!userProfile) {
-    return (
-      <div className="p-6">
-        <Card>
-          <Text>Loading profile...</Text>
-        </Card>
-      </div>
-    );
-  }
+  return (
+    <div className="profile-skeleton">
+    <div className="profile-header bg-gray-100 animate-pulse">
+      <div className="profile-picture h-20 w-20 bg-gray-300 rounded-full" />
+      <div className="profile-name h-6 w-40 bg-gray-300 rounded mb-2" />
+    </div>
+    <div className="profile-info bg-gray-100 animate-pulse">
+      <div className="profile-bio h-12 w-3/4 bg-gray-200 rounded mb-2" />
+      <div className="profile-stats h-6 w-2/3 bg-gray-200 rounded mb-2" />
+      <div className="profile-stats h-6 w-1/2 bg-gray-200 rounded mb-2" />
+    </div>
+    <div className="profile-tabs bg-gray-100 animate-pulse">
+      <div className="tab h-10 w-32 bg-gray-300 rounded" />
+      <div className="tab h-10 w-32 bg-gray-200 rounded" />
+    </div>
+  </div>
+  );
+}
 
   return (
     <div className="p-4 max-w-8xl mx-auto">

@@ -127,20 +127,21 @@ export default function LoginPage() {
       let attempts = 0;
       const maxAttempts = 10;
       
-      const checkSession = async () => {
-        const session = await getSession();
-        if (session && attempts < maxAttempts) {
-          window.location.href = "/dashboard"; // Hard redirect to trigger middleware
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(checkSession, 200);
-        } else {
-          // Fallback if session doesn't establish
-          window.location.href = "/dashboard";
-        }
-      };
+      // const checkSession = async () => {
+      //   const session = await getSession();
+      //   if (session && attempts < maxAttempts) {
+      //     window.location.href = "/dashboard"; // Hard redirect to trigger middleware
+      //   } else if (attempts < maxAttempts) {
+      //     attempts++;
+      //     setTimeout(checkSession, 200);
+      //   } else {
+      //     // Fallback if session doesn't establish
+      //     window.location.href = "/dashboard";
+      //   }
+      // };
       
-      checkSession();
+      // checkSession();
+      window.location.href = "/dashboard";
     } catch (err: any) {
       console.log("Caught error:", err);
       if (

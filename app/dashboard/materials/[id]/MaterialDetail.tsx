@@ -1,25 +1,45 @@
 // app/dashboard/materials/[id]/MaterialDetail.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Package,ArrowLeft, Building2, MapPin, Phone, Mail, Eye, Search, X, Filter, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  Package,
+  ArrowLeft,
+  Building2,
+  MapPin,
+  Phone,
+  Mail,
+  Eye,
+  Search,
+  X,
+  Filter,
+  TrendingUp,
+  TrendingDown,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Link from 'next/link';
-import { fetchMaterialDetail } from './../../../services/materialService';
-import { MaterialDetailResponse, Price } from './../../../types/material';
-import AdsSection from '@/components/ads/AdsSection';
+import Link from "next/link";
+import { fetchMaterialDetail } from "./../../../services/materialService";
+import { MaterialDetailResponse, Price } from "./../../../types/material";
+import AdsSection from "@/components/ads/AdsSection";
 
-const supplierStatus = ['all', 'manufacturer', 'market'];
+const supplierStatus = ["all", "manufacturer", "market"];
 
 const ITEMS_PER_PAGE = 5;
 
@@ -42,13 +62,19 @@ interface FilterSidebarProps {
   onClearFilters: () => void;
 }
 
-const FilterSidebar = ({ className = "", filters, regions, onFilterChange, onClearFilters }: FilterSidebarProps) => {
+const FilterSidebar = ({
+  className = "",
+  filters,
+  regions,
+  onFilterChange,
+  onClearFilters,
+}: FilterSidebarProps) => {
   return (
     <div className={`bg-white rounded-lg p-6 shadow-sm ${className}`}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Filter Suppliers</h2>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           onClick={onClearFilters}
           className="text-gray-500 hover:text-gray-700"
@@ -57,7 +83,7 @@ const FilterSidebar = ({ className = "", filters, regions, onFilterChange, onCle
           Clear
         </Button>
       </div>
-      
+
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
@@ -66,7 +92,9 @@ const FilterSidebar = ({ className = "", filters, regions, onFilterChange, onCle
             placeholder="Search suppliers..."
             className="pl-10"
             value={filters.searchQuery}
-            onChange={(e) => onFilterChange({ ...filters, searchQuery: e.target.value })}
+            onChange={(e) =>
+              onFilterChange({ ...filters, searchQuery: e.target.value })
+            }
           />
         </div>
       </div>
@@ -74,9 +102,11 @@ const FilterSidebar = ({ className = "", filters, regions, onFilterChange, onCle
       {/* Region Filter */}
       <div className="mb-6">
         <h3 className="font-semibold mb-4">Region</h3>
-        <RadioGroup 
-          value={filters.selectedRegion} 
-          onValueChange={(value) => onFilterChange({ ...filters, selectedRegion: value })}
+        <RadioGroup
+          value={filters.selectedRegion}
+          onValueChange={(value) =>
+            onFilterChange({ ...filters, selectedRegion: value })
+          }
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="all" id="region-all" />
@@ -94,16 +124,24 @@ const FilterSidebar = ({ className = "", filters, regions, onFilterChange, onCle
       {/* Verification Status */}
       <div className="mb-6">
         <h3 className="font-semibold mb-4">Price</h3>
-        <RadioGroup 
-          value={filters.selectedPriceType} 
-          onValueChange={(value) => onFilterChange({ ...filters, selectedPriceType: value })}
+        <RadioGroup
+          value={filters.selectedPriceType}
+          onValueChange={(value) =>
+            onFilterChange({ ...filters, selectedPriceType: value })
+          }
         >
           {supplierStatus.map((pricetype) => (
             <div key={pricetype} className="flex items-center space-x-2">
-              <RadioGroupItem value={pricetype} id={`verification-${pricetype}`} />
+              <RadioGroupItem
+                value={pricetype}
+                id={`verification-${pricetype}`}
+              />
               <Label htmlFor={`verification-${pricetype}`}>
-                {pricetype === 'all' ? 'All Suppliers' : 
-                 pricetype === 'market' ? 'Market Only' : 'Manufacturer Only'}
+                {pricetype === "all"
+                  ? "All Suppliers"
+                  : pricetype === "market"
+                  ? "Market Only"
+                  : "Manufacturer Only"}
               </Label>
             </div>
           ))}
@@ -118,7 +156,9 @@ const FilterSidebar = ({ className = "", filters, regions, onFilterChange, onCle
             type="number"
             placeholder="Minimum price"
             value={filters.minPrice}
-            onChange={(e) => onFilterChange({ ...filters, minPrice: e.target.value })}
+            onChange={(e) =>
+              onFilterChange({ ...filters, minPrice: e.target.value })
+            }
             min="0"
             className="w-full"
           />
@@ -126,7 +166,9 @@ const FilterSidebar = ({ className = "", filters, regions, onFilterChange, onCle
             type="number"
             placeholder="Maximum price"
             value={filters.maxPrice}
-            onChange={(e) => onFilterChange({ ...filters, maxPrice: e.target.value })}
+            onChange={(e) =>
+              onFilterChange({ ...filters, maxPrice: e.target.value })
+            }
             min="0"
             className="w-full"
           />
@@ -162,30 +204,31 @@ const PriceChangeIndicator = ({ change }: { change: number }) => {
 
 const getRegionName = (regionId: number): string => {
   const regionMap: { [key: number]: string } = {
-    1: 'Amhara',
-    2: 'Addis Ababa',
-    3: 'Afar'
+    1: "Amhara",
+    2: "Addis Ababa",
+    3: "Afar",
   };
-  return regionMap[regionId] || 'Unknown';
+  return regionMap[regionId] || "Unknown";
 };
 
 export default function MaterialDetail() {
   const params = useParams();
   const router = useRouter();
   const materialId = params.id as string;
-  
-  const [materialData, setMaterialData] = useState<MaterialDetailResponse | null>(null);
+
+  const [materialData, setMaterialData] =
+    useState<MaterialDetailResponse | null>(null);
   const [regions, setRegions] = useState<Region[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState('price');
+  const [sortBy, setSortBy] = useState("price");
   const [filters, setFilters] = useState({
-    searchQuery: '',
-    selectedRegion: 'all',
-    selectedPriceType: 'all',
-    minPrice: '',
-    maxPrice: ''
+    searchQuery: "",
+    selectedRegion: "all",
+    selectedPriceType: "all",
+    minPrice: "",
+    maxPrice: "",
   });
 
   useEffect(() => {
@@ -193,12 +236,18 @@ export default function MaterialDetail() {
       try {
         setLoading(true);
         setError(null);
-        // Pass filters to the API call
-        const data = await fetchMaterialDetail(materialId, { ...filters, sort_by: sortBy });
+
+        const data = await fetchMaterialDetail(materialId, {
+          ...filters,
+          sort_by: sortBy,
+        });
+        console.log("data", data);
         setMaterialData(data);
-        setRegions(data.regions || []); // Set regions from API response
+        setRegions(data.regions || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load material data');
+        setError(
+          err instanceof Error ? err.message : "Failed to load material data"
+        );
       } finally {
         setLoading(false);
       }
@@ -211,48 +260,50 @@ export default function MaterialDetail() {
 
   const clearFilters = () => {
     setFilters({
-      searchQuery: '',
-      selectedRegion: 'all',
-      selectedPriceType: 'all',
-      minPrice: '',
-      maxPrice: ''
+      searchQuery: "",
+      selectedRegion: "all",
+      selectedPriceType: "all",
+      minPrice: "",
+      maxPrice: "",
     });
     setCurrentPage(1);
   };
 
-  // Use backend-filtered suppliers directly
+  
   const suppliers = materialData?.prices.results || [];
-  const totalPages = Math.ceil((materialData?.prices.count || 0) / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(
+    (materialData?.prices.count || 0) / ITEMS_PER_PAGE
+  );
   const paginatedSuppliers = suppliers; // Backend handles pagination
 
   if (loading) {
-      return (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
+        <motion.div
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
           <motion.div
-            className="flex flex-col items-center gap-4"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
+            animate={{
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              rotate: { repeat: Infinity, duration: 2, ease: "linear" },
+              scale: { repeat: Infinity, duration: 1, ease: "easeInOut" },
+            }}
           >
-            <motion.div
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                rotate: { repeat: Infinity, duration: 2, ease: "linear" },
-                scale: { repeat: Infinity, duration: 1, ease: "easeInOut" },
-              }}
-            >
-              <Package className="w-12 h-12 text-warning" />
-            </motion.div>
-            <p className="text-lg font-medium text-gray-700">
-              Loading Materials...
-            </p>
+            <Package className="w-12 h-12 text-warning" />
           </motion.div>
-        </div>
-      );
-    }
+          <p className="text-lg font-medium text-gray-700">
+            Loading Materials...
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -291,8 +342,11 @@ export default function MaterialDetail() {
               Filters
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-full sm:w-[540px] overflow-y-auto">
-            <FilterSidebar 
+          <SheetContent
+            side="left"
+            className="w-full sm:w-[540px] overflow-y-auto"
+          >
+            <FilterSidebar
               filters={filters}
               regions={regions}
               onFilterChange={(newFilters) => {
@@ -307,7 +361,7 @@ export default function MaterialDetail() {
 
       {/* Desktop Filter Sidebar */}
       <div className="hidden xl:block w-60 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
-        <FilterSidebar 
+        <FilterSidebar
           filters={filters}
           regions={regions}
           onFilterChange={(newFilters) => {
@@ -321,11 +375,7 @@ export default function MaterialDetail() {
       {/* Main Content */}
       <div className="flex-1 min-w-0 space-y-4">
         {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-2"
-        >
+        <Button variant="ghost" onClick={() => router.back()} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Materials
         </Button>
@@ -337,10 +387,16 @@ export default function MaterialDetail() {
               <Building2 className="h-8 w-8 text-primary" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">{material.name}</h1>
-              <p className="text-lg text-gray-600 mb-2">{material.specification}</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                {material.name}
+              </h1>
+              <p className="text-lg text-gray-600 mb-2">
+                {material.specification}
+              </p>
               {material.description && (
-                <p className="text-sm text-gray-500 mb-3">{material.description}</p>
+                <p className="text-sm text-gray-500 mb-3">
+                  {material.description}
+                </p>
               )}
               <div className="flex items-center gap-4 mb-4">
                 <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
@@ -349,9 +405,7 @@ export default function MaterialDetail() {
                 <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                   Unit: {material.unit}
                 </span>
-                <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                  Region: {material.region}
-                </span>
+                
               </div>
             </div>
           </div>
@@ -364,9 +418,11 @@ export default function MaterialDetail() {
               <h2 className="text-lg font-semibold text-gray-900">
                 Suppliers ({materialData.prices.count || 0})
               </h2>
-              <p className="text-sm text-gray-500">Compare prices from suppliers</p>
+              <p className="text-sm text-gray-500">
+                Compare prices from suppliers
+              </p>
             </div>
-            
+
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Sort by" />
@@ -424,13 +480,13 @@ export default function MaterialDetail() {
                           </div>
                           <div>
                             <div className="font-medium text-gray-900 flex items-center gap-2">
-                              {supplier.user_details.company_name}
-                              {!supplier.manufacturer && (
+                              {supplier?.user_details?.company_name}
+                              {!supplier?.manufacturer && (
                                 <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                                   Market Price
                                 </span>
                               )}
-                              {supplier.manufacturer && (
+                              {supplier?.manufacturer && (
                                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
                                   Manufacturer Price
                                 </span>
@@ -438,11 +494,14 @@ export default function MaterialDetail() {
                             </div>
                             <div className="text-sm text-gray-500 flex items-center gap-1">
                               <MapPin className="h-3 w-3" />
-                              {getRegionName(supplier.user_details.region)}
+                              {getRegionName(supplier?.user_details?.region)}
                             </div>
-                            <div className="text-sm text-gray-500">{supplier.user_details.contact_person}</div>
+                            <div className="text-sm text-gray-500">
+                              {supplier?.user_details?.contact_person}
+                            </div>
                             <div className="text-xs text-gray-400">
-                              {supplier.first_name} {supplier.last_name} | {supplier.phone_number}
+                              {supplier?.first_name} {supplier?.last_name} |{" "}
+                              {supplier?.phone_number}
                             </div>
                           </div>
                         </div>
@@ -451,9 +510,12 @@ export default function MaterialDetail() {
                         <div className="font-medium text-gray-900">
                           ETB {parseFloat(price.price).toLocaleString()}
                         </div>
-                        <div className="text-xs text-gray-500">per {material.unit}</div>
+                        <div className="text-xs text-gray-500">
+                          per {material.unit}
+                        </div>
                         <div className="text-xs text-gray-400">
-                          Date: {new Date(price.price_date).toLocaleDateString()}
+                          Date:{" "}
+                          {new Date(price.price_date).toLocaleDateString()}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-center border-r border-gray-200">
@@ -467,18 +529,27 @@ export default function MaterialDetail() {
                       <td className="px-6 py-4 text-center">
                         <div className="flex flex-col gap-2">
                           <Button size="sm" asChild>
-                            <Link href={`/dashboard/suppliers/${supplier.id}?materialId=${materialId}`}>
+                            <Link
+                              href={`/dashboard/suppliers/${supplier.id}?materialId=${materialId}`}
+                            >
                               <Eye className="h-4 w-4 mr-2" />
                               Details
                             </Link>
                           </Button>
                           <div className="flex gap-1">
-                            <Button size="sm" variant="outline" className="p-1" title="Call">
-                              <Phone className="h-3 w-3" />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="p-1"
+                              title="Call"
+                              onClick={() =>
+                                (window.location.href = `tel:${supplier.phone_number}`)
+                              }
+                            >
+                              <Phone className="h-3 w-3" />{" "}
+                              {supplier.phone_number}
                             </Button>
-                            <Button size="sm" variant="outline" className="p-1" title="Email">
-                              <Mail className="h-3 w-3" />
-                            </Button>
+                            
                           </div>
                         </div>
                       </td>
@@ -494,13 +565,16 @@ export default function MaterialDetail() {
             <div className="px-6 py-4 border-t border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-500">
-                  Showing {paginatedSuppliers.length} of {materialData.prices.count} suppliers
+                  Showing {paginatedSuppliers.length} of{" "}
+                  {materialData.prices.count} suppliers
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
                   >
                     Previous
@@ -511,7 +585,9 @@ export default function MaterialDetail() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
                   >
                     Next
@@ -527,8 +603,12 @@ export default function MaterialDetail() {
               <div className="text-gray-400 mb-4">
                 <Building2 className="h-16 w-16 mx-auto" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No suppliers found</h3>
-              <p className="text-gray-500 mb-4">Try adjusting your filters or search terms.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No suppliers found
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Try adjusting your filters or search terms.
+              </p>
               <Button variant="outline" onClick={clearFilters}>
                 Clear Filters
               </Button>
@@ -544,38 +624,50 @@ export default function MaterialDetail() {
                 <CardTitle>Price History - {material.name}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex items-end justify-between space-x-2">
+                <div className="h-48 flex items-end justify-between space-x-2">
                   {priceHistoryData.map((point, index) => (
-                    <div key={index} className="flex flex-col items-center flex-1">
+                    <div
+                      key={index}
+                      className="flex flex-col items-center flex-1"
+                    >
                       <div className="relative w-full max-w-12 h-48 flex flex-col justify-end">
-                        <div 
+                        <div
                           className="bg-red-200 rounded-t w-full transition-all duration-300 hover:bg-red-300"
-                          style={{ 
-                            height: `${(point.max / Math.max(...priceHistoryData.map(p => p.max))) * 100}%`,
-                            minHeight: '8px'
+                          style={{
+                            height: `${
+                              (point.max /
+                                (point.max + point.avg + point.min)) *
+                              48
+                            }px`,
+                            minHeight: "8px",
                           }}
-                          title={`Max: ETB ${point.max}`}
-                        ></div>
-                        <div 
-                          className="bg-primary rounded w-full transition-all duration-300 hover:bg-primary/80 -mt-1"
-                          style={{ 
-                            height: `${(point.avg / Math.max(...priceHistoryData.map(p => p.max))) * 85}%`,
-                            minHeight: '6px'
+                          title={`Max: ETB ${point.max.toFixed(2)}`}
+                        />
+                        <div
+                          className="bg-yellow-200 rounded-t w-full transition-all duration-300 hover:bg-yellow-300"
+                          style={{
+                            height: `${
+                              (point.avg /
+                                (point.max + point.avg + point.min)) *
+                              48
+                            }px`,
+                            minHeight: "8px",
                           }}
-                          title={`Avg: ETB ${point.avg}`}
-                        ></div>
-                        <div 
-                          className="bg-green-200 rounded-b w-full transition-all duration-300 hover:bg-green-300 -mt-1"
-                          style={{ 
-                            height: `${(point.min / Math.max(...priceHistoryData.map(p => p.max))) * 70}%`,
-                            minHeight: '4px'
+                          title={`Avg: ETB ${point.avg.toFixed(2)}`}
+                        />
+                        <div
+                          className="bg-green-200 rounded-t w-full transition-all duration-300 hover:bg-green-300"
+                          style={{
+                            height: `${
+                              (point.min /
+                                (point.max + point.avg + point.min)) *
+                              48
+                            }px`,
+                            minHeight: "8px",
                           }}
-                          title={`Min: ETB ${point.min}`}
-                        ></div>
+                          title={`Min: ETB ${point.min.toFixed(2)}`}
+                        />
                       </div>
-                      <span className="text-xs text-gray-500 mt-2 transform -rotate-45 origin-left">
-                        {point.month}
-                      </span>
                     </div>
                   ))}
                 </div>
@@ -605,12 +697,24 @@ export default function MaterialDetail() {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-3 px-4 font-semibold text-gray-900">Month</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-900">Min Price</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-900">Max Price</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-900">Avg Price</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-900">Change (%)</th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-900">Change (Amount)</th>
+                        <th className="text-left py-3 px-4 font-semibold text-gray-900">
+                          Month
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-900">
+                          Min Price
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-900">
+                          Max Price
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-900">
+                          Avg Price
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-900">
+                          Change (%)
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-gray-900">
+                          Change (Amount)
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -623,7 +727,9 @@ export default function MaterialDetail() {
                           className="border-b hover:bg-gray-50"
                         >
                           <td className="py-4 px-4">
-                            <div className="font-medium text-gray-900">{data.month}</div>
+                            <div className="font-medium text-gray-900">
+                              {data.month}
+                            </div>
                           </td>
                           <td className="py-4 px-4 text-center">
                             <div className="font-medium text-gray-900">
@@ -644,11 +750,17 @@ export default function MaterialDetail() {
                             <PriceChangeIndicator change={data.change} />
                           </td>
                           <td className="py-4 px-4 text-center">
-                            <div className={`font-medium ${
-                              data.changeAmount > 0 ? 'text-green-600' : 
-                              data.changeAmount < 0 ? 'text-red-600' : 'text-gray-600'
-                            }`}>
-                              {data.changeAmount > 0 ? '+' : ''}ETB {data.changeAmount}
+                            <div
+                              className={`font-medium ${
+                                data.changeAmount > 0
+                                  ? "text-green-600"
+                                  : data.changeAmount < 0
+                                  ? "text-red-600"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              {data.changeAmount > 0 ? "+" : ""}ETB{" "}
+                              {data.changeAmount}
                             </div>
                           </td>
                         </motion.tr>
@@ -660,6 +772,7 @@ export default function MaterialDetail() {
             </Card>
           </div>
         )}
+        
 
         {pricePredictions && pricePredictions.length > 0 && (
           <Card>
@@ -678,19 +791,29 @@ export default function MaterialDetail() {
                   >
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-gray-900">{prediction.timeframe}</span>
+                        <span className="font-medium text-gray-900">
+                          {prediction.timeframe}
+                        </span>
                         <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
                           {prediction.confidence}% Confidence
                         </span>
                       </div>
                       <div className="flex items-center space-x-4">
                         <div>
-                          <span className="text-sm text-gray-500">Current: </span>
-                          <span className="font-medium">ETB {prediction.currentPrice.toLocaleString()}</span>
+                          <span className="text-sm text-gray-500">
+                            Current:{" "}
+                          </span>
+                          <span className="font-medium">
+                            ETB {prediction.currentPrice.toLocaleString()}
+                          </span>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Predicted: </span>
-                          <span className="font-medium">ETB {prediction.predictedPrice.toLocaleString()}</span>
+                          <span className="text-sm text-gray-500">
+                            Predicted:{" "}
+                          </span>
+                          <span className="font-medium">
+                            ETB {prediction.predictedPrice.toLocaleString()}
+                          </span>
                         </div>
                         <div>
                           <PriceChangeIndicator change={prediction.change} />
@@ -699,7 +822,7 @@ export default function MaterialDetail() {
                     </div>
                     <div className="ml-4 w-32">
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-primary h-2 rounded-full transition-all duration-300"
                           style={{ width: `${prediction.confidence}%` }}
                         ></div>
@@ -714,10 +837,10 @@ export default function MaterialDetail() {
       </div>
       <div className="hidden xl:block w-80 flex-shrink-0">
         <AdsSection
-                  title="Sponsored Deals"
-                  adType=""
-                  display_location="ad_sections"
-                />
+          title="Sponsored Deals"
+          adType=""
+          display_location="ad_sections"
+        />
       </div>
     </div>
   );
