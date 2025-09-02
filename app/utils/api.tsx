@@ -261,7 +261,7 @@ interface MaterialResponse {
   pricePredictions: PricePrediction[];
 }
 
-export const fetchWithAuth = async (url: string, options: RequestInit = {}, accessToken: string | null): Promise<Response> => {
+export const fetchWithAuth = async (url: string, options: RequestInit = {}, accessToken: string | null, refreshToken?: string | null): Promise<Response> => {
   try {
     if (!accessToken) {
       console.error('[fetchWithAuth] No access token available');
@@ -281,7 +281,43 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}, acce
 
     if (response.status === 401) {
       console.error('[fetchWithAuth] Unauthorized, attempting to refresh token');
-      throw new Error('No access token found. Please log in again.');
+      
+      // Try to refresh the token if we have a refresh token
+      if (refreshToken) {
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
+          const refreshResponse = await fetch(`${apiUrl}/auth/token/refresh/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh: refreshToken }),
+          });
+
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            const newAccessToken = refreshData.access;
+            
+            // Update the authorization header with the new token
+            headers.set('Authorization', `Bearer ${newAccessToken}`);
+            
+            // Retry the original request with the new token
+            const retryResponse = await fetch(url, {
+              ...options,
+              headers,
+            });
+            
+            if (retryResponse.ok) {
+              return retryResponse;
+            }
+          }
+        } catch (refreshError) {
+          console.error('[fetchWithAuth] Token refresh failed:', refreshError);
+        }
+      }
+      
+      // If refresh failed or no refresh token, throw error to trigger logout
+      throw new Error('Session expired. Please log in again.');
     }
 
     return response;
@@ -783,10 +819,10 @@ export async function fetchSingleMaterial(materialId: string, page: string = '1'
 }
 
 
-export const getSubscriptionPlans = async (accessToken: string | null): Promise<SubscriptionPlan[]> => {
+export const getSubscriptionPlans = async (accessToken: string | null, refreshToken?: string | null): Promise<SubscriptionPlan[]> => {
   const response = await fetchWithAuth('/api/subscription-plans', {
     method: 'GET',
-  }, accessToken);
+  }, accessToken, refreshToken);
 
   if (!response.ok) {
     const text = await response.text();

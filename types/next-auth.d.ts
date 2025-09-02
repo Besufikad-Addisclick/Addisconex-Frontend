@@ -7,12 +7,12 @@ declare module 'next-auth' {
     error?: string
     user: {
       id: string
-      email: string
       name: string
+      email: string
+      userType: string
       firstName: string
       lastName: string
       phoneNumber: string
-      userType: string
       isActive: boolean
     }
   }

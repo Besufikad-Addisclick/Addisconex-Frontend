@@ -5,9 +5,17 @@ import { AuthProvider } from './context/AuthContext';
 import './globals.css';
 import { Inter } from 'next/font/google';
 import { Toaster } from "@/components/ui/toaster";
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
+import { LazyWrapper } from '@/components/performance/LazyWrapper';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap',
+  preload: true,
+});
+
+// Lazy load heavy components
+const LazyToaster = lazy(() => import("@/components/ui/toaster").then(module => ({ default: module.Toaster })));
 
 export default function RootLayout({
   children,
@@ -16,13 +24,27 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
       <body className={inter.className} suppressHydrationWarning>
         <SessionProvider>
           <AuthProvider>
-            <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <LazyWrapper fallback={
+              <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-600">Loading...</p>
+                </div>
+              </div>
+            }>
               {children}
-            </Suspense>
-            <Toaster />
+            </LazyWrapper>
+            <LazyWrapper>
+              <LazyToaster />
+            </LazyWrapper>
           </AuthProvider>
         </SessionProvider>
       </body>

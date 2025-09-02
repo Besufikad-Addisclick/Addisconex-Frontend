@@ -734,7 +734,8 @@ export default function ClientProfilePage() {
                 </Form.Item>
               </>
             )}
-            <Form.Item name="category" label="Area of Specialization">
+            <Form.Item name="category" label="Area of Specialization"
+            rules={[{ required: userRole !== "admin" && userRole !== "professionals" && userRole !== "agencies", message: "Please select a area of Specialization" }]}>
               <Select placeholder="Select category" allowClear>
                 {categories.map((cat) => (
                   <Option key={cat.id} value={cat.id}>
@@ -807,9 +808,9 @@ export default function ClientProfilePage() {
                       message: "Please enter your phone number",
                     },
                     {
-                      pattern: /^\+2519\d{8}$/,
-                      message:
-                        "Enter a valid Ethiopian phone number like +251912345678",
+                      pattern: /^(?:\+2519|09|\+2517|07)\d{8}$/,
+                      message: "Enter a valid Ethiopian phone number like +251912345678 or 0912345678",
+                      
                     },
                   ]}
                 >
@@ -1063,12 +1064,12 @@ export default function ClientProfilePage() {
                           name={[name, "team_size"]}
                           label="Team Size"
                           className="w-32"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter team size",
-                            },
-                          ]}
+                          // rules={[
+                          //   {
+                          //     required: true,
+                          //     message: "Please enter team size",
+                          //   },
+                          // ]}
                         >
                           <Input type="number" placeholder="Team size" />
                         </Form.Item>
@@ -1101,6 +1102,7 @@ export default function ClientProfilePage() {
 
           {userRole !== "suppliers" &&
             userRole !== "individuals" &&
+            userRole !== "agencies" &&
             userRole !== "admin" && (
               <>
                 <Divider orientation="left">Key Projects</Divider>
@@ -1280,11 +1282,9 @@ export default function ClientProfilePage() {
                             >
                               <Select placeholder="Select document type">
                                 <Option value="license">
-                                  Business License
+                                  Business License(Trade License)
                                 </Option>
-                                <Option value="tax_id">
-                                  Tax Identification
-                                </Option>
+                                
                                 <Option value="grade_certificate">
                                   Grade Certificate
                                 </Option>

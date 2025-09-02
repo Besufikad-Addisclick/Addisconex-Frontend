@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useSession, signOut } from 'next-auth/react';
+import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
 import { ProfileOutlined } from '@ant-design/icons';
 import { cn } from '@/lib/utils';
@@ -24,11 +24,11 @@ const DashboardHeader = memo(() => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSubmenuOpen, setIsMobileSubmenuOpen] = useState(false);
-  const { data: session } = useSession();
+  const { session, isLoading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   
-  if (!session?.user) {
+  if (isLoading) {
     return (
       <div className="bg-gray-200 border-b border-gray-200 sticky top-0 z-50 h-16 flex items-center justify-center">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
@@ -36,19 +36,17 @@ const DashboardHeader = memo(() => {
     );
   }
 
+  if (!session?.user) {
+    return null; // Will be handled by ProtectedRoute
+  }
+
   const handleLogout = async () => {
     try {
-      await signOut({ 
-        redirect: false,
-        callbackUrl: '/auth/login'
-      });
-      // Force a hard refresh to ensure session is cleared
-      window.location.href = '/auth/login';
+      await logout();
     } catch (error) {
       console.error('[navbar] Logout error:', error);
     }
   };
-
 
   const avatarInitial = session.user.email?.[0]?.toUpperCase() || 'U';
 

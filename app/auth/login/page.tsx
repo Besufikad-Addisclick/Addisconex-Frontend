@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
@@ -61,6 +61,8 @@ interface LoginErrors {
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const desiredCallbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   const { toast } = useToast();
   const [serverErrors, setServerErrors] = useState<LoginErrors>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -84,21 +86,36 @@ export default function LoginPage() {
     },
   });
 
-  // Check authentication status on mount
+  // Check authentication status on mount and handle errors from URL
   useEffect(() => {
     async function checkAuth() {
       try {
         const session = await getSession();
         if (session) {
-          console.log("[login] User authenticated, redirecting to /dashboard");
-          router.replace("/dashboard");
+          console.log("[login] User authenticated, redirecting to", desiredCallbackUrl);
+          router.replace(desiredCallbackUrl);
         }
       } catch (error) {
         console.error("[login] Auth check error:", error);
       }
     }
+    
+    // Check for error in URL params
+    const urlError = searchParams.get('error');
+    if (urlError) {
+      console.log("[login] URL error:", urlError);
+      setServerErrors({
+        non_field_errors: [decodeURIComponent(urlError)]
+      });
+      toast({
+        title: "Login Error",
+        description: decodeURIComponent(urlError),
+        variant: "destructive",
+      });
+    }
+    
     checkAuth();
-  }, [router]);
+  }, [router, desiredCallbackUrl, searchParams, toast]);
 
   const onSubmit = async (data: any) => {
     setServerErrors({});
@@ -110,54 +127,38 @@ export default function LoginPage() {
         email: data.email,
         phone_number: data.phone_number,
         password: data.password,
-        redirect: false,
+        redirect: false, // Handle redirect manually to show errors
       });
+
+      console.log("SignIn result:", result);
 
       if (result?.error) {
-        throw new Error(result.error);
+        console.log("SignIn error:", result.error);
+        setServerErrors({
+          non_field_errors: [result.error]
+        });
+        toast({
+          title: "Login Error",
+          description: result.error,
+          variant: "destructive",
+        });
+      } else if (result?.ok) {
+        console.log("Login successful, redirecting to:", desiredCallbackUrl);
+        toast({
+          title: "Success!",
+          description: "You have been logged in successfully.",
+        });
+        router.push(desiredCallbackUrl);
       }
-
-      console.log("Login successful");
-      toast({
-        title: "Success!",
-        description: "You have been logged in successfully.",
-      });
-      
-      // Wait for session to be established, then redirect
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      // const checkSession = async () => {
-      //   const session = await getSession();
-      //   if (session && attempts < maxAttempts) {
-      //     window.location.href = "/dashboard"; // Hard redirect to trigger middleware
-      //   } else if (attempts < maxAttempts) {
-      //     attempts++;
-      //     setTimeout(checkSession, 200);
-      //   } else {
-      //     // Fallback if session doesn't establish
-      //     window.location.href = "/dashboard";
-      //   }
-      // };
-      
-      // checkSession();
-      window.location.href = "/dashboard";
     } catch (err: any) {
       console.log("Caught error:", err);
-      if (
-        err &&
-        typeof err === "object" &&
-        (err.email || err.password || err.non_field_errors)
-      ) {
-        setServerErrors(err);
-      } else {
-        setServerErrors({
-          non_field_errors: [err.message || "Login failed. Please try again."],
-        });
-      }
+      const errorMessage = err.message || "Login failed. Please try again.";
+      setServerErrors({
+        non_field_errors: [errorMessage],
+      });
       toast({
         title: "Error",
-        description: err.message || "Invalid email or password",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -362,14 +363,22 @@ export default function LoginPage() {
                   )}
                 </Button>
 
-                <div className="text-center">
+                <div className="text-center space-y-2">
                   <p className="text-sm text-gray-600">
-                    Don’t have an account?{" "}
+                    Don't have an account?{" "}
                     <Link
                       href="/auth/signup"
                       className="font-medium text-primary hover:text-primary/80 transition-colors"
                     >
                       Sign up
+                    </Link>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <Link
+                      href="/auth/forgot-password"
+                      className="font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Forgot your password?
                     </Link>
                   </p>
                 </div>

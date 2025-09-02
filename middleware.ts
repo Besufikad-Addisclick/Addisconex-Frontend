@@ -1,6 +1,10 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
+// Cache for subscription status to avoid repeated API calls
+const subscriptionCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 export default withAuth(
   async function middleware(req) {
     const { pathname } = req.nextUrl;
@@ -10,7 +14,8 @@ export default withAuth(
     if (
       [
         "/auth/login",
-        "/auth/signup",
+        "/auth/signup", 
+        "/auth/forgot-password",
         "/subscription/success",
         "/subscription/failure",
         "/",
@@ -20,7 +25,9 @@ export default withAuth(
         "/blog",
         "/products",
       ].includes(pathname) ||
-      pathname.startsWith("/blog/")
+      pathname.startsWith("/blog/") ||
+      pathname.startsWith("/api/") ||
+      pathname.startsWith("/_next/")
     ) {
       return NextResponse.next();
     }
@@ -28,35 +35,49 @@ export default withAuth(
     // Check for dashboard routes
     if (pathname.startsWith("/dashboard")) {
       if (!token) {
-        return NextResponse.redirect(new URL("/auth/login", req.url));
+        return NextResponse.redirect(new URL(`/auth/login?callbackUrl=${encodeURIComponent(req.url)}`, req.url));
       }
       
-      // Check subscription status for authenticated users
+      // Check subscription status with caching
       try {
+        const userId = token.userId || token.email;
+        const cacheKey = `subscription_${userId}`;
+        const cached = subscriptionCache.get(cacheKey);
         
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
-        const response = await fetch(`${apiUrl}/check-subscription/`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token.accessToken}`,
-            "Content-Type": "application/json",
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
+        let subscriptionData;
+        
+        // Use cached data if available and not expired
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          subscriptionData = cached.data;
+        } else {
+          // Fetch fresh data
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+          const response = await fetch(`${apiUrl}/check-subscription/`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token.accessToken}`,
+              "Content-Type": "application/json",
+            },
+          });
+          
+          if (response.ok) {
+            subscriptionData = await response.json();
+            // Cache the result
+            subscriptionCache.set(cacheKey, {
+              data: subscriptionData,
+              timestamp: Date.now()
+            });
+          }
+        }
 
-          console.log("Subscription chek data:", data);
+        if (subscriptionData) {
           // If user has active subscription, allow access to dashboard
-          if (data.has_active_subscription) {
+          if (subscriptionData.has_active_subscription) {
             return NextResponse.next();
           }
 
           // If user has pending subscription, redirect to checkout
-          if (
-            data.subscription &&
-            data.subscription.status === "pending"
-          ) {
+          if (subscriptionData.subscription?.status === "pending") {
             return NextResponse.redirect(new URL("/checkout", req.url));
           }
 
@@ -64,18 +85,17 @@ export default withAuth(
           return NextResponse.redirect(new URL("/choose-plan", req.url));
         }
       } catch (error) {
-        console.log("Subscription check failed:", error);
+        console.error("Subscription check failed:", error);
         // On error, redirect to choose plan as fallback
         return NextResponse.redirect(new URL("/choose-plan", req.url));
       }
     }
-    console.log("Middleware token:", token?.name);
+
     // Check for checkout route
     if (pathname === "/checkout") {
       if (!token) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
       }
-      // Allow access to checkout for authenticated users
       return NextResponse.next();
     }
 
@@ -84,7 +104,6 @@ export default withAuth(
       if (!token) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
       }
-      // Allow access to choose-plan for authenticated users
       return NextResponse.next();
     }
 
