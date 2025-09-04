@@ -83,14 +83,6 @@ function CheckoutContent() {
   const { data: session } = useSession();
   const { toast } = useToast();
 
-  // Redirect to login if not authenticated
-  // useEffect(() => {
-  //   if (status === 'unauthenticated') {
-  //     router.push('/auth/login');
-  //     return;
-  //   }
-  // }, [session, router]);
-
   const paymentInfo = {
     bankAccounts: [
       {

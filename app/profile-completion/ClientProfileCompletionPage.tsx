@@ -164,27 +164,28 @@ export default function ClientProfileCompletionPage() {
         );
       }
       const data: UserProfile = await response.json();
+      console.log("Fetched profile:", data);
       setUserProfile(data);
       setRegions(data.regions);
       setCategories((data as any).categories || []);
 
       // Check verification_expires_at
-      const verificationExpiresAt = data.verification_expires_at;
-      const currentDate = new Date();
-      if (verificationExpiresAt) {
-        const expiryDate = new Date(verificationExpiresAt);
-        if (expiryDate > currentDate) {
-          window.location.href = "/dashboard";
-          return;
-        }
-      }
+      // const verificationExpiresAt = data.verification_expires_at;
+      // const currentDate = new Date();
+      // if (verificationExpiresAt) {
+      //   const expiryDate = new Date(verificationExpiresAt);
+      //   if (expiryDate > currentDate) {
+      //     window.location.href = "/dashboard";
+      //     return;
+      //   }
+      // }
 
       // Check profile completion
       const isComplete =
         data.user_details?.company_name &&
         data.user_details?.company_address &&
         data.user_details?.contact_person &&
-        data.documents?.some((doc) => doc.file_type === "license");
+        (data.user_type === "professionals" || data.user_type === "investors" ? true : data.documents?.some((doc: any) => doc.file_type === "license"));
       setIsProfileComplete(!!isComplete);
 
       form.setFieldsValue({
@@ -516,7 +517,7 @@ export default function ClientProfileCompletionPage() {
           result.user_details?.company_name &&
           result.user_details?.company_address &&
           result.user_details?.contact_person &&
-          result.documents?.some((doc: any) => doc.file_type === "license");
+          (result.user_type === "professionals" || result.user_type === "investors" ? true : result.documents?.some((doc: any) => doc.file_type === "license"));
         setIsProfileComplete(isComplete);
       }
     } catch (error: any) {
@@ -741,6 +742,7 @@ export default function ClientProfileCompletionPage() {
                       required:
                         userRole !== "contractors" &&
                         userRole !== "consultants" &&
+                        userRole !== "suppliers" &&
                         userRole !== "subcontractors",
                       message: "Please select an area of specialization",
                     },

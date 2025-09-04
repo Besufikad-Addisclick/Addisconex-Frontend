@@ -46,7 +46,7 @@ export default withAuth(
       // Check subscription status with caching
       try {
         const userId = token.userId || token.email;
-        // console.log("token:", token);
+        console.log("token:", token);
         const cacheKey = `subscription_${userId}`;
         const cached = subscriptionCache.get(cacheKey);
 
@@ -78,6 +78,11 @@ export default withAuth(
         }
 
         if (subscriptionData) {
+          // If user has pending subscription, redirect to checkout
+          if (subscriptionData.subscription?.status === "pending") {
+            return NextResponse.redirect(new URL("/checkout", req.url));
+          }
+          
           // If user has active subscription, allow access to dashboard
           if (subscriptionData.has_active_subscription) {
             const verificationExpiresAt = token.verificationExpiresAt;
@@ -95,11 +100,11 @@ export default withAuth(
             // Verified & active subscription → allow dashboard access
             return NextResponse.next();
           }
-
-          // If user has pending subscription, redirect to checkout
-          if (subscriptionData.subscription?.status === "pending") {
-            return NextResponse.redirect(new URL("/checkout", req.url));
+          if (subscriptionData.subscription?.status === "approved") {
+            return NextResponse.redirect(new URL("/dashboard", req.url));
           }
+
+          
 
           // If no subscription, redirect to choose plan
           return NextResponse.redirect(new URL("/choose-plan", req.url));

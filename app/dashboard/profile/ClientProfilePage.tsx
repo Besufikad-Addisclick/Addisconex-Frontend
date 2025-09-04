@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { handleApiError } from "@/app/utils/apiErrorHandler";
+import { signOut } from "next-auth/react";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -141,7 +142,7 @@ export default function ClientProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       const session = await getSession();
-      console.log("Session user type:", session?.user?.userType);
+      // console.log("Session user type:", session?.user?.userType);
       setLoading(true);
       try {
         const response = await fetch(`/api/profile`, {
@@ -163,7 +164,7 @@ export default function ClientProfilePage() {
           );
         }
         const data: UserProfile = await response.json();
-        console.log("Fetched user profile:", data);
+        // console.log("Fetched user profile:", data);
         setUserProfile(data);
         setRegions(data.regions);
         setCategories((data as any).categories || []);
@@ -245,7 +246,7 @@ export default function ClientProfilePage() {
             })) ?? [],
         });
       } catch (err: any) {
-        console.error("Error fetching subcontractor:", err.message);
+        // console.error("Error fetching subcontractor:", err.message);
         if (
           err.message?.includes("401") ||
           err.message?.includes("Unauthorized")
@@ -369,7 +370,7 @@ export default function ClientProfilePage() {
           }
         });
       }
-      console.log("Submitting formData:", Array.from(formData.entries()));
+      // console.log("Submitting formData:", Array.from(formData.entries()));
 
       const response = await fetch("/api/profile", {
         method: "PUT",
@@ -497,19 +498,23 @@ export default function ClientProfilePage() {
         });
       }
     } catch (error: any) {
-      console.log("Error updating profile:", error);
+      // console.log("Error updating profile:", error);
       toast({
         title: "Error!",
         description: error.message || "Failed to update profile",
         variant: "destructive", // Use this if your toast component supports error styling
       });
-      message.error(error.message || "Failed to update profile");
+    
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePasswordChange = async (values: any) => {
+  const handlePasswordChange = async (values: {
+    old_password: string;
+    new_password: string;
+    confirm_password: string;
+  }) => {
     setLoading(true);
     try {
       const response = await fetch("/api/profile/password", {
@@ -517,27 +522,39 @@ export default function ClientProfilePage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          old_password: values.currentPassword,
-          new_password: values.newPassword,
-          confirm_password: values.newPassword,
-        }),
+        body: JSON.stringify(values),
         credentials: "include",
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        if (response.status === 401) {
-          handleApiError({ status: 401, message: error.detail }, router);
-          return;
-        }
-        throw new Error(error.detail || "Failed to change password");
+        // Use the formatted error message from the API
+        const errorMessage = data.error || "Failed to change password";
+        throw new Error(errorMessage);
       }
 
-      message.success("Password changed successfully!");
-      passwordForm.resetFields();
+      // Show success message
+      toast({
+        title: "Success!",
+        description: "Password changed successfully!",
+        variant: "default", // Use this if your toast component supports error styling
+      });
+      
+      // Sign out the user after a short delay
+      setTimeout(async () => {
+        await signOut({ redirect: false });
+        router.push("/auth/login");
+        router.refresh();
+      }, 1500);
+      
     } catch (error: any) {
-      message.error(error.message || "Failed to change password");
+      // console.error("Password change error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change password. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -552,7 +569,7 @@ export default function ClientProfilePage() {
         className="max-w-md"
       >
         <Form.Item
-          name="currentPassword"
+          name="old_password"
           label="Current Password"
           rules={[
             { required: true, message: "Please enter your current password" },
@@ -561,24 +578,35 @@ export default function ClientProfilePage() {
           <Input.Password placeholder="Current password" />
         </Form.Item>
         <Form.Item
-          name="newPassword"
-          label="New Password"
-          rules={[
-            { required: true, message: "Please enter a new password" },
-            { min: 8, message: "Password must be at least 8 characters" },
-          ]}
-        >
-          <Input.Password placeholder="New password" />
-        </Form.Item>
+  name="new_password"
+  label="New Password"
+  rules={[
+    { required: true, message: "Please enter a new password" },
+    { min: 8, message: "Password must be at least 8 characters" },
+    ({ getFieldValue }) => ({
+      validator(_, value) {
+        const oldPassword = getFieldValue('old_password');
+        if (value && value === oldPassword) {
+          return Promise.reject(
+            new Error('New password must be different from current password')
+          );
+        }
+        return Promise.resolve();
+      },
+    }),
+  ]}
+>
+  <Input.Password placeholder="New password" />
+</Form.Item>
         <Form.Item
-          name="confirmPassword"
+          name="confirm_password"
           label="Confirm New Password"
-          dependencies={["newPassword"]}
+          dependencies={["new_password"]}
           rules={[
             { required: true, message: "Please confirm your new password" },
             ({ getFieldValue }) => ({
               validator(_, value) {
-                if (!value || getFieldValue("newPassword") === value)
+                if (!value || getFieldValue("new_password") === value)
                   return Promise.resolve();
                 return Promise.reject(new Error("Passwords do not match"));
               },
