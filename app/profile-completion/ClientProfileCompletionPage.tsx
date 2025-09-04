@@ -6,12 +6,12 @@ import {
   Input,
   Select,
   message,
-  Modal,
   Upload,
   Card,
   Typography,
   Divider,
   Checkbox,
+  Skeleton,
 } from "antd";
 import {
   UploadOutlined,
@@ -23,10 +23,11 @@ import {
   TeamOutlined,
   DeleteOutlined,
   PlusOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
-import { User, Shield, Bell, CreditCard, Lock, Building } from "lucide-react";
+import { Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getSession } from "next-auth/react";
+import { useSession, signOut, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { handleApiError } from "@/app/utils/apiErrorHandler";
 
@@ -43,7 +44,8 @@ interface UserProfile {
   user_type: string;
   is_active: boolean;
   manufacturer: boolean;
-  profile_picture: string | null; // Added profile_picture
+  profile_picture: string | null;
+  verification_expires_at: string | null;
   user_details: {
     company_name: string;
     company_address: string;
@@ -101,20 +103,18 @@ interface UserProfile {
   categories: Array<{ id: string; name: string }>;
 }
 
-export default function ClientProfilePage() {
-  const [activeTab, setActiveTab] = useState("profile");
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+export default function ClientProfileCompletionPage() {
   const [loading, setLoading] = useState(false);
   const [regions, setRegions] = useState<UserProfile["regions"]>([]);
   const [categories, setCategories] = useState<UserProfile["categories"]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [form] = Form.useForm();
-  const [passwordForm] = Form.useForm();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const { data: session } = useSession();
 
-  // Predefined options for languages and skills
   const languageOptions = [
     "Amharic",
     "Oromo",
@@ -138,128 +138,154 @@ export default function ClientProfilePage() {
     "Estimator",
   ];
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const session = await getSession();
-      console.log("Session user type:", session?.user?.userType);
-      setLoading(true);
-      try {
-        const response = await fetch(`/api/profile`, {
-          method: "GET",
-          credentials: "include",
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
+  const handleLogout = () => {
+    console.log("Logging out user...");
+    signOut({ redirect: false });
+    window.location.href = "/auth/login";
+    // router.push("/");
+  };
 
-          // Handle 401 errors
-          if (response.status === 401) {
-            handleApiError({ status: 401, message: errorData.error }, router);
-            return;
-          }
-
-          throw new Error(
-            errorData.error ||
-              `Failed to fetch subcontractor: ${response.status}`
-          );
-        }
-        const data: UserProfile = await response.json();
-        console.log("Fetched user profile:", data);
-        setUserProfile(data);
-        setRegions(data.regions);
-        setCategories((data as any).categories || []);
-
-        // Populate form fields including profile_picture
-        form.setFieldsValue({
-          firstName: data.first_name,
-          lastName: data.last_name,
-          email: data.email,
-          phone: data.phone_number,
-          profilePicture: data.profile_picture
-            ? [
-                {
-                  uid: "-1",
-                  name:
-                    data.profile_picture.split("/").pop() || "profile-picture",
-                  status: "done",
-                  url: data.profile_picture,
-                },
-              ]
-            : [], // Initialize profile_picture
-          companyName: data.user_details?.company_name,
-          companyAddress: data.user_details?.company_address,
-          website: data.user_details?.website,
-          description: data.user_details?.description,
-          contactPerson: data.user_details?.contact_person,
-          contactPersonPhone: data.user_details?.contact_person_phone,
-          region: data.user_details?.region,
-          establishedYear: data.user_details?.established_year,
-          teamSize: data.user_details?.team_size,
-          equipment: data.user_details?.equipment || [],
-          employmentStatus: data.user_details?.employment_status ?? null,
-          maritalStatus: data.user_details?.marital_status ?? null,
-          age: data.user_details?.age ?? null,
-          jobType: data.user_details?.job_type ?? null,
-          gender: data.user_details?.gender ?? null,
-          skills: data.user_details?.skills || [],
-          highestQualification:
-            data.user_details?.highest_qualification ?? null,
-          languages: data.user_details?.languages || [],
-          references: data.user_details?.references ?? null,
-          salaryMin: data.user_details?.salary_min ?? null,
-          salaryMax: data.user_details?.salary_max ?? null,
-          salaryNegotiable: data.user_details?.salary_negotiable ?? false,
-          yearOfExperience: data.user_details?.year_of_experience ?? null,
-          grade: data.user_details?.grade ?? null,
-          category: data.user_details?.category?.id || undefined,
-          keyProjects: (data.key_projects || []).map((proj: any) => ({
-            ...proj,
-            image: proj.image
-              ? [
-                  {
-                    uid: proj.id || "-1",
-                    name: proj.image.split("/").pop() || "project-image",
-                    status: "done",
-                    url: proj.image,
-                  },
-                ]
-              : [], // Ensure image is an array
-          })),
-          laborCategories:
-            (data.labor_categories || []).map((lc: any) => ({
-              category_id: lc.category_id,
-              team_size: lc.team_size ?? 0,
-            })) || [],
-          documents:
-            data.documents?.map((doc) => ({
-              ...doc,
-              file: doc.file
-                ? [
-                    {
-                      uid: doc.id,
-                      name: doc.file.split("/").pop() || "document",
-                      status: "done",
-                      url: doc.file,
-                    },
-                  ]
-                : [],
-            })) ?? [],
-        });
-      } catch (err: any) {
-        console.error("Error fetching subcontractor:", err.message);
-        if (
-          err.message?.includes("401") ||
-          err.message?.includes("Unauthorized")
-        ) {
-          handleApiError(err, router);
+  const fetchProfile = async () => {
+    const session = await getSession();
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/profile`, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401) {
+          handleApiError({ status: 401, message: errorData.error }, router);
           return;
         }
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        throw new Error(
+          errorData.error || `Failed to fetch profile: ${response.status}`
+        );
       }
-    };
+      const data: UserProfile = await response.json();
+      setUserProfile(data);
+      setRegions(data.regions);
+      setCategories((data as any).categories || []);
+
+      // Check verification_expires_at
+      const verificationExpiresAt = data.verification_expires_at;
+      const currentDate = new Date();
+      if (verificationExpiresAt) {
+        const expiryDate = new Date(verificationExpiresAt);
+        if (expiryDate > currentDate) {
+          window.location.href = "/dashboard";
+          return;
+        }
+      }
+
+      // Check profile completion
+      const isComplete =
+        data.user_details?.company_name &&
+        data.user_details?.company_address &&
+        data.user_details?.contact_person &&
+        data.documents?.some((doc) => doc.file_type === "license");
+      setIsProfileComplete(!!isComplete);
+
+      form.setFieldsValue({
+        firstName: data.first_name,
+        lastName: data.last_name,
+        email: data.email,
+        phone: data.phone_number,
+        profilePicture: data.profile_picture
+          ? [
+              {
+                uid: "-1",
+                name:
+                  data.profile_picture.split("/").pop() || "profile-picture",
+                status: "done",
+                url: data.profile_picture,
+              },
+            ]
+          : [],
+        companyName: data.user_details?.company_name,
+        companyAddress: data.user_details?.company_address,
+        website: data.user_details?.website,
+        description: data.user_details?.description,
+        contactPerson: data.user_details?.contact_person,
+        contactPersonPhone: data.user_details?.contact_person_phone,
+        region: data.user_details?.region,
+        establishedYear: data.user_details?.established_year,
+        teamSize: data.user_details?.team_size,
+        equipment: data.user_details?.equipment || [],
+        employmentStatus: data.user_details?.employment_status ?? null,
+        maritalStatus: data.user_details?.marital_status ?? null,
+        age: data.user_details?.age ?? null,
+        jobType: data.user_details?.job_type ?? null,
+        gender: data.user_details?.gender ?? null,
+        skills: data.user_details?.skills || [],
+        highestQualification: data.user_details?.highest_qualification ?? null,
+        languages: data.user_details?.languages || [],
+        references: data.user_details?.references ?? null,
+        salaryMin: data.user_details?.salary_min ?? null,
+        salaryMax: data.user_details?.salary_max ?? null,
+        salaryNegotiable: data.user_details?.salary_negotiable ?? false,
+        yearOfExperience: data.user_details?.year_of_experience ?? null,
+        grade: data.user_details?.grade ?? null,
+        category: data.user_details?.category?.id || undefined,
+        keyProjects: (data.key_projects || []).map((proj: any) => ({
+          ...proj,
+          image: proj.image
+            ? [
+                {
+                  uid: proj.id || "-1",
+                  name: proj.image.split("/").pop() || "project-image",
+                  status: "done",
+                  url: proj.image,
+                },
+              ]
+            : [],
+        })),
+        laborCategories:
+          (data.labor_categories || []).map((lc: any) => ({
+            category_id: lc.category_id,
+            team_size: lc.team_size ?? 0,
+          })) || [],
+        documents:
+          data.documents?.map((doc) => ({
+            ...doc,
+            file: doc.file
+              ? [
+                  {
+                    uid: doc.id,
+                    name: doc.file.split("/").pop() || "document",
+                    status: "done",
+                    url: doc.file,
+                  },
+                ]
+              : [],
+          })) ?? [],
+      });
+    } catch (err: any) {
+      if (
+        err.message?.includes("401") ||
+        err.message?.includes("Unauthorized")
+      ) {
+        handleApiError(err, router);
+        return;
+      }
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
-  }, [form]);
+
+    // Set up interval to check profile completion every 5 seconds
+    // const intervalId = setInterval(() => {
+      fetchProfile();
+    // }, 50000);
+
+    // Cleanup interval on component unmount
+    // return () => clearInterval(intervalId);
+  }, [form, router]);
 
   const handleProfileSave = async (values: any) => {
     setLoading(true);
@@ -269,7 +295,6 @@ export default function ClientProfilePage() {
       formData.append("last_name", values.lastName);
       formData.append("phone_number", values.phone);
 
-      // Append profile_picture if a new file is uploaded
       if (
         values.profilePicture &&
         values.profilePicture.length > 0 &&
@@ -315,7 +340,6 @@ export default function ClientProfilePage() {
 
       formData.append("user_details", JSON.stringify(userDetailsData));
 
-      // Prepare key projects without images
       const keyProjectsData = (values.keyProjects || []).map(
         (project: any, index: number) => ({
           id: project.id || undefined,
@@ -326,7 +350,6 @@ export default function ClientProfilePage() {
         })
       );
 
-      // Append image files for key projects
       (values.keyProjects || []).forEach((project: any, index: number) => {
         const fileList = project.image;
         if (fileList && fileList.length > 0 && fileList[0].originFileObj) {
@@ -337,7 +360,6 @@ export default function ClientProfilePage() {
         }
       });
 
-      // Prepare labor categories
       const laborCategoriesData = (values.laborCategories || []).map(
         (lc: any) => ({
           category_id: lc.category_id,
@@ -358,7 +380,6 @@ export default function ClientProfilePage() {
 
       formData.append("documents", JSON.stringify(documentsData));
 
-      // Append uploaded files for documents
       if (values.documents) {
         values.documents.forEach((doc: any, index: number) => {
           if (doc.file && doc.file.length > 0 && doc.file[0].originFileObj) {
@@ -369,7 +390,6 @@ export default function ClientProfilePage() {
           }
         });
       }
-      console.log("Submitting formData:", Array.from(formData.entries()));
 
       const response = await fetch("/api/profile", {
         method: "PUT",
@@ -380,7 +400,6 @@ export default function ClientProfilePage() {
       const result = await response.json();
       if (!response.ok) {
         const error = await response.json();
-        // Dynamic error handling
         if (response.status === 401) {
           handleApiError({ status: 401, message: error.detail }, router);
           return;
@@ -388,14 +407,11 @@ export default function ClientProfilePage() {
         let errorMessage = "Failed to update profile";
         if (result.error) {
           if (typeof result.error === "object") {
-            // Handle field-specific errors (e.g., website, description, region)
             const fieldErrors = Object.entries(result.error)
               .map(([field, errors]) => {
-                // Convert field name to human-readable format
                 const fieldName = field
                   .replace(/_/g, " ")
                   .replace(/\b\w/g, (c) => c.toUpperCase());
-                // Join multiple errors for the same field
                 const errorMessages = Array.isArray(errors)
                   ? errors.join(", ")
                   : errors;
@@ -435,7 +451,7 @@ export default function ClientProfilePage() {
                   url: result.profile_picture,
                 },
               ]
-            : [], // Update profile_picture
+            : [],
           companyName: result.user_details?.company_name,
           companyAddress: result.user_details?.company_address,
           website: result.user_details?.website,
@@ -473,7 +489,7 @@ export default function ClientProfilePage() {
                     url: proj.image,
                   },
                 ]
-              : [], // Ensure image is an array
+              : [],
           })),
           laborCategories:
             (result.labor_categories || []).map((lc: any) => ({
@@ -495,13 +511,19 @@ export default function ClientProfilePage() {
                 : [],
             })) || [],
         });
+        // Check if profile is now complete
+        const isComplete =
+          result.user_details?.company_name &&
+          result.user_details?.company_address &&
+          result.user_details?.contact_person &&
+          result.documents?.some((doc: any) => doc.file_type === "license");
+        setIsProfileComplete(isComplete);
       }
     } catch (error: any) {
-      console.log("Error updating profile:", error);
       toast({
         title: "Error!",
         description: error.message || "Failed to update profile",
-        variant: "destructive", // Use this if your toast component supports error styling
+        variant: "destructive",
       });
       message.error(error.message || "Failed to update profile");
     } finally {
@@ -509,120 +531,101 @@ export default function ClientProfilePage() {
     }
   };
 
-  const handlePasswordChange = async (values: any) => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/profile/password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          old_password: values.currentPassword,
-          new_password: values.newPassword,
-          confirm_password: values.newPassword,
-        }),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        if (response.status === 401) {
-          handleApiError({ status: 401, message: error.detail }, router);
-          return;
-        }
-        throw new Error(error.detail || "Failed to change password");
-      }
-
-      message.success("Password changed successfully!");
-      passwordForm.resetFields();
-    } catch (error: any) {
-      message.error(error.message || "Failed to change password");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const renderSecuritySettings = () => (
-    <Card title="Security Settings" className="shadow-sm">
-      <Form
-        form={passwordForm}
-        layout="vertical"
-        onFinish={handlePasswordChange}
-        className="max-w-md"
-      >
-        <Form.Item
-          name="currentPassword"
-          label="Current Password"
-          rules={[
-            { required: true, message: "Please enter your current password" },
-          ]}
-        >
-          <Input.Password placeholder="Current password" />
-        </Form.Item>
-        <Form.Item
-          name="newPassword"
-          label="New Password"
-          rules={[
-            { required: true, message: "Please enter a new password" },
-            { min: 8, message: "Password must be at least 8 characters" },
-          ]}
-        >
-          <Input.Password placeholder="New password" />
-        </Form.Item>
-        <Form.Item
-          name="confirmPassword"
-          label="Confirm New Password"
-          dependencies={["newPassword"]}
-          rules={[
-            { required: true, message: "Please confirm your new password" },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                if (!value || getFieldValue("newPassword") === value)
-                  return Promise.resolve();
-                return Promise.reject(new Error("Passwords do not match"));
-              },
-            }),
-          ]}
-        >
-          <Input.Password placeholder="Confirm new password" />
-        </Form.Item>
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            className="bg-blue-600 hover:bg-blue-700 border-blue-600"
-          >
-            Change Password
-          </Button>
-        </Form.Item>
-      </Form>
-    </Card>
-  );
-
-  const renderNotificationSettings = () => (
-    <Card title="Notification Settings" className="shadow-sm">
-      <Text type="secondary">Notification settings coming soon...</Text>
-    </Card>
-  );
-
-  const renderPaymentSettings = () => (
-    <Card title="Payment Settings" className="shadow-sm">
-      <Text type="secondary">Payment settings coming soon...</Text>
-    </Card>
-  );
-
-  const renderPrivacySettings = () => (
-    <Card title="Privacy Settings" className="shadow-sm">
-      <Text type="secondary">Privacy settings coming soon...</Text>
-    </Card>
-  );
-
-  const renderProfileSettings = () => {
-    const userRole = userProfile?.user_type ?? "custom_role";
-
+  if (error) {
     return (
+      <div className="p-6 flex items-center justify-center min-h-screen">
+        <Card className="border-red-200 bg-red-50 max-w-md w-full">
+          <Text type="danger">{error}</Text>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Card className="max-w-2xl w-full shadow-sm">
+          <Skeleton
+            active
+            avatar={{ size: 80, shape: "circle" }}
+            paragraph={{ rows: 4 }}
+            title={{ width: "40%" }}
+            className="p-6"
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  const userRole = userProfile?.user_type ?? "custom_role";
+
+  // if (isProfileComplete) {
+  //   return (
+  //     <div className="p-6 flex items-center justify-center min-h-screen">
+  //       <Card className="max-w-md w-full shadow-sm">
+  //         <div className="flex justify-end mb-4">
+  //           <Button
+  //             type="default"
+  //             icon={<LogoutOutlined />}
+  //             onClick={handleLogout}
+  //             className="flex items-center"
+  //           >
+  //             Logout
+  //           </Button>
+  //         </div>
+  //         <Title level={4} className="text-gray-900 mb-4">
+  //           Profile Awaiting Verification
+  //         </Title>
+  //         <Text type="secondary">
+  //           Your profile is complete and is currently under verification. Please
+  //           wait for the verification process to be completed.
+  //         </Text>
+  //       </Card>
+  //     </div>
+  //   );
+  // }
+
+  return (
+    <div className="p-4 max-w-8xl mx-auto">
+      <div className="flex justify-end mb-4">
+        <Button
+          type="default"
+          icon={<LogoutOutlined />}
+          onClick={handleLogout}
+          className="flex items-center"
+        >
+          Logout
+        </Button>
+      </div>
+      <div className="mb-6">
+        <Title level={2} className="text-gray-900 mb-2">
+          Complete Your Profile
+        </Title>
+        {!isProfileComplete ? (
+          <>
+          <Text type="danger">
+          Please provide the required information, including company details and
+          a valid business license, to complete your profile setup.
+        </Text>
+        </>
+        ):
+        (
+        <Card className="max-w-md w-full shadow-sm">
+          
+          <Title level={4} className="text-green-900 mb-4">
+            Profile Awaiting Verification
+          </Title>
+          <Text type="success">
+            Your profile is complete and is currently under verification. Please
+            wait for the verification process to be completed.
+          </Text>
+        </Card>
+        )
+        }
+          
+        
+      </div>
+
       <Card title="Profile Information" className="shadow-sm">
         <Form
           form={form}
@@ -630,8 +633,7 @@ export default function ClientProfilePage() {
           onFinish={handleProfileSave}
           className="space-y-4"
         >
-          {/* Basic User Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Form.Item
               name="profilePicture"
               label="Profile Picture"
@@ -715,55 +717,50 @@ export default function ClientProfilePage() {
                 ))}
               </Select>
             </Form.Item>
-            {userRole == "contractors" && (
+            {userRole === "contractors" && (
+              <Form.Item name="grade" label="Grade">
+                <Select placeholder="Select grade" allowClear>
+                  {[...Array(11)].map((_, index) => {
+                    const gradeNumber = index + 1;
+                    return (
+                      <Option key={gradeNumber} value={`grade_${gradeNumber}`}>
+                        {`Grade ${gradeNumber}`}
+                      </Option>
+                    );
+                  })}
+                </Select>
+              </Form.Item>
+            )}
+            {userRole !== "admin" && userRole !== "professionals" && (
               <>
-                <Form.Item name="grade" label="Grade">
-                  <Select placeholder="Select grade" allowClear>
-                    {[...Array(11)].map((_, index) => {
-                      const gradeNumber = index + 1;
-                      return (
-                        <Option
-                          key={gradeNumber}
-                          value={`grade_${gradeNumber}`}
-                        >
-                          {`Grade ${gradeNumber}`}
-                        </Option>
-                      );
-                    })}
+                <Form.Item
+                  name="category"
+                  label="Area of Specialization"
+                  rules={[
+                    {
+                      required:
+                        userRole !== "contractors" &&
+                        userRole !== "consultants" &&
+                        userRole !== "subcontractors",
+                      message: "Please select an area of specialization",
+                    },
+                  ]}
+                >
+                  <Select placeholder="Select category" allowClear>
+                    {categories.map((cat) => (
+                      <Option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </Option>
+                    ))}
                   </Select>
                 </Form.Item>
               </>
             )}
-            {userRole !== "admin" && userRole !== "professionals" && (
-                        <>
-                        <Form.Item
-                          name="category"
-                          label="Area of Specialization"
-                          rules={[
-                            {
-                              required:
-                                userRole !== "contractors" &&
-                                userRole !== "consultants" &&
-                                userRole !== "subcontractors",
-                              message: "Please select an area of specialization",
-                            },
-                          ]}
-                        >
-                          <Select placeholder="Select category" allowClear>
-                            {categories.map((cat) => (
-                              <Option key={cat.id} value={cat.id}>
-                                {cat.name}
-                              </Option>
-                            ))}
-                          </Select>
-                        </Form.Item>
-                        </>)}
           </div>
           {userRole !== "admin" && userRole !== "professionals" && (
             <>
               <Divider orientation="left">Company Information</Divider>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Form.Item
                   name="companyName"
                   label="Company Name"
@@ -814,7 +811,7 @@ export default function ClientProfilePage() {
                 </Form.Item>
                 <Form.Item
                   name="contactPersonPhone"
-                  label="Contact Person  phone"
+                  label="Contact Person Phone"
                   rules={[
                     {
                       required:
@@ -823,14 +820,14 @@ export default function ClientProfilePage() {
                     },
                     {
                       pattern: /^(?:\+2519|09|\+2517|07)\d{8}$/,
-                      message: "Enter a valid Ethiopian phone number like +251912345678 or 0912345678",
-                      
+                      message:
+                        "Enter a valid Ethiopian phone number like +251912345678 or 0912345678",
                     },
                   ]}
                 >
                   <Input
                     prefix={<PhoneOutlined />}
-                    placeholder="phone number"
+                    placeholder="Phone number"
                   />
                 </Form.Item>
                 <Form.Item name="establishedYear" label="Established Year">
@@ -848,7 +845,6 @@ export default function ClientProfilePage() {
                   />
                 </Form.Item>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Form.Item name="description" label="Description">
                   <TextArea rows={2} placeholder="Describe your company..." />
@@ -856,10 +852,9 @@ export default function ClientProfilePage() {
               </div>
             </>
           )}
-          {userRole == "professionals" && (
+          {userRole === "professionals" && (
             <>
               <Divider orientation="left">Additional Details</Divider>
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Form.Item name="employmentStatus" label="Employment Status">
                   <Select placeholder="Select employment status" allowClear>
@@ -872,7 +867,6 @@ export default function ClientProfilePage() {
                     <Option value="retired">Retired</Option>
                   </Select>
                 </Form.Item>
-
                 <Form.Item name="maritalStatus" label="Marital Status">
                   <Select placeholder="Select marital status" allowClear>
                     <Option value="single">Single</Option>
@@ -880,11 +874,9 @@ export default function ClientProfilePage() {
                     <Option value="divorced">Divorced</Option>
                   </Select>
                 </Form.Item>
-
                 <Form.Item name="age" label="Age">
                   <Input type="number" min={0} placeholder="Enter age" />
                 </Form.Item>
-
                 <Form.Item name="jobType" label="Job Type">
                   <Select placeholder="Select job type" allowClear>
                     <Option value="permanent">Permanent</Option>
@@ -893,14 +885,12 @@ export default function ClientProfilePage() {
                     <Option value="internship">Internship</Option>
                   </Select>
                 </Form.Item>
-
                 <Form.Item name="gender" label="Gender">
                   <Select placeholder="Select gender" allowClear>
                     <Option value="male">Male</Option>
                     <Option value="female">Female</Option>
                   </Select>
                 </Form.Item>
-
                 <Form.Item name="skills" label="Skills">
                   <Select
                     mode="tags"
@@ -909,7 +899,6 @@ export default function ClientProfilePage() {
                     options={skillOptions.map((s) => ({ value: s, label: s }))}
                   />
                 </Form.Item>
-
                 <Form.Item
                   name="highestQualification"
                   label="Highest Qualification"
@@ -918,7 +907,7 @@ export default function ClientProfilePage() {
                     <Option value="no_formal_education">
                       No Formal Education
                     </Option>
-                    <Option value=" high_school">High School Diploma</Option>
+                    <Option value="high_school">High School Diploma</Option>
                     <Option value="associate">Associate Degree</Option>
                     <Option value="bachelor">Bachelor&apos;s Degree</Option>
                     <Option value="master">Master&apos;s Degree</Option>
@@ -929,7 +918,6 @@ export default function ClientProfilePage() {
                     <Option value="other">Other</Option>
                   </Select>
                 </Form.Item>
-
                 <Form.Item name="languages" label="Languages">
                   <Select
                     mode="tags"
@@ -941,14 +929,12 @@ export default function ClientProfilePage() {
                     }))}
                   />
                 </Form.Item>
-
                 <Form.Item name="references" label="References">
                   <TextArea
                     rows={3}
                     placeholder="Enter references or additional info"
                   />
                 </Form.Item>
-
                 <Form.Item name="salaryMin" label="Minimum Salary">
                   <Input
                     type="number"
@@ -957,7 +943,6 @@ export default function ClientProfilePage() {
                     placeholder="Minimum salary"
                   />
                 </Form.Item>
-
                 <Form.Item name="salaryMax" label="Maximum Salary">
                   <Input
                     type="number"
@@ -966,11 +951,9 @@ export default function ClientProfilePage() {
                     placeholder="Maximum salary"
                   />
                 </Form.Item>
-
                 <Form.Item name="salaryNegotiable" valuePropName="checked">
                   <Checkbox>Salary Negotiable</Checkbox>
                 </Form.Item>
-
                 <Form.Item name="yearOfExperience" label="Years of Experience">
                   <Input
                     type="number"
@@ -981,7 +964,7 @@ export default function ClientProfilePage() {
               </div>
             </>
           )}
-          {(userRole == "contractors" || userRole == "subcontractors") && (
+          {(userRole === "contractors" || userRole === "subcontractors") && (
             <>
               <Divider orientation="left">Available Machineries</Divider>
               <Form.List name="equipment">
@@ -1001,9 +984,8 @@ export default function ClientProfilePage() {
                             },
                           ]}
                         >
-                          <Input placeholder="machinery name" />
+                          <Input placeholder="Machinery name" />
                         </Form.Item>
-
                         <Form.Item
                           {...restField}
                           name={[name, "quantity"]}
@@ -1018,7 +1000,6 @@ export default function ClientProfilePage() {
                         >
                           <Input type="number" placeholder="Qty" />
                         </Form.Item>
-
                         <Button
                           type="text"
                           danger
@@ -1046,17 +1027,20 @@ export default function ClientProfilePage() {
           )}
           {userRole === "agencies" && (
             <>
-              <Divider orientation="left">Labor Categories</Divider>
+              <Divider orientation="left" className="mb-4" />
               <Form.List name="laborCategories">
                 {(fields, { add, remove }) => (
-                  <>
+                  <div className="flex flex-wrap justify-center gap-4 mb-4">
                     {fields.map(({ key, name, ...restField }) => (
-                      <div key={key} className="flex gap-4 items-end mb-4">
+                      <div
+                        key={key}
+                        className="flex flex-col items-end md:flex-row md:items-center mb-4 md:mb-0"
+                      >
                         <Form.Item
                           {...restField}
                           name={[name, "category_id"]}
                           label="Category"
-                          className="flex-1"
+                          className="flex-1 md:w-1/2"
                           rules={[
                             {
                               required: true,
@@ -1064,7 +1048,10 @@ export default function ClientProfilePage() {
                             },
                           ]}
                         >
-                          <Select placeholder="Select category">
+                          <Select
+                            placeholder="Select category"
+                            className="w-full"
+                          >
                             {categories.map((cat) => (
                               <Option key={cat.id} value={cat.id}>
                                 {cat.name}
@@ -1072,33 +1059,31 @@ export default function ClientProfilePage() {
                             ))}
                           </Select>
                         </Form.Item>
-
+                        <div className="md:ml-4 md:mt-2" />
                         <Form.Item
                           {...restField}
                           name={[name, "team_size"]}
                           label="Team Size"
-                          className="w-32"
-                          // rules={[
-                          //   {
-                          //     required: true,
-                          //     message: "Please enter team size",
-                          //   },
-                          // ]}
+                          className="w-32 md:w-1/4"
                         >
-                          <Input type="number" placeholder="Team size" />
+                          <Input
+                            type="number"
+                            placeholder="Team size"
+                            className="w-full"
+                          />
                         </Form.Item>
-
                         <Button
                           type="text"
                           danger
                           icon={<DeleteOutlined />}
                           onClick={() => remove(name)}
+                          className="md:ml-4"
                         >
                           Remove
                         </Button>
                       </div>
                     ))}
-                    <Form.Item>
+                    <Form.Item className="w-full md:w-1/2">
                       <Button
                         type="dashed"
                         onClick={() => add()}
@@ -1108,12 +1093,11 @@ export default function ClientProfilePage() {
                         Add Labor Category
                       </Button>
                     </Form.Item>
-                  </>
+                  </div>
                 )}
               </Form.List>
             </>
           )}
-
           {userRole !== "suppliers" &&
             userRole !== "individuals" &&
             userRole !== "agencies" &&
@@ -1138,7 +1122,6 @@ export default function ClientProfilePage() {
                             >
                               <Input type="hidden" />
                             </Form.Item>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <Form.Item
                                 {...restField}
@@ -1153,7 +1136,6 @@ export default function ClientProfilePage() {
                               >
                                 <Input placeholder="Project name" />
                               </Form.Item>
-
                               <Form.Item
                                 {...restField}
                                 name={[name, "location"]}
@@ -1168,7 +1150,6 @@ export default function ClientProfilePage() {
                                 <Input placeholder="Project location" />
                               </Form.Item>
                             </div>
-
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <Form.Item
                                 {...restField}
@@ -1200,7 +1181,6 @@ export default function ClientProfilePage() {
                                 />
                               </Form.Item>
                             </div>
-
                             <Form.Item
                               {...restField}
                               name={[name, "image"]}
@@ -1237,7 +1217,6 @@ export default function ClientProfilePage() {
                                 </Button>
                               </Upload>
                             </Form.Item>
-
                             <Button
                               type="text"
                               danger
@@ -1267,7 +1246,6 @@ export default function ClientProfilePage() {
           {userRole !== "individuals" && userRole !== "admin" && (
             <>
               <Divider orientation="left">Documents</Divider>
-
               <Form.List name="documents">
                 {(fields, { add, remove }) => (
                   <>
@@ -1281,7 +1259,6 @@ export default function ClientProfilePage() {
                           <Form.Item {...restField} name={[name, "id"]} hidden>
                             <Input type="hidden" />
                           </Form.Item>
-
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <Form.Item
                               {...restField}
@@ -1296,15 +1273,14 @@ export default function ClientProfilePage() {
                             >
                               <Select placeholder="Select document type">
                                 <Option value="license">
-                                  Business License(Trade License)
+                                  Business License (Trade License)
                                 </Option>
-                                
                                 <Option value="grade_certificate">
                                   Grade Certificate
                                 </Option>
                                 <Option value="certificate">Certificate</Option>
                                 <Option value="testimonials">
-                                  Testimonials{" "}
+                                  Testimonials
                                 </Option>
                                 <Option value="awardsAndRecognitions">
                                   Awards & Recognitions
@@ -1312,7 +1288,6 @@ export default function ClientProfilePage() {
                                 <Option value="other">Other</Option>
                               </Select>
                             </Form.Item>
-
                             <Form.Item
                               {...restField}
                               name={[name, "file"]}
@@ -1354,7 +1329,6 @@ export default function ClientProfilePage() {
                               </Upload>
                             </Form.Item>
                           </div>
-
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Form.Item
                               {...restField}
@@ -1363,7 +1337,6 @@ export default function ClientProfilePage() {
                             >
                               <Input type="date" />
                             </Form.Item>
-
                             <Form.Item
                               {...restField}
                               name={[name, "expiry_date"]}
@@ -1379,7 +1352,6 @@ export default function ClientProfilePage() {
                               <Input placeholder="Enter issuer" />
                             </Form.Item>
                           </div>
-
                           <Button
                             type="text"
                             danger
@@ -1391,7 +1363,6 @@ export default function ClientProfilePage() {
                         </Card>
                       );
                     })}
-
                     <Form.Item>
                       <Button
                         type="dashed"
@@ -1407,7 +1378,6 @@ export default function ClientProfilePage() {
               </Form.List>
             </>
           )}
-
           <Form.Item>
             <Button
               type="primary"
@@ -1415,138 +1385,11 @@ export default function ClientProfilePage() {
               loading={loading}
               className="bg-blue-600 hover:bg-blue-700 border-blue-600"
             >
-              Save Changes
+              Save Profile
             </Button>
           </Form.Item>
         </Form>
       </Card>
-    );
-  };
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <Card className="border-red-200 bg-red-50">
-          <Text type="danger">{error}</Text>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!userProfile) {
-  return (
-    <div className="profile-skeleton">
-    <div className="profile-header bg-gray-100 animate-pulse">
-      <div className="profile-picture h-20 w-20 bg-gray-300 rounded-full" />
-      <div className="profile-name h-6 w-40 bg-gray-300 rounded mb-2" />
-    </div>
-    <div className="profile-info bg-gray-100 animate-pulse">
-      <div className="profile-bio h-12 w-3/4 bg-gray-200 rounded mb-2" />
-      <div className="profile-stats h-6 w-2/3 bg-gray-200 rounded mb-2" />
-      <div className="profile-stats h-6 w-1/2 bg-gray-200 rounded mb-2" />
-    </div>
-    <div className="profile-tabs bg-gray-100 animate-pulse">
-      <div className="tab h-10 w-32 bg-gray-300 rounded" />
-      <div className="tab h-10 w-32 bg-gray-200 rounded" />
-    </div>
-  </div>
-  );
-}
-
-  return (
-    <div className="p-4 max-w-8xl mx-auto">
-      <div className="mb-6">
-        <Title level={2} className="text-gray-900 mb-2">
-          Profile
-        </Title>
-        <Text type="secondary">
-          Manage your account preferences and security settings
-        </Text>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1">
-          <Card className="shadow-sm">
-            <div className="space-y-1">
-              {[
-                {
-                  key: "profile",
-                  label: "Profile",
-                  icon: <User className="w-4 h-4" />,
-                },
-                {
-                  key: "security",
-                  label: "Security",
-                  icon: <Shield className="w-4 h-4" />,
-                },
-                {
-                  key: "notifications",
-                  label: "Notifications",
-                  icon: <Bell className="w-4 h-4" />,
-                },
-                {
-                  key: "payment",
-                  label: "Payment",
-                  icon: <CreditCard className="w-4 h-4" />,
-                },
-                {
-                  key: "privacy",
-                  label: "Privacy",
-                  icon: <Lock className="w-4 h-4" />,
-                },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors ${
-                    activeTab === tab.key
-                      ? "bg-blue-50 text-blue-600 border-blue-200"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  {tab.icon}
-                  <span className="font-medium">{tab.label}</span>
-                </button>
-              ))}
-            </div>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-3">
-          {activeTab === "profile" && renderProfileSettings()}
-          {activeTab === "security" && renderSecuritySettings()}
-          {activeTab === "notifications" && renderNotificationSettings()}
-          {activeTab === "payment" && renderPaymentSettings()}
-          {activeTab === "privacy" && renderPrivacySettings()}
-        </div>
-      </div>
-
-      <Modal
-        title="Delete Account"
-        open={showDeleteModal}
-        onCancel={() => setShowDeleteModal(false)}
-        footer={[
-          <Button key="cancel" onClick={() => setShowDeleteModal(false)}>
-            Cancel
-          </Button>,
-          <Button
-            key="delete"
-            type="primary"
-            danger
-            onClick={() => setShowDeleteModal(false)}
-          >
-            Delete My Account
-          </Button>,
-        ]}
-      >
-        <div className="space-y-4">
-          <Text>
-            Are you sure you want to delete your account? This action cannot be
-            undone.
-          </Text>
-          <Input placeholder="Type 'DELETE' to confirm" />
-        </div>
-      </Modal>
     </div>
   );
 }

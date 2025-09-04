@@ -14,7 +14,7 @@ export default withAuth(
     if (
       [
         "/auth/login",
-        "/auth/signup", 
+        "/auth/signup",
         "/auth/forgot-password",
         "/subscription/success",
         "/subscription/failure",
@@ -35,23 +35,30 @@ export default withAuth(
     // Check for dashboard routes
     if (pathname.startsWith("/dashboard")) {
       if (!token) {
-        return NextResponse.redirect(new URL(`/auth/login?callbackUrl=${encodeURIComponent(req.url)}`, req.url));
+        return NextResponse.redirect(
+          new URL(
+            `/auth/login?callbackUrl=${encodeURIComponent(req.url)}`,
+            req.url
+          )
+        );
       }
-      
+
       // Check subscription status with caching
       try {
         const userId = token.userId || token.email;
+        // console.log("token:", token);
         const cacheKey = `subscription_${userId}`;
         const cached = subscriptionCache.get(cacheKey);
-        
+
         let subscriptionData;
-        
+
         // Use cached data if available and not expired
         if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
           subscriptionData = cached.data;
         } else {
           // Fetch fresh data
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+          const apiUrl =
+            process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
           const response = await fetch(`${apiUrl}/check-subscription/`, {
             method: "GET",
             headers: {
@@ -59,13 +66,13 @@ export default withAuth(
               "Content-Type": "application/json",
             },
           });
-          
+
           if (response.ok) {
             subscriptionData = await response.json();
             // Cache the result
             subscriptionCache.set(cacheKey, {
               data: subscriptionData,
-              timestamp: Date.now()
+              timestamp: Date.now(),
             });
           }
         }
@@ -73,6 +80,19 @@ export default withAuth(
         if (subscriptionData) {
           // If user has active subscription, allow access to dashboard
           if (subscriptionData.has_active_subscription) {
+            const verificationExpiresAt = token.verificationExpiresAt;
+            
+
+            if (
+              !verificationExpiresAt || // null or undefined
+              new Date(verificationExpiresAt).getTime() < Date.now() // already expired
+            ) {
+              return NextResponse.redirect(
+                new URL("/profile-completion", req.url)
+              );
+            }
+
+            // Verified & active subscription → allow dashboard access
             return NextResponse.next();
           }
 
@@ -101,6 +121,12 @@ export default withAuth(
 
     // Check for choose-plan route
     if (pathname === "/choose-plan") {
+      if (!token) {
+        return NextResponse.redirect(new URL("/auth/login", req.url));
+      }
+      return NextResponse.next();
+    }
+    if (pathname === "/profile-completion") {
       if (!token) {
         return NextResponse.redirect(new URL("/auth/login", req.url));
       }
@@ -137,6 +163,7 @@ export default withAuth(
         if (
           pathname.startsWith("/dashboard") ||
           pathname === "/checkout" ||
+          pathname === "/profile-completion" ||
           pathname === "/choose-plan"
         ) {
           return !!token;

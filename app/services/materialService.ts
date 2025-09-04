@@ -69,7 +69,7 @@ export const fetchSupplierDetail = async (supplierId: string, page: number = 1):
     }
 
     const data = await response.json();
-    console.log("fetchSupplierDetail",data)
+    // console.log("fetchSupplierDetail",data)
     return data;
   } catch (error) {
     console.error('Error fetching supplier detail:', error);

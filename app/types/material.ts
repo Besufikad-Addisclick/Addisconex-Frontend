@@ -137,6 +137,28 @@ export interface MaterialPrice {
   created_at: string;
   updated_at: string;
 }
+export interface MachineryPrice {
+  id: string;
+  machinery: string;
+  user: string;
+  user_id: string;
+  price: string;
+  price_date: string;
+  created_at: string;
+  updated_at: string;
+  name: string;
+  category: string;
+  condition: string;
+  type: string;
+  rental_duration: string | null;
+  status: string;
+  year: number;
+  location: string;
+  specification: string | null;
+  featured: boolean;
+  image_url: string | null;
+}
+
 
 export interface SupplierDetailResponse {
   supplier: Supplier;
@@ -145,5 +167,11 @@ export interface SupplierDetailResponse {
     next: string | null;
     previous: string | null;
     results: MaterialPrice[];
+  };
+  machinery_prices: {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: MachineryPrice[];
   };
 }

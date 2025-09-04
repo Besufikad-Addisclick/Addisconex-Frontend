@@ -111,6 +111,7 @@ export const authOptions: NextAuthOptions = {
             lastName: data.user.last_name,
             phoneNumber: data.user.phone_number,
             userType: data.user.user_type,
+            verificationExpiresAt:data.user.verification_expires_at,
             isActive: data.user.is_active,
             accessToken: data.access,
             refreshToken: data.refresh,
@@ -136,6 +137,7 @@ export const authOptions: NextAuthOptions = {
         token.lastName = user.lastName;
         token.phoneNumber = user.phoneNumber;
         token.isActive = user.isActive;
+        token.verificationExpiresAt = user.verificationExpiresAt;
         token.accessTokenExpires = Date.now() + 60 * 60 * 1000; // 1 hour from now
         token.email = user.email;
         token.name = user.name;
@@ -177,10 +179,13 @@ export const authOptions: NextAuthOptions = {
       session.user.firstName = token.firstName as string;
       session.user.lastName = token.lastName as string;
       session.user.phoneNumber = token.phoneNumber as string;
+      session.user.verificationExpiresAt = token.verificationExpiresAt as string;
+      session.user.phoneNumber = token.phoneNumber as string;
       session.user.isActive = token.isActive as boolean;
       session.user.id = token.sub as string;
       session.error = token.error as string;
       console.log('Session callback - session user:', session.user.email);
+      console.log('Session callback - session user:', session.user.verificationExpiresAt);
       return session;
     },
     async redirect({ url, baseUrl }) {

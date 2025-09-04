@@ -19,13 +19,13 @@ import {
   Shield,
   Factory,
   FileText,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Subcontractor } from "@/app/types/subcontractor";
-
-
+import { motion } from "framer-motion";
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
@@ -59,7 +59,7 @@ export default function LaborsDetail() {
         }
 
         const data = await response.json();
-        console.log("Fetched subcontractor data:", data);
+        // console.log("Fetched subcontractor data:", data);
 
         const subcontractorData: Subcontractor = {
           id: data.id,
@@ -84,9 +84,7 @@ export default function LaborsDetail() {
           email: data.email || "N/A",
           website: data.user_details.website || "N/A",
           specialization: data.user_details.equipment || [],
-          certifications: (data.documents || []).filter(
-            (doc: any) => doc.file_type.toLowerCase() == "certificate"
-          ),
+          
           keyProjects: (data.key_projects || []).map((project: any) => ({
             id: project.id,
             name: project.name,
@@ -111,6 +109,9 @@ export default function LaborsDetail() {
           is_active: data.is_active ?? true,
           manufacturer: data.manufacturer ?? false,
           contact_person: data.user_details.contact_person || "N/A",
+          certifications: (data.documents || []).filter(
+            (doc: any) => doc.file_type.toLowerCase() == "not known"
+          ),
           documents: (data.documents || []).filter(
             (doc: any) => doc.file_type.toLowerCase() !== "certificate"
           ),
@@ -134,12 +135,28 @@ export default function LaborsDetail() {
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <motion.div
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.div
+            animate={{
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              rotate: { repeat: Infinity, duration: 2, ease: "linear" },
+              scale: { repeat: Infinity, duration: 1, ease: "easeInOut" },
+            }}
+          >
+            <X className="w-12 h-12 text-primary" />
+          </motion.div>
           <p className="text-lg font-medium text-gray-700">
-            Loading agency details...
+            Loading agencies details...
           </p>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -293,7 +310,7 @@ export default function LaborsDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Specializations</CardTitle>
+              <CardTitle>Available man power</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-2">
@@ -315,7 +332,7 @@ export default function LaborsDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Documents</CardTitle>
+              <CardTitle>Certificates</CardTitle>
             </CardHeader>
             <CardContent>
               {subcontractor.documents.length > 0 ? (
@@ -331,20 +348,8 @@ export default function LaborsDetail() {
                         className="w-32 h-32 object-cover rounded-md mb-2"
                       />
                       <p className="font-medium">{doc.file_type}</p>
-                      <p className="text-sm text-gray-600">
-                        Issued By: {doc.issued_by}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Issued: {doc.issued_date}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Expires: {doc.expiry_date}
-                      </p>
-                      <Badge
-                        variant={doc.is_active ? "default" : "destructive"}
-                      >
-                        {doc.is_active ? "Active" : "Inactive"}
-                      </Badge>
+                      
+                      
                     </div>
                   ))}
                 </div>
@@ -353,7 +358,7 @@ export default function LaborsDetail() {
               )}
             </CardContent>
           </Card>
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle>Key Projects</CardTitle>
             </CardHeader>
@@ -385,7 +390,7 @@ export default function LaborsDetail() {
                 <p className="text-gray-600">No projects listed.</p>
               )}
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Right Column */}
@@ -446,48 +451,6 @@ export default function LaborsDetail() {
             </CardContent>
           </Card>
 
-          <Card>
-                      <CardHeader>
-                        <CardTitle>Certifications</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {subcontractor.certifications.length > 0 ? (
-                          subcontractor.certifications.map((cert, idx) =>
-                            typeof cert === "object" &&
-                            cert.file?.toLowerCase().endsWith(".pdf") ? (
-                              <div key={idx} className="flex gap-2 items-center">
-                                <Award className="h-4 w-4 text-gray-400" />
-                                <embed
-                                  src={cert.file}
-                                  type="application/pdf"
-                                  width="120"
-                                  height="120"
-                                  className="rounded-md border"
-                                />
-                                <a
-                                  href={cert.file}
-                                  download
-                                  className="text-xs text-blue-500 underline ml-2"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                >
-                                  Download Certificate
-                                </a>
-                              </div>
-                            ) : (
-                              <div key={idx} className="flex items-center gap-2">
-                                <Award className="h-4 w-4 text-gray-400" />
-                                <span>
-                                  {typeof cert === "object" ? cert.file_type : cert}
-                                </span>
-                              </div>
-                            )
-                          )
-                        ) : (
-                          <p className="text-gray-600">No certifications listed.</p>
-                        )}
-                      </CardContent>
-                    </Card>
         </div>
       </div>
     </div>

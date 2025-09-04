@@ -13,6 +13,7 @@ declare module 'next-auth' {
       firstName: string
       lastName: string
       phoneNumber: string
+      verificationExpiresAt?: string
       isActive: boolean
     }
   }
@@ -24,6 +25,7 @@ declare module 'next-auth' {
     firstName: string
     lastName: string
     phoneNumber: string
+    verificationExpiresAt?: string
     userType: string
     isActive: boolean
     accessToken: string
@@ -39,6 +41,7 @@ declare module 'next-auth/jwt' {
     firstName: string
     lastName: string
     phoneNumber: string
+    verificationExpiresAt?: string
     isActive: boolean
     accessTokenExpires: number
     error?: string
