@@ -65,10 +65,12 @@ export default function ChoosePlanPage() {
     }
   }, [session, router]);
 
-  const handleLogout = () => {
-    console.log("Logging out user...");
-    signOut({ redirect: false });
-    router.push("/");
+  const handleLogout = async () => {
+    await signOut({ 
+      redirect: false,
+      callbackUrl: '/auth/login'
+    });
+    window.location.href = '/auth/login';
   };
 
   useEffect(() => {
@@ -144,7 +146,7 @@ export default function ChoosePlanPage() {
           <div className="flex items-center transition-transform duration-300 hover:scale-105">
             <Image
               src="/acx.png"
-              alt="AddisPrice"
+              alt="AddisConX"
               width={200}
               height={30}
               className="filter brightness-100"

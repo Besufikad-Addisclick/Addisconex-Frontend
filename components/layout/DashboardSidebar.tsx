@@ -53,7 +53,7 @@ export default function DashboardSidebar({ isSidebarOpen, toggleSidebar }: Dashb
                 exit={{ opacity: 0 }}
                 className="text-xl font-bold text-gray-800"
               >
-                AddisPrice
+                AddisConX
               </motion.h1>
             ) : (
               <motion.div

@@ -77,7 +77,7 @@ import { OptimizedImage } from '@/components/performance/ImageOptimizer';
 
 <OptimizedImage
   src="/image.jpg"
-  alt="Description"
+  alt="AddisConX"
   width={800}
   height={600}
   priority={false}

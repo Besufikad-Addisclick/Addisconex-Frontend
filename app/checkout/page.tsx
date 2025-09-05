@@ -285,10 +285,12 @@ function CheckoutContent() {
     router.push("/choose-plan");
   };
 
-  const handleLogout = () => {
-    console.log("Logging out user...");
-    signOut({ redirect: false });
-    router.push("/");
+  const handleLogout = async () => {
+    await signOut({ 
+      redirect: false,
+      callbackUrl: '/auth/login'
+    });
+    window.location.href = '/auth/login';
   };
 
   return (
@@ -298,7 +300,7 @@ function CheckoutContent() {
           <div className="flex items-center transition-transform duration-300 hover:scale-105">
             <Image
               src="/acx.png"
-              alt="AddisPrice"
+              alt="AddisConX"
               width={200}
               height={30}
               className="filter brightness-100"
@@ -401,7 +403,7 @@ function CheckoutContent() {
                     >
                       <Image
                         src="/santim.png"
-                        alt="Santim Pay"
+                        alt="AddisConX"
                         width={100}
                         height={70}
                         className="w-full h-full object-contain"
@@ -541,7 +543,7 @@ function CheckoutContent() {
                             {filePreview ? (
                               <img
                                 src={filePreview}
-                                alt="Invoice Preview"
+                                alt="AddisConX"
                                 className="max-h-48 rounded-lg mb-2 object-contain"
                               />
                             ) : (

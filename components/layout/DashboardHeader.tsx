@@ -1,6 +1,7 @@
 // components/layout/DashboardHeader.tsx
 "use client";
-
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 import { useState, memo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -126,7 +127,7 @@ const DashboardHeader = memo(() => {
                     <div className="flex items-center transition-transform duration-300 hover:scale-105">
                       <Image
                         src="/logotransparent.png"
-                        alt="AddisPrice"
+                        alt="AddisConX"
                         width={70}
                         height={30}
                         className="filter brightness-100"

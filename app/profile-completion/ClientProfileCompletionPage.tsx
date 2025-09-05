@@ -138,12 +138,19 @@ export default function ClientProfileCompletionPage() {
     "Estimator",
   ];
 
-  const handleLogout = () => {
-    console.log("Logging out user...");
-    signOut({ redirect: false });
-    window.location.href = "/auth/login";
-    // router.push("/");
-  };
+  const handleLogout = async () => {
+  try {
+    await signOut({ 
+      redirect: false,
+      callbackUrl: '/auth/login'
+    });
+    window.location.href = '/auth/login';
+    // The signOut with redirect:false will handle the redirect automatically
+    // No need for window.location.href or router.push
+  } catch (error) {
+    console.error('Error during sign out:', error);
+  }
+};
 
   const fetchProfile = async () => {
     const session = await getSession();
@@ -185,6 +192,7 @@ export default function ClientProfileCompletionPage() {
         data.user_details?.company_name &&
         data.user_details?.company_address &&
         data.user_details?.contact_person &&
+        (data.user_type != "contractors"  ? true : data.documents?.some((doc: any) => doc.file_type === "grade_certificate")) && 
         (data.user_type === "professionals" || data.user_type === "investors" ? true : data.documents?.some((doc: any) => doc.file_type === "license"));
       setIsProfileComplete(!!isComplete);
 
@@ -517,6 +525,7 @@ export default function ClientProfileCompletionPage() {
           result.user_details?.company_name &&
           result.user_details?.company_address &&
           result.user_details?.contact_person &&
+          (result.user_type != "contractors"  ? true : result.documents?.some((doc: any) => doc.file_type === "grade_certificate")) && 
           (result.user_type === "professionals" || result.user_type === "investors" ? true : result.documents?.some((doc: any) => doc.file_type === "license"));
         setIsProfileComplete(isComplete);
       }
@@ -606,7 +615,7 @@ export default function ClientProfileCompletionPage() {
           <>
           <Text type="danger">
           Please provide the required information, including company details and
-          a valid business license, to complete your profile setup.
+          a valid {userRole === "contractors"?"grade certificate ":""}, {userRole != "investors" &&  userRole != "professionals" && userRole != "admin"? "business license":""} , to complete your profile setup.
         </Text>
         </>
         ):

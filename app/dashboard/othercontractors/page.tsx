@@ -359,7 +359,7 @@ export default function OtherContractorsPage() {
             phone: item.phone_number,
             email: item.email,
             license: item.documents?.[0]?.file_type || "N/A",
-            specialization: item.user_details.equipment || [],
+            specialization: item?.user_details?.equipment || [],
             imageUrl: item.profile_picture || null,
           })),
           categories: (result.categories || []).map((category: any) => ({

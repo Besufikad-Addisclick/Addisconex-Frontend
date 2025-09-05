@@ -1,17 +1,19 @@
 // components/layout/Header.tsx
 "use client";
 
-import { useState, useEffect, memo } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, Search, X, LanguagesIcon, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
-import { useSession, signOut } from 'next-auth/react';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+import { useState, useEffect, memo } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, Search, X, LanguagesIcon, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import { useSession, signOut } from "next-auth/react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const Header = memo(() => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -26,88 +28,93 @@ const Header = memo(() => {
       setIsScrolled(window.scrollY > 10);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-  
+
   const handleLogout = async () => {
     try {
-      await signOut({ 
+      await signOut({
         redirect: false,
-        callbackUrl: '/auth/login'
+        callbackUrl: "/auth/login",
       });
       // Force a hard refresh to ensure session is cleared
-      window.location.href = '/auth/login';
+      window.location.href = "/auth/login";
     } catch (error) {
-      console.error('[navbar] Logout error:', error);
+      console.error("[navbar] Logout error:", error);
     }
   };
 
   const productLinks = [
-    { name: 'Concrete Work', href: '/products?category=concrete-work' },
-    { name: 'Finishing', href: '/products?category=finishing' },
-    { name: 'Excavation and Earth works', href: '/products?excavation-and-earth-works' },
-    { name: 'Electrical', href: '/products?category=electrical' },
-    { name: 'Carpentry and Joinery', href: '/products?category=carpentry-and-joinery' },
-    { name: 'Block Work/ Walling', href: '/products?category=block-work/-walling' },
-    { name: 'Glazing', href: '/products?category=glazing' },
-    { name: 'Masonry Work', href: '/products?category=masonry-work' },
-    { name: 'Metal Work', href: '/products?category=metal-work' },
-    { name: 'Painting', href: '/products?category=painting' },
-    { name: 'Sanitary', href: '/products?category=sanitary' },
-    { name: 'Bricks', href: '/products?category=bricks' },
-    { name: 'Tiles', href: '/products?category=tiles' },
-    { name: 'Glass', href: '/products?category=glass' },
-    { name: 'Aluminum', href: '/products?category=aluminum' },
-    { name: 'Gypsum', href: '/products?category=gypsum' },
-    { name: 'PVC', href: '/products?category=pvc' },
-    { name: 'Roofing', href: '/products?category=roofing' },
-    { name: 'Doors', href: '/products?category=doors' },
-    { name: 'Windows', href: '/products?category=windows' },
-    { name: 'Admixtures', href: '/products?category=admixtures' },
-    { name: 'Bitumen', href: '/products?category=bitumen' },
-    { name: 'Others', href: '/products?category=others' },
+    { name: "Concrete Work", href: "/products?category=concrete-work" },
+    { name: "Finishing", href: "/products?category=finishing" },
+    {
+      name: "Excavation and Earth works",
+      href: "/products?excavation-and-earth-works",
+    },
+    { name: "Electrical", href: "/products?category=electrical" },
+    {
+      name: "Carpentry and Joinery",
+      href: "/products?category=carpentry-and-joinery",
+    },
+    {
+      name: "Block Work/ Walling",
+      href: "/products?category=block-work/-walling",
+    },
+    { name: "Glazing", href: "/products?category=glazing" },
+    { name: "Masonry Work", href: "/products?category=masonry-work" },
+    { name: "Metal Work", href: "/products?category=metal-work" },
+    { name: "Painting", href: "/products?category=painting" },
+    { name: "Sanitary", href: "/products?category=sanitary" },
+    { name: "Bricks", href: "/products?category=bricks" },
+    { name: "Tiles", href: "/products?category=tiles" },
+    { name: "Glass", href: "/products?category=glass" },
+    { name: "Aluminum", href: "/products?category=aluminum" },
+    { name: "Gypsum", href: "/products?category=gypsum" },
+    { name: "PVC", href: "/products?category=pvc" },
+    { name: "Roofing", href: "/products?category=roofing" },
+    { name: "Doors", href: "/products?category=doors" },
+    { name: "Windows", href: "/products?category=windows" },
+    { name: "Admixtures", href: "/products?category=admixtures" },
+    { name: "Bitumen", href: "/products?category=bitumen" },
+    { name: "Others", href: "/products?category=others" },
   ];
 
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Products', href: '/products', submenu: productLinks },
-    { name: 'Pricing', href: '/pricing' },
-    { name: 'News', href: '/blog' },
-    { name: 'What we serve', href: '/service' },
-    { name: 'Contact us', href: '/contact' },
+    { name: "Home", href: "/" },
+    { name: "Products", href: "/products", submenu: productLinks },
+    { name: "Pricing", href: "/pricing" },
+    { name: "News", href: "/blog" },
+    { name: "What we serve", href: "/service" },
+    { name: "Contact us", href: "/contact" },
   ];
 
   return (
     <header
       className={cn(
-        'fixed w-full z-50 transition-all duration-300',
-        isScrolled ? 'bg-gray-200 backdrop-blur-sm shadow-md py-2' : 'bg-gray-200 py-4'
+        "fixed w-full z-50 transition-all duration-300",
+        isScrolled
+          ? "bg-gray-200 backdrop-blur-sm shadow-md py-2"
+          : "bg-gray-200 py-4"
       )}
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="no-underline">
-          <div className="flex items-center transition-transform duration-300 hover:scale-105">
-            <Image
-              src="/acx.png"
-              alt="AddisClick"
-              width={200}
-              height={30}
-              className="filter brightness-100"
-              priority
-            />
-          </div>
-        </Link>
-          {/* <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-primary rounded-md p-1">
-              <div className="w-8 h-8 bg-white rounded-sm flex items-center justify-center text-primary font-bold">
-                AC
-              </div>
+            <div className="flex items-center transition-transform duration-300 hover:scale-105">
+              <Image
+                key="header-logo"
+                src="/acx.png"
+                alt="AddisConX"
+                width={200}
+                height={30}
+                className="filter brightness-100"
+                priority
+              />
             </div>
-            <span className="font-bold text-xl text-primary">AddisPrice</span>
-          </Link> */}
+          </Link>
+          
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
@@ -116,9 +123,9 @@ const Header = memo(() => {
                 <Link
                   href={link.href}
                   className={cn(
-                    'text-sm font-medium transition-colors hover:text-primary py-2 inline-block',
-                    pathname === link.href ? 'text-primary' : 'text-gray-800',
-                    'relative',
+                    "text-sm font-medium transition-colors hover:text-primary py-2 inline-block",
+                    pathname === link.href ? "text-primary" : "text-gray-800",
+                    "relative"
                   )}
                 >
                   <span className="flex items-center">
@@ -170,7 +177,7 @@ const Header = memo(() => {
             >
               <LanguagesIcon size={20} />
             </Button>
-            {status === 'loading' ? (
+            {status === "loading" ? (
               <Button variant="outline" disabled>
                 Loading...
               </Button>
@@ -179,7 +186,11 @@ const Header = memo(() => {
                 <Button variant="outline" className="text-sm" asChild>
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                <Button variant="ghost" className="text-sm" onClick={handleLogout}>
+                <Button
+                  variant="ghost"
+                  className="text-sm"
+                  onClick={handleLogout}
+                >
                   Logout
                 </Button>
               </>
@@ -192,12 +203,15 @@ const Header = memo(() => {
 
           {/* Mobile Menu Trigger */}
           <div className="flex md:hidden">
-            <Sheet open={isMobileMenuOpen} onOpenChange={(open) => {
-              setIsMobileMenuOpen(open);
-              if (!open) {
-                setIsProductsSubmenuOpen(false);
-              }
-            }}>
+            <Sheet
+              open={isMobileMenuOpen}
+              onOpenChange={(open) => {
+                setIsMobileMenuOpen(open);
+                if (!open) {
+                  setIsProductsSubmenuOpen(false);
+                }
+              }}
+            >
               <SheetTrigger asChild>
                 <Button
                   variant="ghost"
@@ -215,18 +229,22 @@ const Header = memo(() => {
                       {link.submenu ? (
                         <div>
                           <button
-                            onClick={() => setIsProductsSubmenuOpen(!isProductsSubmenuOpen)}
+                            onClick={() =>
+                              setIsProductsSubmenuOpen(!isProductsSubmenuOpen)
+                            }
                             className={cn(
-                              'text-base font-medium py-2 block transition-colors hover:text-primary w-full text-left flex items-center justify-between',
-                              pathname === link.href ? 'text-primary' : 'text-gray-800'
+                              "text-base font-medium py-2 block transition-colors hover:text-primary w-full text-left flex items-center justify-between",
+                              pathname === link.href
+                                ? "text-primary"
+                                : "text-gray-800"
                             )}
                           >
                             {link.name}
-                            <ChevronDown 
+                            <ChevronDown
                               className={cn(
-                                'h-4 w-4 transition-transform duration-200',
-                                isProductsSubmenuOpen ? 'rotate-180' : ''
-                              )} 
+                                "h-4 w-4 transition-transform duration-200",
+                                isProductsSubmenuOpen ? "rotate-180" : ""
+                              )}
                             />
                           </button>
                           {isProductsSubmenuOpen && (
@@ -252,8 +270,10 @@ const Header = memo(() => {
                         <Link
                           href={link.href}
                           className={cn(
-                            'text-base font-medium py-2 block transition-colors hover:text-primary',
-                            pathname === link.href ? 'text-primary' : 'text-gray-800'
+                            "text-base font-medium py-2 block transition-colors hover:text-primary",
+                            pathname === link.href
+                              ? "text-primary"
+                              : "text-gray-800"
                           )}
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
@@ -263,7 +283,7 @@ const Header = memo(() => {
                     </div>
                   ))}
                   <div className="pt-4 border-t">
-                    {status === 'loading' ? (
+                    {status === "loading" ? (
                       <Button variant="outline" disabled className="w-full">
                         Loading...
                       </Button>
@@ -273,7 +293,7 @@ const Header = memo(() => {
                           variant="outline"
                           className="w-full justify-start"
                           onClick={() => {
-                            router.push('/dashboard');
+                            router.push("/dashboard");
                             setIsMobileMenuOpen(false);
                           }}
                         >
@@ -295,7 +315,7 @@ const Header = memo(() => {
                         variant="outline"
                         className="w-full justify-start"
                         onClick={() => {
-                          router.push('/auth/login');
+                          router.push("/auth/login");
                           setIsMobileMenuOpen(false);
                         }}
                       >
@@ -313,6 +333,6 @@ const Header = memo(() => {
   );
 });
 
-Header.displayName = 'Header';
+Header.displayName = "Header";
 
 export default Header;

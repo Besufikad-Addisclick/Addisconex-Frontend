@@ -852,7 +852,7 @@ export default function MachineriesPrice() {
                         <div className="mt-2">
                           <Image
                             src={imagePreview}
-                            alt="Preview"
+                            alt="AddisConX"
                             width={100}
                             height={100}
                             className="object-cover rounded"
@@ -1212,7 +1212,7 @@ export default function MachineriesPrice() {
                           <div className="mt-2">
                             <Image
                               src={imagePreview}
-                              alt="Preview"
+                              alt="AddisConX"
                               width={50}
                               height={50}
                               className="object-cover rounded"

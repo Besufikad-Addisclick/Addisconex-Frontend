@@ -45,17 +45,14 @@ export default withAuth(
 
       // Check subscription status with caching
       try {
-        const userId = token.userId || token.email;
+        
         console.log("token:", token);
-        const cacheKey = `subscription_${userId}`;
-        const cached = subscriptionCache.get(cacheKey);
+        
 
         let subscriptionData;
 
         // Use cached data if available and not expired
-        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-          subscriptionData = cached.data;
-        } else {
+        
           // Fetch fresh data
           const apiUrl =
             process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
@@ -69,13 +66,9 @@ export default withAuth(
 
           if (response.ok) {
             subscriptionData = await response.json();
-            // Cache the result
-            subscriptionCache.set(cacheKey, {
-              data: subscriptionData,
-              timestamp: Date.now(),
-            });
+            
           }
-        }
+        
 
         if (subscriptionData) {
           // If user has pending subscription, redirect to checkout

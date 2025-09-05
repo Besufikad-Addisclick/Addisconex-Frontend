@@ -37,7 +37,7 @@ export default function NotAuthorizedPage() {
           <div className="flex items-center transition-transform duration-300 hover:scale-105">
             <Image
               src="/acx.png"
-              alt="AddisPrice"
+              alt="AddisConX"
               width={200}
               height={30}
               className="filter brightness-100"

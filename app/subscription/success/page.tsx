@@ -31,7 +31,7 @@ export default function SubscriptionSuccessPage() {
       <div className="flex justify-between items-center p-4 bg-white shadow-sm">
         <div className="text-left">
           <h1 className="text-2xl font-bold text-gray-800">
-            Welcome to AddisPrice!
+            Welcome to AddisConX!
           </h1>
           <p className="text-gray-600">
             Your subscription has been processed.

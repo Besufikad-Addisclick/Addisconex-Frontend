@@ -3,16 +3,11 @@
 import { SessionProvider } from 'next-auth/react';
 import { AuthProvider } from './context/AuthContext';
 import './globals.css';
-import { Inter } from 'next/font/google';
 import { Toaster } from "@/components/ui/toaster";
 import { Suspense, lazy } from 'react';
 import { LazyWrapper } from '@/components/performance/LazyWrapper';
 
-const inter = Inter({ 
-  subsets: ['latin'],
-  display: 'swap',
-  preload: true,
-});
+
 
 // Lazy load heavy components
 const LazyToaster = lazy(() => import("@/components/ui/toaster").then(module => ({ default: module.Toaster })));
@@ -29,7 +24,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <body  suppressHydrationWarning>
         <SessionProvider>
           <AuthProvider>
             <LazyWrapper fallback={
