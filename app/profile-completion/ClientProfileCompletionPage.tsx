@@ -1041,6 +1041,7 @@ export default function ClientProfileCompletionPage() {
                   <Input
                     type="number"
                     min={0}
+                    maxLength={2}
                     placeholder="Years of experience"
                   />
                 </Form.Item>

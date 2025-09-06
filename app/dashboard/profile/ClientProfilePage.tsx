@@ -1069,17 +1069,12 @@ export default function ClientProfilePage() {
                 </Form.Item>
 
                 <Form.Item name="yearOfExperience" label="Years of Experience"
-                rules={[
-                  {
-                    max: 10,
-                    message: "Years of experience should be 10 digits",
-                  },
-                ]}>
+                >
                   <Input
                     type="number"
                     min={0}
                     placeholder="Years of experience"
-                    maxLength={10}
+                    maxLength={2}
                   />
                 </Form.Item>
               </div>

@@ -53,9 +53,21 @@ export const fetchMaterialDetail = async (
     throw error;
   }
 };
-export const fetchSupplierDetail = async (supplierId: string, page: number = 1): Promise<SupplierDetailResponse> => {
+export const fetchSupplierDetail = async (
+  supplierId: string, 
+  materialPage: number = 1, 
+  machineryPage: number = 1,
+  materialPageSize: number = 10,
+  machineryPageSize: number = 10
+): Promise<SupplierDetailResponse> => {
   try {
-    const url = `${API_URL}/materials/suppliers/${supplierId}/?page=${page}`;
+    const queryParams = new URLSearchParams();
+    queryParams.append('material_page', materialPage.toString());
+    queryParams.append('machinery_page', machineryPage.toString());
+    queryParams.append('material_page_size', materialPageSize.toString());
+    queryParams.append('machinery_page_size', machineryPageSize.toString());
+    
+    const url = `${API_URL}/materials/suppliers/${supplierId}/?${queryParams.toString()}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {

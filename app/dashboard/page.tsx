@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Package,
@@ -448,62 +448,23 @@ export default function DashboardPage() {
     );
   }
   return (
-    <div className="flex flex-col xl:flex-row">
-      {error && (
-        <div className="p-4 text-red-600">
-          {error}
-          {error.includes("Unauthorized") && (
-            <div>
-              <Link href="/login" className="text-blue-600 hover:underline">
-                Log in
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
+    <React.Fragment>
+      <div className="flex flex-col xl:flex-row">
+        {error && (
+          <div className="p-4 text-red-600">
+            {error}
+            {error.includes("Unauthorized") && (
+              <div>
+                <Link href="/login" className="text-blue-600 hover:underline">
+                  Log in
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
 
-      <div className="xl:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="left"
-            className="w-full sm:w-[540px] overflow-y-auto"
-          >
-            <FilterSidebar
-              filters={filters}
-              onFilterChange={(newFilters) => {
-                setFilters({ ...newFilters, page: "1" });
-                setSelectedCategory(newFilters.searchQuery); // Update selectedCategory
-                setVisibleCount(INITIAL_ITEMS);
-              }}
-              onClearFilters={clearFilters}
-              categories={data.categories}
-              regions={data.regions}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
 
-      <div className="hidden xl:block w-60 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
-        <FilterSidebar
-          filters={filters}
-          onFilterChange={(newFilters) => {
-            setFilters({ ...newFilters, page: "1" });
-            setSelectedCategory(newFilters.searchQuery); // Update selectedCategory
-            setVisibleCount(INITIAL_ITEMS);
-          }}
-          onClearFilters={clearFilters}
-          categories={data.categories}
-          regions={data.regions}
-        />
-      </div>
-
-      <div className="flex-1 min-w-0 space-y-6">
+        <div className="flex-1 min-w-0 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white p-6 rounded-lg shadow-sm border">
             <h3 className="text-sm font-medium text-gray-500 mb-2">
@@ -602,6 +563,8 @@ export default function DashboardPage() {
                 </SelectItem>
               </SelectContent>
             </Select>
+
+            
           </div>
         </div>
 
@@ -610,11 +573,49 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-lg shadow-sm overflow-hidden border"
         >
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {selectedCategoryName} Materials ({filteredMaterials.length})
-            </h2>
-          </div>
+           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+             <Sheet>
+               <SheetTrigger asChild>
+                 <Button variant="outline">
+                   <Filter className="h-4 w-4 mr-2" />
+                   Filters
+                 </Button>
+                 
+               </SheetTrigger>
+               <SheetContent
+                 side="left"
+                 className="w-full sm:w-[540px] overflow-y-auto"
+               >
+                 <FilterSidebar
+                   filters={filters}
+                   onFilterChange={(newFilters) => {
+                     setFilters({ ...newFilters, page: "1" });
+                     setSelectedCategory(newFilters.searchQuery); // Update selectedCategory
+                     setVisibleCount(INITIAL_ITEMS);
+                   }}
+                   onClearFilters={clearFilters}
+                   categories={data.categories}
+                   regions={data.regions}
+                 />
+               </SheetContent>
+             </Sheet>
+             <div className="text-right">
+               <h2 className="text-lg font-semibold text-gray-900">
+                 {selectedCategoryName} Materials ({filteredMaterials.length})
+               </h2>
+               <div className="text-sm text-gray-600 mt-1">
+                 {filters.selectedRegion !== "all" && (
+                   <span>Region: {data.regions.find(r => r.id === filters.selectedRegion)?.name || filters.selectedRegion}</span>
+                 )}
+                 {filters.selectedRegion !== "all" && (filters.minPrice || filters.maxPrice) && " • "}
+                 {(filters.minPrice || filters.maxPrice) && (
+                   <span>
+                     Price: {filters.minPrice ? `${filters.minPrice}` : "0"} - {filters.maxPrice || "∞"} ETB
+                   </span>
+                 )}
+               </div>
+             </div>
+           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -822,13 +823,24 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      <div className="hidden xl:block w-80 flex-shrink-0">
+        {/* Ads Section - Right side for lg+ screens */}
+        <div className="hidden lg:block w-1/4 xl:w-1/4 2xl:w-80 flex-shrink-0">
+          <AdsSection
+            title="Sponsored Deals"
+            adType=""
+            display_location="ad_sections"
+          />
+        </div>
+      </div>
+
+      {/* Ads Section - Bottom for smaller screens */}
+      <div className="lg:hidden mt-6">
         <AdsSection
           title="Sponsored Deals"
           adType=""
           display_location="ad_sections"
         />
       </div>
-    </div>
+    </React.Fragment>
   );
 }

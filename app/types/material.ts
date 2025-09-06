@@ -30,6 +30,7 @@ export interface SupplierUserDetails {
   website: string | null;
   description: string | null;
   contact_person: string;
+  contact_person_phone: string | null;
   region: number;
   established_year: number | null;
   team_size: string | null;

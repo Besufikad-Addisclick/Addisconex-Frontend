@@ -41,16 +41,21 @@ export default function SupplierDetail() {
     useState<SupplierDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [materialPage, setMaterialPage] = useState(1);
+  const [machineryPage, setMachineryPage] = useState(1);
   const [highlightedRowId, setHighlightedRowId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [loadingMoreMaterials, setLoadingMoreMaterials] = useState(false);
+  const [loadingMoreMachinery, setLoadingMoreMachinery] = useState(false);
+  const [materialsLoading, setMaterialsLoading] = useState(false);
+  const [machineryLoading, setMachineryLoading] = useState(false);
 
   useEffect(() => {
     const loadSupplierData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchSupplierDetail(supplierId, currentPage);
+        const data = await fetchSupplierDetail(supplierId, materialPage, machineryPage);
         console.log("fetchSupplierDetail",data)
         setSupplierData(data);
       } catch (err) {
@@ -65,7 +70,7 @@ export default function SupplierDetail() {
     if (supplierId) {
       loadSupplierData();
     }
-  }, [supplierId, currentPage]);
+  }, [supplierId, materialPage, machineryPage]);
 
   useEffect(() => {
     if (materialId) {
@@ -83,6 +88,122 @@ export default function SupplierDetail() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  const loadMoreMaterials = async () => {
+    if (!supplierData?.material_prices.next || loadingMoreMaterials) return;
+    
+    setLoadingMoreMaterials(true);
+    try {
+      const nextPage = materialPage + 1;
+      const data = await fetchSupplierDetail(supplierId, nextPage, machineryPage);
+      
+      // Backend now returns cumulative data, so we replace the entire results
+      setSupplierData(prev => ({
+        ...prev!,
+        material_prices: data.material_prices
+      }));
+      setMaterialPage(nextPage);
+    } catch (err) {
+      console.error('Error loading more materials:', err);
+    } finally {
+      setLoadingMoreMaterials(false);
+    }
+  };
+
+  const loadMoreMachinery = async () => {
+    if (!supplierData?.machinery_prices.next || loadingMoreMachinery) return;
+    
+    setLoadingMoreMachinery(true);
+    try {
+      const nextPage = machineryPage + 1;
+      const data = await fetchSupplierDetail(supplierId, materialPage, nextPage);
+      
+      // Backend now returns cumulative data, so we replace the entire results
+      setSupplierData(prev => ({
+        ...prev!,
+        machinery_prices: data.machinery_prices
+      }));
+      setMachineryPage(nextPage);
+    } catch (err) {
+      console.error('Error loading more machinery:', err);
+    } finally {
+      setLoadingMoreMachinery(false);
+    }
+  };
+
+  const loadLessMaterials = async () => {
+    if (materialPage <= 1 || loadingMoreMaterials) return;
+    
+    setLoadingMoreMaterials(true);
+    try {
+      const prevPage = materialPage - 1;
+      const data = await fetchSupplierDetail(supplierId, prevPage, machineryPage);
+      
+      // Backend now returns cumulative data, so we replace the entire results
+      setSupplierData(prev => ({
+        ...prev!,
+        material_prices: data.material_prices
+      }));
+      setMaterialPage(prevPage);
+    } catch (err) {
+      console.error('Error loading less materials:', err);
+    } finally {
+      setLoadingMoreMaterials(false);
+    }
+  };
+
+  const loadLessMachinery = async () => {
+    if (machineryPage <= 1 || loadingMoreMachinery) return;
+    
+    setLoadingMoreMachinery(true);
+    try {
+      const prevPage = machineryPage - 1;
+      const data = await fetchSupplierDetail(supplierId, materialPage, prevPage);
+      
+      // Backend now returns cumulative data, so we replace the entire results
+      setSupplierData(prev => ({
+        ...prev!,
+        machinery_prices: data.machinery_prices
+      }));
+      setMachineryPage(prevPage);
+    } catch (err) {
+      console.error('Error loading less machinery:', err);
+    } finally {
+      setLoadingMoreMachinery(false);
+    }
+  };
+
+  const loadMaterialsOnly = async () => {
+    setMaterialsLoading(true);
+    try {
+      const data = await fetchSupplierDetail(supplierId, 1, machineryPage);
+      setSupplierData(prev => ({
+        ...prev!,
+        material_prices: data.material_prices
+      }));
+      setMaterialPage(1);
+    } catch (err) {
+      console.error('Error loading materials:', err);
+    } finally {
+      setMaterialsLoading(false);
+    }
+  };
+
+  const loadMachineryOnly = async () => {
+    setMachineryLoading(true);
+    try {
+      const data = await fetchSupplierDetail(supplierId, materialPage, 1);
+      setSupplierData(prev => ({
+        ...prev!,
+        machinery_prices: data.machinery_prices
+      }));
+      setMachineryPage(1);
+    } catch (err) {
+      console.error('Error loading machinery:', err);
+    } finally {
+      setMachineryLoading(false);
+    }
   };
 
   const getRegionName = (regionId: number): string => {
@@ -274,7 +395,10 @@ export default function SupplierDetail() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
                   <Package className="h-5 w-5" />
-                  Available Materials ({material_prices.count})
+                  Available Materials ({material_prices.results.length} of {material_prices.count})
+                  {materialsLoading && (
+                    <Building2 className="h-4 w-4 animate-spin text-primary" />
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -344,42 +468,43 @@ export default function SupplierDetail() {
                   </table>
                 </div>
 
-                {/* Pagination */}
-                {/* {totalPages > 1 && (
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="text-sm text-gray-500">
-                      Showing {visibleMaterials.length} of{" "}
-                      {material_prices.count} materials
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(prev - 1, 1))
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        Previous
-                      </Button>
-                      <span className="flex items-center px-3 text-sm">
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, totalPages)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )} */}
+                {/* Load More/Less Materials */}
+                <div className="mt-4 flex justify-center gap-3">
+                  {materialPage > 1 && (
+                    <Button
+                      variant="outline"
+                      onClick={loadLessMaterials}
+                      disabled={loadingMoreMaterials || materialsLoading}
+                      className="min-w-[120px]"
+                    >
+                      {loadingMoreMaterials ? (
+                        <>
+                          <Building2 className="h-4 w-4 mr-2 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        'Load Less Materials'
+                      )}
+                    </Button>
+                  )}
+                  {material_prices.next && (
+                    <Button
+                      variant="outline"
+                      onClick={loadMoreMaterials}
+                      disabled={loadingMoreMaterials || materialsLoading}
+                      className="min-w-[120px]"
+                    >
+                      {loadingMoreMaterials ? (
+                        <>
+                          <Building2 className="h-4 w-4 mr-2 animate-spin" />
+                          Loading More...
+                        </>
+                      ) : (
+                        'Load More Materials'
+                      )}
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -390,8 +515,10 @@ export default function SupplierDetail() {
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2">
                       <Award className="h-5 w-5" />
-                      Available Machineries (
-                      {supplierData.machinery_prices.count})
+                      Available Machineries ({supplierData.machinery_prices.results.length} of {supplierData.machinery_prices.count})
+                      {machineryLoading && (
+                        <Award className="h-4 w-4 animate-spin text-primary" />
+                      )}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -487,6 +614,44 @@ export default function SupplierDetail() {
                         </tbody>
                       </table>
                     </div>
+                    
+                    {/* Load More/Less Machinery */}
+                    <div className="mt-4 flex justify-center gap-3">
+                      {machineryPage > 1 && (
+                        <Button
+                          variant="outline"
+                          onClick={loadLessMachinery}
+                          disabled={loadingMoreMachinery || machineryLoading}
+                          className="min-w-[120px]"
+                        >
+                          {loadingMoreMachinery ? (
+                            <>
+                              <Award className="h-4 w-4 mr-2 animate-spin" />
+                              Loading...
+                            </>
+                          ) : (
+                            'Load Less Machinery'
+                          )}
+                        </Button>
+                      )}
+                      {supplierData.machinery_prices.next && (
+                        <Button
+                          variant="outline"
+                          onClick={loadMoreMachinery}
+                          disabled={loadingMoreMachinery || machineryLoading}
+                          className="min-w-[120px]"
+                        >
+                          {loadingMoreMachinery ? (
+                            <>
+                              <Award className="h-4 w-4 mr-2 animate-spin" />
+                              Loading More...
+                            </>
+                          ) : (
+                            'Load More Machinery'
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -544,11 +709,27 @@ export default function SupplierDetail() {
                   <span className="font-medium">{material_prices.count}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Contact Person</span>
+                  <span className="text-gray-600">Owner</span>
                   <span className="font-medium">
-                    {supplier.user_details.contact_person}
+                    {supplier.first_name} {supplier.last_name}
                   </span>
                 </div>
+                {supplier.user_details.established_year && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Established</span>
+                    <span className="font-medium">
+                      {supplier.user_details.established_year}
+                    </span>
+                  </div>
+                )}
+                {supplier.user_details.contact_person_phone && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Contact Phone</span>
+                    <span className="font-medium">
+                      {supplier.user_details.contact_person_phone}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Status</span>
                   <Badge

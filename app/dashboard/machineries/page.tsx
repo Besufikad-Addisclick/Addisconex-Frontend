@@ -565,44 +565,53 @@ export default function MachineriesPage() {
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
-      <div className="lg:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-          </SheetTrigger>
-          <SheetContent
-            side="left"
-            className="w-full sm:w-[400px] overflow-y-auto"
-          >
-            <FilterSidebar
-              filters={filters}
-              onFilterChange={setFilters}
-              onClearFilters={handleClearFilters}
-              categories={data.categories}
-              regions={data.regions}
-              isMobile={true}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      <div className="hidden lg:block w-72 xl:w-80 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
-        <FilterSidebar
-          filters={filters}
-          onFilterChange={setFilters}
-          onClearFilters={handleClearFilters}
-          categories={data.categories}
-          regions={data.regions}
-          isMobile={false}
-        />
-      </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex justify-end mb-4 sm:mb-6 gap-2 overflow-x-auto pb-2">
-          <div className="flex gap-2 min-w-max">
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <div className="flex items-center gap-4">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="w-full sm:w-[400px] overflow-y-auto"
+              >
+                <FilterSidebar
+                  filters={filters}
+                  onFilterChange={setFilters}
+                  onClearFilters={handleClearFilters}
+                  categories={data.categories}
+                  regions={data.regions}
+                  isMobile={true}
+                />
+              </SheetContent>
+            </Sheet>
+            <div className="text-sm text-gray-600">
+              {filters.selectedRegion !== "all" && (
+                <span>Region: {data.regions.find(r => String(r.id) === String(filters.selectedRegion))?.name || filters.selectedRegion}</span>
+              )}
+              {filters.selectedRegion !== "all" && (filters.minPrice || filters.maxPrice || filters.selectedCategories.length > 0) && " • "}
+              {filters.selectedCategories.length > 0 && (
+                <span>
+                  Categories: {filters.selectedCategories.map(catId => 
+                    data.categories.find(cat => String(cat.id) === String(catId))?.name
+                  ).filter(Boolean).join(", ")}
+                </span>
+              )}
+              {(filters.selectedCategories.length > 0 || filters.selectedRegion !== "all") && (filters.minPrice || filters.maxPrice) && " • "}
+              {(filters.minPrice || filters.maxPrice) && (
+                <span>
+                  Price: {filters.minPrice ? `${filters.minPrice}` : "0"} - {filters.maxPrice || "∞"} ETB
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <div className="flex gap-2 min-w-max">
             <Badge
               variant={activeTab === "featured" ? "default" : "outline"}
               className="cursor-pointer hover:bg-primary hover:text-white transition-colors text-xs sm:text-sm whitespace-nowrap"
@@ -631,6 +640,7 @@ export default function MachineriesPage() {
             >
               All
             </Badge>
+            </div>
           </div>
         </div>
 
