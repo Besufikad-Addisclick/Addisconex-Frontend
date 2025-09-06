@@ -17,6 +17,8 @@ import {
   Star,
   Phone,
   X,
+  LoaderCircle,
+  Loader,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +37,7 @@ import { Subcontractor, Region, Category, SubcontractorsData } from "@/app/types
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+  "/int.png";
 
 interface FilterSidebarProps {
   className?: string;
@@ -228,14 +230,14 @@ const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5 text-gray-400" />
-              <span>{contractor.region}</span>
+              <span>{typeof contractor.region === 'object' ? contractor.region : contractor.region}</span>
             </div>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {contractor.specialization.map((spec, index) => (
+            {contractor.user_details?.equipment?.map((item: { name: string; quantity: string }, index: number) => (
               <Badge key={index} variant="outline">
-                {spec}
+                {item.name} ({item.quantity})
               </Badge>
             ))}
           </div>
@@ -246,7 +248,7 @@ const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
               {contractor.phone}
             </Button>
             <Button asChild>
-              <Link href={`/dashboard/subcontractors/${contractor.id}`}>
+              <Link href={`/dashboard/othercontractors/${contractor.id}`}>
                 View Profile
               </Link>
             </Button>
@@ -348,8 +350,8 @@ export default function OtherContractorsPage() {
             id: item.id,
             name: item.user_details.company_name || `${item.first_name} ${item.last_name}`,
             category: item.user_details.category?.name || "Unknown",
-           region: typeof item.user_details.region === "object" 
-            ? item.user_details.region.name 
+           region: typeof item.user_details.regions === "object" 
+            ? item.user_details.regions.name 
             :  "Unknown",
             rating: item.average_rate || null,
             completedProjects: item.key_projects?.length || 0,
@@ -448,7 +450,7 @@ export default function OtherContractorsPage() {
               scale: { repeat: Infinity, duration: 1, ease: "easeInOut" },
             }}
           >
-            <X className="w-12 h-12 text-primary" />
+            <Loader className="w-12 h-12 text-primary" />
           </motion.div>
           <p className="text-lg font-medium text-gray-700">
             Loading contractors...

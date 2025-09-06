@@ -211,3 +211,6 @@ NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
 - [Web Vitals](https://web.dev/vitals/)
 - [React Performance Optimization](https://react.dev/learn/render-and-commit)
 - [Chrome DevTools Performance](https://developer.chrome.com/docs/devtools/evaluate-performance/)
+
+
+

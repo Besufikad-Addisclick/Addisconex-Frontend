@@ -80,6 +80,7 @@ export default withAuth(
           if (subscriptionData.has_active_subscription) {
             const verificationExpiresAt = token.verificationExpiresAt;
             
+            
 
             if (
               !verificationExpiresAt || // null or undefined

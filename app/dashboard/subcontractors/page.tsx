@@ -33,9 +33,8 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Subcontractor, Region, Category, SubcontractorsData } from "@/app/types/subcontractor";
 
-// Fallback image URL
-const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+
+
 
 interface FilterSidebarProps {
   className?: string;
@@ -169,7 +168,7 @@ const FilterSidebar = ({
 };
 
 const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
-  const imageSrc = contractor.imageUrl || FALLBACK_IMAGE_URL;
+  const imageSrc = contractor.imageUrl || '/int.png';
   if (!contractor.imageUrl) {
     console.warn(`Missing imageUrl for subcontractor: ${contractor.name} (ID: ${contractor.id})`);
   }
@@ -348,8 +347,8 @@ export default function SubcontractorsPage() {
             id: item.id,
             name: item.user_details.company_name || `${item.first_name} ${item.last_name}`,
             category: item.user_details.category?.name || "Unknown",
-           region: typeof item.user_details.region === "object" 
-            ? item.user_details.region.name 
+           region: typeof item.user_details.regions === "object" 
+            ? item.user_details.regions.name 
             :  "Unknown",
             rating: item.average_rate || null,
             completedProjects: item.key_projects?.length || 0,

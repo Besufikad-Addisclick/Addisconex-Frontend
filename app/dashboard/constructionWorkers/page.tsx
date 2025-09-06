@@ -35,7 +35,7 @@ import { Subcontractor, Region, Category, SubcontractorsData } from "@/app/types
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+  "/int.png";
 
 interface FilterSidebarProps {
   className?: string;

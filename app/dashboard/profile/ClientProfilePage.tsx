@@ -686,6 +686,10 @@ export default function ClientProfilePage() {
               label="First Name"
               rules={[
                 { required: true, message: "Please enter your first name" },
+                {
+                  max: 255,
+                  message: "First name is too long",
+                },
               ]}
             >
               <Input prefix={<UserOutlined />} placeholder="Enter first name" />
@@ -695,7 +699,11 @@ export default function ClientProfilePage() {
               label="Last Name"
               rules={[
                 { required: true, message: "Please enter your last name" },
-              ]}
+                {
+                  max: 255,
+                  message: "Last name is too long",
+                },
+                ]}
             >
               <Input prefix={<UserOutlined />} placeholder="Enter last name" />
             </Form.Item>
@@ -707,6 +715,10 @@ export default function ClientProfilePage() {
                   required: true,
                   type: "email",
                   message: "Please enter a valid email",
+                },
+                {
+                  max: 255,
+                  message: "Email is too long",
                 },
               ]}
             >
@@ -770,9 +782,8 @@ export default function ClientProfilePage() {
                           rules={[
                             {
                               required:
-                                userRole !== "contractors" &&
-                                userRole !== "consultants" &&
-                                userRole !== "subcontractors",
+                                userRole == "contractors" ||
+                                userRole == "subcontractors",
                               message: "Please select an area of specialization",
                             },
                           ]}
@@ -801,6 +812,10 @@ export default function ClientProfilePage() {
                         userRole !== "admin" && userRole !== "professionals",
                       message: "Please enter your company name",
                     },
+                    {
+                      max: 255,
+                      message: "Address is too long",
+                    },
                   ]}
                 >
                   <Input prefix={<Building />} placeholder="Company name" />
@@ -809,16 +824,32 @@ export default function ClientProfilePage() {
                   name="companyAddress"
                   label="Company Address"
                   rules={[
+                    
                     {
                       required:
                         userRole !== "admin" && userRole !== "professionals",
                       message: "Please enter your company address",
                     },
+                    {
+                      max: 255,
+                      message: "Address is too long",
+                    },
                   ]}
                 >
                   <Input placeholder="Enter company address" />
                 </Form.Item>
-                <Form.Item name="website" label="Website">
+                <Form.Item name="website" label="Website"
+                rules={[
+                  {
+                    max: 200,
+                    message: "Website URL is too long",
+                  },
+                  {
+                    type: "url",
+                    message:
+                      "Please enter a valid URL (e.g., https://example.com)",
+                  },
+                ]}>
                   <Input
                     prefix={<GlobalOutlined />}
                     placeholder="https://example.com"
@@ -832,6 +863,10 @@ export default function ClientProfilePage() {
                       required:
                         userRole !== "admin" && userRole !== "professionals",
                       message: "Please enter a contact person",
+                    },
+                    {
+                      max: 100,
+                      message: "Contact person name is too long",
                     },
                   ]}
                 >
@@ -861,11 +896,31 @@ export default function ClientProfilePage() {
                     placeholder="phone number"
                   />
                 </Form.Item>
-                <Form.Item name="establishedYear" label="Established Year">
+                <Form.Item name="establishedYear" label="Established Year"
+                rules={[
+                  
+                  {
+                    validator: (_, value) => {
+                      if (
+                        value &&
+                        (value < 1900 || value > new Date().getFullYear())
+                      ) {
+                        return Promise.reject(
+                          new Error(
+                            `Year must be between 1900 and ${new Date().getFullYear()}`
+                          )
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  },
+                ]}>
                   <Input
                     type="number"
                     prefix={<CalendarOutlined />}
                     placeholder="Year"
+                    maxLength={4}
+                    
                   />
                 </Form.Item>
                 <Form.Item name="teamSize" label="Team Size">
@@ -977,21 +1032,35 @@ export default function ClientProfilePage() {
                   />
                 </Form.Item>
 
-                <Form.Item name="salaryMin" label="Minimum Salary">
+                <Form.Item name="salaryMin" label="Minimum Salary"
+                rules={[
+                  {
+                    max: 10,
+                    message: "Salary should be 10 digits",
+                  },
+                ]}>
                   <Input
                     type="number"
                     min={0}
                     step="0.01"
                     placeholder="Minimum salary"
+                    maxLength={10}
                   />
                 </Form.Item>
 
-                <Form.Item name="salaryMax" label="Maximum Salary">
+                <Form.Item name="salaryMax" label="Maximum Salary"
+                rules={[
+                  {
+                    max: 10,
+                    message: "Salary should be 10 digits",
+                  },
+                ]}>
                   <Input
                     type="number"
                     min={0}
                     step="0.01"
                     placeholder="Maximum salary"
+                    maxLength={10}
                   />
                 </Form.Item>
 
@@ -999,11 +1068,18 @@ export default function ClientProfilePage() {
                   <Checkbox>Salary Negotiable</Checkbox>
                 </Form.Item>
 
-                <Form.Item name="yearOfExperience" label="Years of Experience">
+                <Form.Item name="yearOfExperience" label="Years of Experience"
+                rules={[
+                  {
+                    max: 10,
+                    message: "Years of experience should be 10 digits",
+                  },
+                ]}>
                   <Input
                     type="number"
                     min={0}
                     placeholder="Years of experience"
+                    maxLength={10}
                   />
                 </Form.Item>
               </div>
@@ -1027,6 +1103,10 @@ export default function ClientProfilePage() {
                               required: true,
                               message: "Please enter machinery name",
                             },
+                            {
+                              max: 255,
+                              message: "Machinery name is too long",
+                            },
                           ]}
                         >
                           <Input placeholder="machinery name" />
@@ -1041,6 +1121,10 @@ export default function ClientProfilePage() {
                             {
                               required: true,
                               message: "Please enter quantity",
+                            },
+                            {
+                              max: 10,
+                              message: "Quantity should be 10 digits",
                             },
                           ]}
                         >
@@ -1090,6 +1174,10 @@ export default function ClientProfilePage() {
                               required: true,
                               message: "Please select a category",
                             },
+                            {
+                              max: 255,
+                              message: "Category is too long",
+                            },
                           ]}
                         >
                           <Select placeholder="Select category">
@@ -1112,6 +1200,12 @@ export default function ClientProfilePage() {
                           //     message: "Please enter team size",
                           //   },
                           // ]}
+                          rules={[
+                            {
+                              max: 10,
+                              message: "Team size should be 10 digits",
+                            },
+                          ]}
                         >
                           <Input type="number" placeholder="Team size" />
                         </Form.Item>
@@ -1177,6 +1271,10 @@ export default function ClientProfilePage() {
                                     required: true,
                                     message: "Please enter project name",
                                   },
+                                  {
+                                    max: 255,
+                                    message: "Project name is too long",
+                                  },
                                 ]}
                               >
                                 <Input placeholder="Project name" />
@@ -1190,6 +1288,10 @@ export default function ClientProfilePage() {
                                   {
                                     required: true,
                                     message: "Please enter location",
+                                  },
+                                  {
+                                    max: 255,
+                                    message: "Location is too long",
                                   },
                                 ]}
                               >
@@ -1207,9 +1309,13 @@ export default function ClientProfilePage() {
                                     required: true,
                                     message: "Please enter year",
                                   },
-                                ]}
+                                  {
+                                    max: 4,
+                                    message: "Year should be 4 digits",
+                                  },
+                                    ]}
                               >
-                                <Input type="number" placeholder="Year" />
+                                <Input type="number" placeholder="Year" maxLength={4} />
                               </Form.Item>
                               <Form.Item
                                 {...restField}
@@ -1219,6 +1325,10 @@ export default function ClientProfilePage() {
                                   {
                                     required: true,
                                     message: "Please enter description",
+                                  },
+                                  {
+                                    max: 1000,
+                                    message: "Description is too long",
                                   },
                                 ]}
                               >
@@ -1238,6 +1348,7 @@ export default function ClientProfilePage() {
                                 if (Array.isArray(e)) return e;
                                 return e && e.fileList ? e.fileList : [];
                               }}
+                              
                             >
                               <Upload
                                 beforeUpload={() => false}
@@ -1320,6 +1431,10 @@ export default function ClientProfilePage() {
                                   required: true,
                                   message: "Please select document type",
                                 },
+                                {
+                                  max: 255,
+                                  message: "Document type is too long",
+                                },
                               ]}
                             >
                               <Select placeholder="Select document type">
@@ -1355,6 +1470,7 @@ export default function ClientProfilePage() {
                                   required: !currentDoc?.id,
                                   message: "Please upload a file",
                                 },
+                                
                               ]}
                             >
                               <Upload
@@ -1388,23 +1504,41 @@ export default function ClientProfilePage() {
                               {...restField}
                               name={[name, "issued_date"]}
                               label="Issued Date"
+                              rules={[
+                                {
+                                  max: 10,
+                                  message: "Issued date should be 10 digits",
+                                },
+                              ]}
                             >
-                              <Input type="date" />
+                              <Input type="date" maxLength={10} />
                             </Form.Item>
 
                             <Form.Item
                               {...restField}
                               name={[name, "expiry_date"]}
                               label="Expiry Date"
+                              rules={[
+                                {
+                                  max: 10,
+                                  message: "Expiry date should be 10 digits",
+                                },
+                              ]}
                             >
-                              <Input type="date" />
+                              <Input type="date" maxLength={10} />
                             </Form.Item>
                             <Form.Item
                               {...restField}
                               name={[name, "issued_by"]}
                               label="Issued By"
+                              rules={[
+                                {
+                                  max: 255,
+                                  message: "Issued by is too long",
+                                },
+                              ]}
                             >
-                              <Input placeholder="Enter issuer" />
+                              <Input placeholder="Enter issuer" maxLength={255}         />
                             </Form.Item>
                           </div>
 

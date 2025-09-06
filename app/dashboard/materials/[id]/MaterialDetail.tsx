@@ -452,9 +452,7 @@ export default function MaterialDetail() {
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 border-r border-gray-200">
                     Price
                   </th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 border-r border-gray-200">
-                    Last Updated
-                  </th>
+                 
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
                     Action
                   </th>
@@ -518,14 +516,7 @@ export default function MaterialDetail() {
                           {new Date(price.price_date).toLocaleDateString()}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-center border-r border-gray-200">
-                        <div className="text-sm text-gray-900">
-                          {new Date(price.updated_at).toLocaleDateString()}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(price.updated_at).toLocaleTimeString()}
-                        </div>
-                      </td>
+                     
                       <td className="px-6 py-4 text-center">
                         <div className="flex flex-col gap-2">
                           <Button size="sm" asChild>

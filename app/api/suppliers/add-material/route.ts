@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     const contentType = response.headers.get("content-type");
     if (!contentType?.includes("application/json")) {
       const text = await response.text();
-      console.error(`[AddNewMaterial] Non-JSON response received: ${text.slice(0, 100)}...`);
+      console.log(`[AddNewMaterial] Non-JSON response received: ${text.slice(0, 100)}...`);
       return NextResponse.json(
         { message: `Invalid response from server: Expected JSON, got ${contentType}` },
         { status: 500 }
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     console.log("[AddNewMaterial] Backend response:", JSON.stringify(responseData, null, 2));
 
     if (!response.ok) {
-      console.error("[AddNewMaterial] API error response:", responseData);
+      console.log("[AddNewMaterial] API error response:", responseData);
       return NextResponse.json(
         { message: responseData.error || `Failed to add material: ${response.status}` },
         { status: response.status }
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     console.log("[AddNewMaterial] Add material succeeded");
     return NextResponse.json({ message: "New material added successfully" });
   } catch (error: any) {
-    console.error("[AddNewMaterial] Add material failed:", error.message);
+    console.log("[AddNewMaterial] Add material failed:", error.message);
     return NextResponse.json({ message: "Internal server error: Unable to add material" }, { status: 500 });
   }
 }

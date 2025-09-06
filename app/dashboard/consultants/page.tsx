@@ -17,6 +17,7 @@ import {
   Star,
   Phone,
   X,
+  Loader,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +36,7 @@ import { Subcontractor, Region, Category, SubcontractorsData } from "@/app/types
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+  "/int.png";
 
 interface FilterSidebarProps {
   className?: string;
@@ -348,8 +349,8 @@ export default function ConsultantsPage() {
             id: item.id,
             name: item.user_details.company_name || `${item.first_name} ${item.last_name}`,
             category: item.user_details.category?.name || "Unknown",
-           region: typeof item.user_details.region === "object" 
-            ? item.user_details.region.name 
+           region: typeof item.user_details.regions  === "object" 
+            ? item.user_details.regions.name 
             :  "Unknown",
             rating: item.average_rate || null,
             completedProjects: item.key_projects?.length || 0,
@@ -448,7 +449,7 @@ export default function ConsultantsPage() {
               scale: { repeat: Infinity, duration: 1, ease: "easeInOut" },
             }}
           >
-            <X className="w-12 h-12 text-primary" />
+            <Loader className="w-12 h-12 text-primary" />
           </motion.div>
           <p className="text-lg font-medium text-gray-700">
             Loading Consultants...

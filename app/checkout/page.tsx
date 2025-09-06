@@ -107,7 +107,7 @@ function CheckoutContent() {
     async function fetchPlans() {
       try {
         if (!session?.accessToken) {
-          setError('Please log in to continue');
+          setError("Please log in to continue");
           return;
         }
 
@@ -117,7 +117,7 @@ function CheckoutContent() {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${session.accessToken}`,
+            Authorization: `Bearer ${session.accessToken}`,
           },
         });
         if (!response.ok) {
@@ -180,7 +180,7 @@ function CheckoutContent() {
         setLoading(false);
       }
     }
-    
+
     if (session?.accessToken) {
       fetchPlans();
     }
@@ -212,7 +212,7 @@ function CheckoutContent() {
       const response = await fetch("/api/upload-invoice", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${session?.accessToken}`,
+          Authorization: `Bearer ${session?.accessToken}`,
         },
         body: formData,
       });
@@ -255,7 +255,7 @@ function CheckoutContent() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${session?.accessToken}`,
+            Authorization: `Bearer ${session?.accessToken}`,
           },
         }
       );
@@ -286,11 +286,11 @@ function CheckoutContent() {
   };
 
   const handleLogout = async () => {
-    await signOut({ 
+    await signOut({
       redirect: false,
-      callbackUrl: '/auth/login'
+      callbackUrl: "/auth/login",
     });
-    window.location.href = '/auth/login';
+    window.location.href = "/auth/login";
   };
 
   return (
@@ -309,14 +309,16 @@ function CheckoutContent() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-end">
-          <Button
-            variant="outline"
-            onClick={handleBackToPlan}
-            className="flex items-center text-sm md:text-base w-full md:w-auto justify-center"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Plan
-          </Button>
+          {activeSubscription && (
+            <Button
+              variant="outline"
+              onClick={handleBackToPlan}
+              className="flex items-center text-sm md:text-base w-full md:w-auto justify-center"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Plan
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={handleLogout}
@@ -397,7 +399,12 @@ function CheckoutContent() {
                   <div>
                     <Button
                       onClick={handleAkiPay}
-                      disabled={!!(activeSubscription && activeSubscription.screenshot != null)}
+                      disabled={
+                        !!(
+                          activeSubscription &&
+                          activeSubscription.screenshot != null
+                        )
+                      }
                       className="bg-[#a65c15] hover:bg-[#a65c15] text-white font-semibold py-3 rounded-lg transition-colors mb-6 flex items-center justify-center"
                       style={{ width: "100px", height: "70px" }}
                     >

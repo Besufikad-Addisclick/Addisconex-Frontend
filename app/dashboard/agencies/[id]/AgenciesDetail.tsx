@@ -20,6 +20,7 @@ import {
   Factory,
   FileText,
   X,
+  Loader,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,7 @@ import { motion } from "framer-motion";
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+  "/int.png";
 
 export default function LaborsDetail() {
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function LaborsDetail() {
         }
 
         const data = await response.json();
-        // console.log("Fetched subcontractor data:", data);
+        console.log("Fetched subcontractor data:", data);
 
         const subcontractorData: Subcontractor = {
           id: data.id,
@@ -71,8 +72,8 @@ export default function LaborsDetail() {
             data.user_details.description || "No description available",
           category: data.user_details.category?.name || "Unknown",
           region:
-            typeof data.user_details.region === "object"
-              ? data.user_details.region.name
+            typeof data.user_details.regions === "object"
+              ? data.user_details.regions.name
               : data.user_details.region || "Unknown",
           address: data.user_details.company_address || "N/A",
           rating: data.average_rate || null,
@@ -113,9 +114,10 @@ export default function LaborsDetail() {
             (doc: any) => doc.file_type.toLowerCase() == "not known"
           ),
           documents: (data.documents || []).filter(
-            (doc: any) => doc.file_type.toLowerCase() !== "certificate"
+            (doc: any) => doc.file_type.toLowerCase() !== "license" && doc.file_type.toLowerCase() !== "grade_certificate"
           ),
           imageUrl: "",
+          user_details: data.user_details
         };
 
         setSubcontractor(subcontractorData);
@@ -151,7 +153,7 @@ export default function LaborsDetail() {
               scale: { repeat: Infinity, duration: 1, ease: "easeInOut" },
             }}
           >
-            <X className="w-12 h-12 text-primary" />
+            <Loader className="w-12 h-12 text-primary" />
           </motion.div>
           <p className="text-lg font-medium text-gray-700">
             Loading agencies details...
@@ -217,9 +219,11 @@ export default function LaborsDetail() {
                 <div className="flex items-center gap-2 mt-2">
                   <Badge variant="secondary">
                     {subcontractor.companyAddress},
-                    {subcontractor.region || "N/A"}
+                   
+
                   </Badge>
 
+                  <Badge variant="success">{String(subcontractor.region) || "N/A"}</Badge>
                   <Badge variant="outline">{subcontractor.user_type}</Badge>
                   <Badge
                     variant={
@@ -405,7 +409,7 @@ export default function LaborsDetail() {
                 <div>
                   <p className="font-medium">Address</p>
                   <p className="text-gray-600">
-                    {subcontractor.address},{subcontractor.region}
+                    {subcontractor.address},{String(subcontractor.region)}
                   </p>
                 </div>
               </div>

@@ -139,18 +139,18 @@ export default function ClientProfileCompletionPage() {
   ];
 
   const handleLogout = async () => {
-  try {
-    await signOut({ 
-      redirect: false,
-      callbackUrl: '/auth/login'
-    });
-    window.location.href = '/auth/login';
-    // The signOut with redirect:false will handle the redirect automatically
-    // No need for window.location.href or router.push
-  } catch (error) {
-    console.error('Error during sign out:', error);
-  }
-};
+    try {
+      await signOut({
+        redirect: false,
+        callbackUrl: "/auth/login",
+      });
+      window.location.href = "/auth/login";
+      // The signOut with redirect:false will handle the redirect automatically
+      // No need for window.location.href or router.push
+    } catch (error) {
+      console.error("Error during sign out:", error);
+    }
+  };
 
   const fetchProfile = async () => {
     const session = await getSession();
@@ -192,8 +192,14 @@ export default function ClientProfileCompletionPage() {
         data.user_details?.company_name &&
         data.user_details?.company_address &&
         data.user_details?.contact_person &&
-        (data.user_type != "contractors"  ? true : data.documents?.some((doc: any) => doc.file_type === "grade_certificate")) && 
-        (data.user_type === "professionals" || data.user_type === "investors" ? true : data.documents?.some((doc: any) => doc.file_type === "license"));
+        (data.user_type != "contractors"
+          ? true
+          : data.documents?.some(
+              (doc: any) => doc.file_type === "grade_certificate"
+            )) &&
+        (data.user_type === "professionals" || data.user_type === "investors"
+          ? true
+          : data.documents?.some((doc: any) => doc.file_type === "license"));
       setIsProfileComplete(!!isComplete);
 
       form.setFieldsValue({
@@ -289,7 +295,7 @@ export default function ClientProfileCompletionPage() {
 
     // Set up interval to check profile completion every 5 seconds
     // const intervalId = setInterval(() => {
-      fetchProfile();
+    fetchProfile();
     // }, 50000);
 
     // Cleanup interval on component unmount
@@ -525,8 +531,17 @@ export default function ClientProfileCompletionPage() {
           result.user_details?.company_name &&
           result.user_details?.company_address &&
           result.user_details?.contact_person &&
-          (result.user_type != "contractors"  ? true : result.documents?.some((doc: any) => doc.file_type === "grade_certificate")) && 
-          (result.user_type === "professionals" || result.user_type === "investors" ? true : result.documents?.some((doc: any) => doc.file_type === "license"));
+          (result.user_type != "contractors"
+            ? true
+            : result.documents?.some(
+                (doc: any) => doc.file_type === "grade_certificate"
+              )) &&
+          (result.user_type === "professionals" ||
+          result.user_type === "investors"
+            ? true
+            : result.documents?.some(
+                (doc: any) => doc.file_type === "license"
+              ));
         setIsProfileComplete(isComplete);
       }
     } catch (error: any) {
@@ -613,27 +628,29 @@ export default function ClientProfileCompletionPage() {
         </Title>
         {!isProfileComplete ? (
           <>
-          <Text type="danger">
-          Please provide the required information, including company details and
-          a valid {userRole === "contractors"?"grade certificate ":""}, {userRole != "investors" &&  userRole != "professionals" && userRole != "admin"? "business license":""} , to complete your profile setup.
-        </Text>
-        </>
-        ):
-        (
-        <Card className="max-w-md w-full shadow-sm">
-          
-          <Title level={4} className="text-green-900 mb-4">
-            Profile Awaiting Verification
-          </Title>
-          <Text type="success">
-            Your profile is complete and is currently under verification. Please
-            wait for the verification process to be completed.
-          </Text>
-        </Card>
-        )
-        }
-          
-        
+            <Text type="danger">
+              Please provide the required information, including company details
+              and a valid{" "}
+              {userRole === "contractors" ? "grade certificate " : ""},{" "}
+              {userRole != "investors" &&
+              userRole != "professionals" &&
+              userRole != "admin"
+                ? "business license"
+                : ""}{" "}
+              , to complete your profile setup.
+            </Text>
+          </>
+        ) : (
+          <Card className="max-w-md w-full shadow-sm">
+            <Title level={4} className="text-green-900 mb-4">
+              Profile Awaiting Verification
+            </Title>
+            <Text type="success">
+              Your profile is complete and is currently under verification.
+              Please wait for the verification process to be completed.
+            </Text>
+          </Card>
+        )}
       </div>
 
       <Card title="Profile Information" className="shadow-sm">
@@ -670,6 +687,10 @@ export default function ClientProfileCompletionPage() {
               label="First Name"
               rules={[
                 { required: true, message: "Please enter your first name" },
+                {
+                  max: 255,
+                  message: "First name is too long",
+                },
               ]}
             >
               <Input prefix={<UserOutlined />} placeholder="Enter first name" />
@@ -679,6 +700,10 @@ export default function ClientProfileCompletionPage() {
               label="Last Name"
               rules={[
                 { required: true, message: "Please enter your last name" },
+                {
+                  max: 255,
+                  message: "Last name is too long",
+                },
               ]}
             >
               <Input prefix={<UserOutlined />} placeholder="Enter last name" />
@@ -691,6 +716,10 @@ export default function ClientProfileCompletionPage() {
                   required: true,
                   type: "email",
                   message: "Please enter a valid email",
+                },
+                {
+                  max: 255,
+                  message: "Email is too long",
                 },
               ]}
             >
@@ -749,10 +778,8 @@ export default function ClientProfileCompletionPage() {
                   rules={[
                     {
                       required:
-                        userRole !== "contractors" &&
-                        userRole !== "consultants" &&
-                        userRole !== "suppliers" &&
-                        userRole !== "subcontractors",
+                      userRole == "contractors" ||
+                      userRole == "subcontractors",
                       message: "Please select an area of specialization",
                     },
                   ]}
@@ -773,19 +800,6 @@ export default function ClientProfileCompletionPage() {
               <Divider orientation="left">Company Information</Divider>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Form.Item
-                  name="companyName"
-                  label="Company Name"
-                  rules={[
-                    {
-                      required:
-                        userRole !== "admin" && userRole !== "professionals",
-                      message: "Please enter your company name",
-                    },
-                  ]}
-                >
-                  <Input prefix={<Building />} placeholder="Company name" />
-                </Form.Item>
-                <Form.Item
                   name="companyAddress"
                   label="Company Address"
                   rules={[
@@ -794,16 +808,37 @@ export default function ClientProfileCompletionPage() {
                         userRole !== "admin" && userRole !== "professionals",
                       message: "Please enter your company address",
                     },
+                    {
+                      max: 255,
+                      message: "Address is too long",
+                    },
                   ]}
                 >
-                  <Input placeholder="Enter company address" />
+                  <Input placeholder="Enter company address" maxLength={255} />
                 </Form.Item>
-                <Form.Item name="website" label="Website">
+
+                <Form.Item
+                  name="website"
+                  label="Website"
+                  rules={[
+                    {
+                      max: 200,
+                      message: "Website URL is too long",
+                    },
+                    {
+                      type: "url",
+                      message:
+                        "Please enter a valid URL (e.g., https://example.com)",
+                    },
+                  ]}
+                >
                   <Input
                     prefix={<GlobalOutlined />}
                     placeholder="https://example.com"
+                    maxLength={200}
                   />
                 </Form.Item>
+
                 <Form.Item
                   name="contactPerson"
                   label="Contact Person"
@@ -813,11 +848,16 @@ export default function ClientProfileCompletionPage() {
                         userRole !== "admin" && userRole !== "professionals",
                       message: "Please enter a contact person",
                     },
+                    {
+                      max: 100,
+                      message: "Contact person name is too long",
+                    },
                   ]}
                 >
                   <Input
                     prefix={<UserOutlined />}
                     placeholder="Contact person name"
+                    maxLength={100}
                   />
                 </Form.Item>
                 <Form.Item
@@ -841,11 +881,32 @@ export default function ClientProfileCompletionPage() {
                     placeholder="Phone number"
                   />
                 </Form.Item>
-                <Form.Item name="establishedYear" label="Established Year">
+                <Form.Item
+                  name="establishedYear"
+                  label="Established Year"
+                  rules={[
+                    {
+                      validator: (_, value) => {
+                        if (
+                          value &&
+                          (value < 1900 || value > new Date().getFullYear())
+                        ) {
+                          return Promise.reject(
+                            new Error(
+                              `Year must be between 1900 and ${new Date().getFullYear()}`
+                            )
+                          );
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
                   <Input
                     type="number"
                     prefix={<CalendarOutlined />}
                     placeholder="Year"
+                    maxLength={4}
                   />
                 </Form.Item>
                 <Form.Item name="teamSize" label="Team Size">
@@ -940,18 +1001,26 @@ export default function ClientProfileCompletionPage() {
                     }))}
                   />
                 </Form.Item>
-                <Form.Item name="references" label="References">
+                <Form.Item name="references" label="References"
+                rules={[
+                  {
+                    max: 1000,
+                    message: "References are too long",
+                  },
+                ]}>
                   <TextArea
                     rows={3}
                     placeholder="Enter references or additional info"
+                    maxLength={1000}
                   />
                 </Form.Item>
                 <Form.Item name="salaryMin" label="Minimum Salary">
                   <Input
-                    type="number"
+                    type="number" 
                     min={0}
                     step="0.01"
                     placeholder="Minimum salary"
+                    maxLength={10}
                   />
                 </Form.Item>
                 <Form.Item name="salaryMax" label="Maximum Salary">
@@ -960,6 +1029,7 @@ export default function ClientProfileCompletionPage() {
                     min={0}
                     step="0.01"
                     placeholder="Maximum salary"
+                    maxLength={10}
                   />
                 </Form.Item>
                 <Form.Item name="salaryNegotiable" valuePropName="checked">
@@ -992,6 +1062,10 @@ export default function ClientProfileCompletionPage() {
                             {
                               required: true,
                               message: "Please enter machinery name",
+                            },  
+                            {
+                              max: 255,
+                              message: "Machinery name is too long",
                             },
                           ]}
                         >
@@ -1006,6 +1080,10 @@ export default function ClientProfileCompletionPage() {
                             {
                               required: true,
                               message: "Please enter quantity",
+                            },
+                            {
+                              max: 10,
+                              message: "Quantity should be 10 digits",
                             },
                           ]}
                         >
@@ -1057,6 +1135,10 @@ export default function ClientProfileCompletionPage() {
                               required: true,
                               message: "Please select a category",
                             },
+                            {
+                              max: 255,
+                              message: "Category is too long",
+                            },
                           ]}
                         >
                           <Select
@@ -1076,6 +1158,12 @@ export default function ClientProfileCompletionPage() {
                           name={[name, "team_size"]}
                           label="Team Size"
                           className="w-32 md:w-1/4"
+                          rules={[
+                            {
+                              max: 10,
+                              message: "Team size should be 10 digits",
+                            },
+                          ]}
                         >
                           <Input
                             type="number"
@@ -1143,6 +1231,10 @@ export default function ClientProfileCompletionPage() {
                                     required: true,
                                     message: "Please enter project name",
                                   },
+                                  {
+                                    max: 255,
+                                    message: "Project name is too long",
+                                  },
                                 ]}
                               >
                                 <Input placeholder="Project name" />
@@ -1155,6 +1247,10 @@ export default function ClientProfileCompletionPage() {
                                   {
                                     required: true,
                                     message: "Please enter location",
+                                  },
+                                  {
+                                    max: 255,
+                                    message: "Location is too long",
                                   },
                                 ]}
                               >
@@ -1171,9 +1267,13 @@ export default function ClientProfileCompletionPage() {
                                     required: true,
                                     message: "Please enter year",
                                   },
+                                  {
+                                    max: 4,
+                                    message: "Year should be 4 digits",
+                                  },
                                 ]}
                               >
-                                <Input type="number" placeholder="Year" />
+                                <Input type="number" placeholder="Year" maxLength={4} />
                               </Form.Item>
                               <Form.Item
                                 {...restField}
@@ -1183,6 +1283,10 @@ export default function ClientProfileCompletionPage() {
                                   {
                                     required: true,
                                     message: "Please enter description",
+                                  },
+                                  {
+                                    max: 1000,
+                                    message: "Description is too long",
                                   },
                                 ]}
                               >
@@ -1201,6 +1305,7 @@ export default function ClientProfileCompletionPage() {
                                 if (Array.isArray(e)) return e;
                                 return e && e.fileList ? e.fileList : [];
                               }}
+                              
                             >
                               <Upload
                                 beforeUpload={() => false}
@@ -1280,6 +1385,10 @@ export default function ClientProfileCompletionPage() {
                                   required: true,
                                   message: "Please select document type",
                                 },
+                                {
+                                  max: 255,
+                                  message: "Document type is too long",
+                                },
                               ]}
                             >
                               <Select placeholder="Select document type">
@@ -1313,6 +1422,7 @@ export default function ClientProfileCompletionPage() {
                                   required: !currentDoc?.id,
                                   message: "Please upload a file",
                                 },
+                                
                               ]}
                             >
                               <Upload
@@ -1345,6 +1455,12 @@ export default function ClientProfileCompletionPage() {
                               {...restField}
                               name={[name, "issued_date"]}
                               label="Issued Date"
+                              rules={[
+                                {
+                                  max: 10,
+                                  message: "Issued date should be 10 digits",
+                                },
+                              ]}
                             >
                               <Input type="date" />
                             </Form.Item>
@@ -1352,6 +1468,12 @@ export default function ClientProfileCompletionPage() {
                               {...restField}
                               name={[name, "expiry_date"]}
                               label="Expiry Date"
+                              rules={[
+                                {
+                                  max: 10,
+                                  message: "Expiry date should be 10 digits",
+                                },
+                              ]}
                             >
                               <Input type="date" />
                             </Form.Item>
@@ -1359,8 +1481,14 @@ export default function ClientProfileCompletionPage() {
                               {...restField}
                               name={[name, "issued_by"]}
                               label="Issued By"
+                              rules={[
+                                {
+                                  max: 255,
+                                  message: "Issued by is too long",
+                                },
+                              ]}
                             >
-                              <Input placeholder="Enter issuer" />
+                              <Input placeholder="Enter issuer" maxLength={255} />
                             </Form.Item>
                           </div>
                           <Button

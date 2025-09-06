@@ -19,6 +19,7 @@ export interface KeyProject {
   year: number;
   value: string;
   description: string;
+  image?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -38,13 +39,30 @@ export interface LaborCategory {
   team_size: number;
 }
 
+export interface UserDetails {
+  company_name: string;
+  company_address: string;
+  website: string;
+  description: string | null;
+  contact_person: string;
+  region?: number | Region;
+  regions?: Region;
+  established_year: number;
+  team_size: number;
+  equipment: Array<{ name: string; quantity: string }>;
+  year_of_experience: number | null;
+  grade: string;
+  category: Category;
+  [key: string]: any; // For any additional properties that might exist
+}
+
 export interface Subcontractor {
   id: string;
   name: string;
   description: string;
   category: string;
   companyAddress: string | null;
-  region: string ; // Support both string (SubcontractorsData) and object (detail API)
+  region: string;
   address: string;
   rating: number | null;
   completedProjects: number;
@@ -55,16 +73,19 @@ export interface Subcontractor {
   specialization: string[];
   certifications: Document[];
   keyProjects: KeyProject[];
-  labor_categories?: LaborCategory[] ; 
+  labor_categories?: LaborCategory[];
   equipment: string[];
   teamSize: number;
-  profile_picture: string ;
+  profile_picture: string;
   user_type: string;
   is_active: boolean;
   manufacturer: boolean;
   contact_person: string;
   documents: Document[];
   imageUrl: string | null;
+  user_details: UserDetails;
+  first_name?: string;
+  last_name?: string;
 }
 
 

@@ -337,9 +337,7 @@ export default function SupplierDetail() {
                         <th className="text-center py-3 px-4 font-semibold text-gray-900">
                           Date
                         </th>
-                        <th className="text-center py-3 px-4 font-semibold text-gray-900">
-                          Last Updated
-                        </th>
+                        
                       </tr>
                     </thead>
                     <tbody>
@@ -374,7 +372,7 @@ export default function SupplierDetail() {
                           </td>
                           <td className="py-4 px-4 text-center">
                             <div className="font-medium text-gray-900">
-                              ETB {parseFloat(material.price).toLocaleString()}
+                               {parseFloat(material.price).toLocaleString()} ETB
                             </div>
                           </td>
                           <td className="py-4 px-4 text-center">
@@ -384,13 +382,8 @@ export default function SupplierDetail() {
                               ).toLocaleDateString()}
                             </div>
                           </td>
-                          <td className="py-4 px-4 text-center">
-                            <div className="text-sm text-gray-600">
-                              {new Date(
-                                material.updated_at
-                              ).toLocaleDateString()}
-                            </div>
-                          </td>
+                          
+                        
                         </motion.tr>
                       ))}
                     </tbody>

@@ -105,13 +105,13 @@ const DashboardHeader = memo(() => {
       label: 'Agencies',
       path: '/dashboard/agencies',
       icon: <Building className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals','agencies'],
     },
     {
       label: 'Professionals',
       path: '/dashboard/professionals',
       icon: <Building className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','professionals','individuals'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','professionals','individuals','agencies'],
     },
   ];
 

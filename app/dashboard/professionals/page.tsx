@@ -40,7 +40,7 @@ import {
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+  "/int.png";
 
 interface FilterSidebarProps {
   className?: string;
@@ -221,7 +221,6 @@ const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
              {contractor.phone}
             </div>
           </div>
-          {/* Category + Rating row */}
           <div className="flex items-center justify-between">
             <Badge variant="outline" className="self-start">
               {contractor.category}
@@ -234,6 +233,11 @@ const SubcontractorCard = ({ contractor }: { contractor: Subcontractor }) => {
                   : "N/A"}
               </span>
             </div>
+          </div>
+          <div className="flex items-center justify-between">
+          <Badge variant="outline" className="self-start mt-2">
+              {contractor.region}
+            </Badge>
           </div>
         </div>
       </Link>
@@ -343,8 +347,8 @@ export default function ProfessionalsPage() {
             companyAddress: item.user_details.company_address,
             category: item.user_details.category?.name || "Unknown",
             region:
-              typeof item.user_details.region === "object"
-                ? item.user_details.region.name
+              typeof item.user_details.regions === "object"
+                ? item.user_details.regions.name
                 : "Unknown",
             rating: item.average_rate || null,
             completedProjects: item.key_projects?.length || 0,

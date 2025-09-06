@@ -32,7 +32,7 @@ import { Subcontractor } from "@/app/types/subcontractor";
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+  "/int.png";
 
 export default function SubcontractorDetail() {
   const router = useRouter();
@@ -99,7 +99,8 @@ export default function SubcontractorDetail() {
           manufacturer: data.manufacturer ?? false,
           contact_person: data.user_details.contact_person || "N/A",
           documents: data.documents || [],
-          imageUrl:''
+          imageUrl:'',
+          user_details: data.user_details
         };
 
         setSubcontractor(subcontractorData);
@@ -259,7 +260,6 @@ export default function SubcontractorDetail() {
               <div className="mt-4">
                 <p className="flex items-center gap-2">
                   <Factory className="h-5 w-5 text-gray-400" />
-                  <span>Manufacturer: {subcontractor.manufacturer ? "Yes" : "No"}</span>
                 </p>
               </div>
             </CardContent>

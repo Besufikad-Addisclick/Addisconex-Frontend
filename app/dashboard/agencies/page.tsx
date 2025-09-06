@@ -42,7 +42,7 @@ import AdsSection from "@/components/ads/AdsSection";
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+  "/int.png";
 
 const truncate = (str: string, max: number) =>
   (str && str.length > max ? str.substring(0, max) + '...' : (str || ''));
@@ -376,10 +376,7 @@ export default function AgenciesPage() {
               `${item.first_name} ${item.last_name}`,
             companyAddress: item.user_details.company_address,
             category: item.user_details.category?.name || "Unknown",
-            region:
-              typeof item.user_details.region === "object"
-                ? item.user_details.region.name
-                : "Unknown",
+            region: item.user_details.regions?.name || "Unknown",
             rating: item.average_rate || null,
             completedProjects: item.key_projects?.length || 0,
             yearsOfExperience: item.user_details.established_year

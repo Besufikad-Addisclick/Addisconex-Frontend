@@ -19,40 +19,20 @@ import {
   Shield,
   Factory,
   FileText,
+  Loader,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Subcontractor } from "@/app/types/subcontractor";
+import { motion } from "framer-motion";
 
-function PdfDocument({ url, title }: { url: string; title: string }) {
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  return (
-    <div className="mb-4 border rounded p-2">
-      {!isLoaded ? (
-        <button
-          className="text-blue-600 underline"
-          onClick={() => setIsLoaded(true)}
-        >
-          Load {title} (PDF)
-        </button>
-      ) : (
-        <embed
-          src={url}
-          type="application/pdf"
-          width="100%"
-          height="400px"
-          className="rounded"
-        />
-      )}
-    </div>
-  );
-}
+
 
 // Fallback image URL
 const FALLBACK_IMAGE_URL =
-  "https://via.placeholder.com/300x200?text=No+Image+Available";
+  "/int.png";
 
 export default function ProfessionalsDetail() {
   const router = useRouter();
@@ -68,7 +48,7 @@ export default function ProfessionalsDetail() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`/api/consultant/${params.id}`, {
+        const response = await fetch(`/api/professionals/${params.id}`, {
           method: "GET",
           credentials: "include",
         });
@@ -82,7 +62,7 @@ export default function ProfessionalsDetail() {
         }
 
         const data = await response.json();
-        console.log("Fetched professionals data:", data);
+        console.log("Fetched professionals details:", data);
 
         const subcontractorData: Subcontractor = {
           id: data.id,
@@ -92,8 +72,8 @@ export default function ProfessionalsDetail() {
           companyAddress: data.user_details.company_address,
           category: data.user_details.category?.name || "Unknown",
           region:
-            typeof data.user_details.region === "object"
-              ? data.user_details.region.name
+            typeof data.user_details.regions === "object"
+              ? data.user_details.regions.name
               : data.user_details.region || "Unknown",
           address: data.user_details.company_address || "N/A",
           rating: data.average_rate || null,
@@ -129,6 +109,7 @@ export default function ProfessionalsDetail() {
             (doc: any) => doc.file_type.toLowerCase() !== "certificate"
           ),
           imageUrl: "",
+          user_details: data.user_details
         };
 
         setSubcontractor(subcontractorData);
@@ -148,12 +129,28 @@ export default function ProfessionalsDetail() {
   if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <motion.div
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.div
+            animate={{
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              rotate: { repeat: Infinity, duration: 2, ease: "linear" },
+              scale: { repeat: Infinity, duration: 1, ease: "easeInOut" },
+            }}
+          >
+            <Loader className="w-12 h-12 text-primary" />
+          </motion.div>
           <p className="text-lg font-medium text-gray-700">
-            Loading professionals details...
+            Loading other professionals details...
           </p>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -191,7 +188,7 @@ export default function ProfessionalsDetail() {
       {/* Back Button */}
       <Button variant="ghost" className="mb-4" onClick={() => router.back()}>
         <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Consultants
+        Back to professionals
       </Button>
 
       {/* Header Section */}
@@ -216,9 +213,7 @@ export default function ProfessionalsDetail() {
             <Badge variant="secondary">{subcontractor.region || "N/A"}</Badge>
             <Badge variant="outline">{subcontractor.category}</Badge>
             <Badge variant="outline">{subcontractor.user_type}</Badge>
-            <Badge variant={subcontractor.is_active ? "default" : "destructive"}>
-              {subcontractor.is_active ? "Active" : "Inactive"}
-            </Badge>
+          
           </div>
         </div>
         <div className="flex gap-3">
@@ -301,25 +296,31 @@ export default function ProfessionalsDetail() {
             <CardContent className="space-y-6">
               {subcontractor.keyProjects.length > 0 ? (
                 subcontractor.keyProjects.map((project) => (
-                  <div
-                    key={project.id}
-                    className="border-b last:border-0 pb-4 last:pb-0"
-                  >
-                    <h3 className="font-semibold text-lg">{project.name}</h3>
-                    <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span>{project.location}</span>
+                  <div key={project.id} className="border-b last:border-0 pb-4 last:pb-0">
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg">{project.name}</h3>
+                        <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-gray-400" />
+                            <span>{project.location}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            <span>{project.year}</span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-gray-600">{project.description}</p>
+                        {project.value && <Badge variant="secondary" className="mt-2">{project.value}</Badge>}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-400" />
-                        <span>{project.year}</span>
+                      <div className="w-32 h-24 flex-shrink-0">
+                        <img
+                          src={project.image || FALLBACK_IMAGE_URL}
+                          alt={project.name}
+                          className="w-full h-full object-cover rounded-md"
+                        />
                       </div>
                     </div>
-                    <p className="mt-2 text-gray-600">{project.description}</p>
-                    <Badge variant="secondary" className="mt-2">
-                      {project.value}
-                    </Badge>
                   </div>
                 ))
               ) : (
@@ -330,29 +331,20 @@ export default function ProfessionalsDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Documents</CardTitle>
+              <CardTitle>Certifications</CardTitle>
             </CardHeader>
             <CardContent>
               {subcontractor.documents.length > 0 ? (
                 <div className="space-y-6">
                   {subcontractor.documents.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="border-b last:border-0 pb-4 last:pb-0"
-                    >
-                      <div className="flex flex-col gap-2">
-                        <PdfDocument url={doc.file} title={doc.file_type} />
-                        
-                        <a
-                          className="block mt-1 text-gray-500 underline text-xs"
-                          href={doc.file}
-                          download
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Download PDF
-                        </a>
-                      </div>
+                    <div key={doc.id} className="border-b last:border-0 pb-4 last:pb-0">
+                      <img
+                        src={doc.file}
+                        alt={doc.file_type}
+                        className="w-32 h-32 object-cover rounded-md mb-2"
+                      />
+                      <p className="font-medium">{doc.file_type}</p>
+                      
                     </div>
                   ))}
                 </div>
@@ -421,48 +413,7 @@ export default function ProfessionalsDetail() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Certifications</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {subcontractor.certifications.length > 0 ? (
-                subcontractor.certifications.map((cert, idx) =>
-                  typeof cert === "object" &&
-                  cert.file?.toLowerCase().endsWith(".pdf") ? (
-                    <div key={idx} className="flex gap-2 items-center">
-                      <Award className="h-4 w-4 text-gray-400" />
-                      <embed
-                        src={cert.file}
-                        type="application/pdf"
-                        width="120"
-                        height="120"
-                        className="rounded-md border"
-                      />
-                      <a
-                        href={cert.file}
-                        download
-                        className="text-xs text-blue-500 underline ml-2"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Download Certificate
-                      </a>
-                    </div>
-                  ) : (
-                    <div key={idx} className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-gray-400" />
-                      <span>
-                        {typeof cert === "object" ? cert.file_type : cert}
-                      </span>
-                    </div>
-                  )
-                )
-              ) : (
-                <p className="text-gray-600">No certifications listed.</p>
-              )}
-            </CardContent>
-          </Card>
+         
         </div>
       </div>
     </div>
