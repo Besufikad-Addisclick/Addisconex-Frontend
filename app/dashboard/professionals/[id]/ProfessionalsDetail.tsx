@@ -299,18 +299,18 @@ export default function ProfessionalsDetail() {
                   <div key={project.id} className="border-b last:border-0 pb-4 last:pb-0">
                     <div className="flex gap-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{project.name}</h3>
-                        <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                            <span>{project.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-400" />
-                            <span>{project.year}</span>
-                          </div>
-                        </div>
-                        <p className="mt-2 text-gray-600">{project.description}</p>
+                    <h3 className="font-semibold text-lg">{project.name}</h3>
+                    <div className="grid grid-cols-2 gap-4 mt-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <span>{project.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span>{project.year}</span>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-gray-600">{project.description}</p>
                         {project.value && <Badge variant="secondary" className="mt-2">{project.value}</Badge>}
                       </div>
                       <div className="w-32 h-24 flex-shrink-0">
@@ -410,6 +410,114 @@ export default function ProfessionalsDetail() {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Professional Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {subcontractor.user_details?.age && (
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Age</p>
+                    <p className="text-gray-600">{subcontractor.user_details.age}</p>
+                  </div>
+                </div>
+              )}
+              
+              {subcontractor.user_details?.employment_status && (
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Employment Status</p>
+                    <p className="text-gray-600">{subcontractor.user_details.employment_status}</p>
+                  </div>
+                </div>
+              )}
+              {subcontractor.user_details?.gender && (
+                <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Gender</p>
+                    <p className="text-gray-600">{subcontractor.user_details.gender}</p>
+                  </div>
+                </div>
+              )}
+              {subcontractor.user_details?.languages && subcontractor.user_details.languages.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <FileText className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Languages</p>
+                    <p className="text-gray-600">{Array.isArray(subcontractor.user_details.languages) 
+                      ? subcontractor.user_details.languages.join(", ") 
+                      : subcontractor.user_details.languages}</p>
+                  </div>
+                </div>
+              )}
+              {subcontractor.user_details?.skills && subcontractor.user_details.skills.length > 0 && (
+                <div className="flex items-center gap-3">
+                  <Award className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Skills</p>
+                    <p className="text-gray-600">{Array.isArray(subcontractor.user_details.skills) 
+                      ? subcontractor.user_details.skills.join(", ") 
+                      : subcontractor.user_details.skills}</p>
+                  </div>
+                </div>
+              )}
+              {subcontractor.user_details?.job_type && (
+                <div className="flex items-center gap-3">
+                  <Briefcase className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Job Type</p>
+                    <p className="text-gray-600">{subcontractor.user_details.job_type}</p>
+                  </div>
+                </div>
+              )}
+              {subcontractor.user_details?.highest_qualification && (
+                <div className="flex items-center gap-3">
+                  <Award className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Highest Qualification</p>
+                    <p className="text-gray-600">{subcontractor.user_details.highest_qualification}</p>
+                  </div>
+                </div>
+              )}
+              {subcontractor.user_details?.marital_status && (
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Marital Status</p>
+                    <p className="text-gray-600">{subcontractor.user_details.marital_status}</p>
+                  </div>
+                </div>
+              )}
+              {subcontractor.user_details?.references && (
+                <div className="flex items-center gap-3">
+                  <Shield className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">References</p>
+                    <p className="text-gray-600">{subcontractor.user_details.references}</p>
+                  </div>
+                </div>
+              )}
+              {(subcontractor.user_details?.salary_min || subcontractor.user_details?.salary_max) && (
+                <div className="flex items-center gap-3">
+                  <Award className="h-5 w-5 text-gray-400" />
+                  <div>
+                    <p className="font-medium">Salary Range</p>
+                    <p className="text-gray-600">
+                      {subcontractor.user_details.salary_min && subcontractor.user_details.salary_max
+                        ? `${subcontractor.user_details.salary_min} - ${subcontractor.user_details.salary_max}`
+                        : subcontractor.user_details.salary_min || subcontractor.user_details.salary_max}
+                      {subcontractor.user_details.salary_negotiable && " (Negotiable)"}
+                    </p>
+                    </div>
+                    </div>
+              )}
             </CardContent>
           </Card>
 

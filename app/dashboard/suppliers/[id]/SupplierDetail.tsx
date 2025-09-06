@@ -51,6 +51,7 @@ export default function SupplierDetail() {
         setLoading(true);
         setError(null);
         const data = await fetchSupplierDetail(supplierId, currentPage);
+        console.log("fetchSupplierDetail",data)
         setSupplierData(data);
       } catch (err) {
         setError(
@@ -239,80 +240,33 @@ export default function SupplierDetail() {
               </Card>
             )}
 
-            {/* Key Projects */}
-            {supplier.key_projects.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle>Key Projects</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {supplier.key_projects.map((project) => (
-                      <div
-                        key={project.id}
-                        className="border-b pb-3 last:border-b-0"
-                      >
-                        <h3 className="font-medium text-gray-900">
-                          {project.name}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          {project.location}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {project.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
-                          <span>Year: {project.year}</span>
-                          <span>Value: {project.value}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            
 
             {/* Documents */}
             {supplier.documents.length > 0 && (
               <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle>Documents</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+              <CardHeader>
+                <CardTitle>Certifications</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {supplier.documents.length > 0 ? (
+                  <div className="space-y-6">
                     {supplier.documents.map((doc) => (
-                      <div
-                        key={doc.id}
-                        className="flex items-center gap-3 border-b pb-3 last:border-b-0"
-                      >
-                        <FileText className="h-5 w-5 text-gray-400" />
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {doc.file_type}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Issued by: {doc.issued_by}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Issued: {doc.issued_date}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Expires: {doc.expiry_date}
-                          </p>
-                          <a
-                            href={doc.file}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 hover:underline"
-                          >
-                            View Document
-                          </a>
-                        </div>
+                      <div key={doc.id} className="border-b last:border-0 pb-4 last:pb-0">
+                        <img
+                          src={doc.file}
+                          alt={doc.file_type}
+                          className="w-32 h-32 object-cover rounded-md mb-2"
+                        />
+                        <p className="font-medium">{doc.file_type}</p>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                ) : (
+                  <p className="text-gray-600">No documents listed.</p>
+                )}
+              </CardContent>
+            </Card>
             )}
 
             {/* Materials Table */}

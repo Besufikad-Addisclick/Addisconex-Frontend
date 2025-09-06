@@ -189,9 +189,9 @@ export default function ClientProfileCompletionPage() {
 
       // Check profile completion
       const isComplete =
-        data.user_details?.company_name &&
+       (data.user_type !== "admin" && data.user_type !== "professionals" ?true: data.user_details?.company_name) &&
         data.user_details?.company_address &&
-        data.user_details?.contact_person &&
+        (data.user_type !== "admin" && data.user_type !== "professionals" ?true: data.user_details?.contact_person) &&
         (data.user_type != "contractors"
           ? true
           : data.documents?.some(
@@ -528,9 +528,10 @@ export default function ClientProfileCompletionPage() {
         });
         // Check if profile is now complete
         const isComplete =
-          result.user_details?.company_name &&
+          
+          (result.user_type !== "admin" && result.user_type !== "professionals" ?true: result.user_details?.company_name) &&
           result.user_details?.company_address &&
-          result.user_details?.contact_person &&
+          (result.user_type !== "admin" && result.user_type !== "professionals" ?true: result.user_details?.contact_person) &&
           (result.user_type != "contractors"
             ? true
             : result.documents?.some(
@@ -629,15 +630,16 @@ export default function ClientProfileCompletionPage() {
         {!isProfileComplete ? (
           <>
             <Text type="danger">
-              Please provide the required information, including company details
+              Please provide the required information, including 
+              { userRole !== "admin" && userRole !== "professionals"  ? "company details, " : ""}
               and a valid{" "}
-              {userRole === "contractors" ? "grade certificate " : ""},{" "}
+              {userRole === "contractors" ? "grade certificate, " : ""}{" "}
               {userRole != "investors" &&
               userRole != "professionals" &&
               userRole != "admin"
-                ? "business license"
+                ? "business license,"
                 : ""}{" "}
-              , to complete your profile setup.
+               to complete your profile setup.
             </Text>
           </>
         ) : (
@@ -770,7 +772,7 @@ export default function ClientProfileCompletionPage() {
                 </Select>
               </Form.Item>
             )}
-            {userRole !== "admin" && userRole !== "professionals" && (
+            {userRole !== "admin"  && (
               <>
                 <Form.Item
                   name="category"
