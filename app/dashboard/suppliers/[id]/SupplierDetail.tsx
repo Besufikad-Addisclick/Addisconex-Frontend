@@ -390,18 +390,19 @@ export default function SupplierDetail() {
             </Card>
             )}
 
-            {/* Materials Table */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  Available Materials ({material_prices.results.length} of {material_prices.count})
-                  {materialsLoading && (
-                    <Building2 className="h-4 w-4 animate-spin text-primary" />
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Materials Table - Only show if materials exist */}
+            {material_prices.results.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="h-5 w-5" />
+                    Available Materials ({material_prices.results.length} of {material_prices.count})
+                    {materialsLoading && (
+                      <Building2 className="h-4 w-4 animate-spin text-primary" />
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
@@ -507,6 +508,7 @@ export default function SupplierDetail() {
                 </div>
               </CardContent>
             </Card>
+            )}
 
             {/* Machineries Table */}
             {supplierData.machinery_prices?.results &&
@@ -661,37 +663,41 @@ export default function SupplierDetail() {
           <div className="space-y-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Contact Information</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium">Address</p>
-                    <p className="text-gray-600 text-sm">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="flex items-start sm:items-center gap-3">
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0 mt-0.5 sm:mt-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm sm:text-base">Address</p>
+                    <p className="text-gray-600 text-xs sm:text-sm break-words">
                       {supplier.user_details.company_address}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium">Phone</p>
-                    <p className="text-gray-600">{supplier.phone_number}</p>
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm sm:text-base">Phone</p>
+                    <p className="text-gray-600 text-xs sm:text-sm break-all">
+                      {supplier.phone_number}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium">Email</p>
-                    <p className="text-gray-600">{supplier.email}</p>
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm sm:text-base">Email</p>
+                    <p className="text-gray-600 text-xs sm:text-sm break-all">
+                      {supplier.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Building2 className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="font-medium">Contact Person</p>
-                    <p className="text-gray-600">
+                  <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm sm:text-base">Contact Person</p>
+                    <p className="text-gray-600 text-xs sm:text-sm break-words">
                       {supplier.user_details.contact_person}
                     </p>
                   </div>
@@ -701,61 +707,37 @@ export default function SupplierDetail() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Quick Stats</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Quick Stats</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Total Materials</span>
-                  <span className="font-medium">{material_prices.count}</span>
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 text-sm sm:text-base">Total Materials</span>
+                  <span className="font-medium text-sm sm:text-base">{material_prices.count}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Owner</span>
-                  <span className="font-medium">
+                <div className="flex justify-between items-start sm:items-center">
+                  <span className="text-gray-600 text-sm sm:text-base">Owner</span>
+                  <span className="font-medium text-sm sm:text-base text-right break-words max-w-[60%]">
                     {supplier.first_name} {supplier.last_name}
                   </span>
                 </div>
                 {supplier.user_details.established_year && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Established</span>
-                    <span className="font-medium">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">Established</span>
+                    <span className="font-medium text-sm sm:text-base">
                       {supplier.user_details.established_year}
                     </span>
                   </div>
                 )}
                 {supplier.user_details.contact_person_phone && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Contact Phone</span>
-                    <span className="font-medium">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-sm sm:text-base">Contact Phone</span>
+                    <span className="font-medium text-sm sm:text-base break-all">
                       {supplier.user_details.contact_person_phone}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Status</span>
-                  <Badge
-                    variant="secondary"
-                    className={
-                      supplier.is_active
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }
-                  >
-                    {supplier.is_active ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Type</span>
-                  <Badge
-                    variant="secondary"
-                    className={
-                      supplier.manufacturer
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
-                    }
-                  >
-                    {supplier.manufacturer ? "Manufacturer" : "Supplier"}
-                  </Badge>
-                </div>
+                
+                
               </CardContent>
             </Card>
           </div>

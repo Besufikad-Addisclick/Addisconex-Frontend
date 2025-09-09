@@ -95,6 +95,7 @@ export default function ProfessionalsDetail() {
             year: project.year,
             value: project.value,
             description: project.description,
+            image: project.image,
             created_at: project.created_at,
             updated_at: project.updated_at,
           })),
@@ -112,6 +113,7 @@ export default function ProfessionalsDetail() {
           user_details: data.user_details
         };
 
+        console.log("Mapped key projects:", subcontractorData.keyProjects);
         setSubcontractor(subcontractorData);
       } catch (err: any) {
         console.error("Error fetching professionals:", err.message);
@@ -318,6 +320,12 @@ export default function ProfessionalsDetail() {
                           src={project.image || FALLBACK_IMAGE_URL}
                           alt={project.name}
                           className="w-full h-full object-cover rounded-md"
+                          onLoad={() => console.log("Image loaded successfully:", project.image || FALLBACK_IMAGE_URL)}
+                          onError={(e) => {
+                            console.log("Image failed to load:", project.image || FALLBACK_IMAGE_URL);
+                            const target = e.target as HTMLImageElement;
+                            target.src = FALLBACK_IMAGE_URL;
+                          }}
                         />
                       </div>
                     </div>

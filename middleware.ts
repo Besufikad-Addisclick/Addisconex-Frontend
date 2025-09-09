@@ -1,6 +1,76 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
+// Navigation configuration based on user_type (from DashboardHeader)
+const navItems = [
+  {
+    label: 'Home',
+    path: '/dashboard',
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals'],
+  },
+  {
+    label: 'Post',
+    path: '/dashboard/material-prices',
+    allowedTypes: ['suppliers', 'admin'],
+  },
+  {
+    label: 'Machineries',
+    path: '/dashboard/machineries',
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals'],
+  },
+  {
+    label: 'Subcontractors',
+    path: '/dashboard/subcontractors',
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies'],
+  },
+  {
+    label: 'Consultants',
+    path: '/dashboard/consultants',
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals'],
+  },
+  {
+    label: 'Contractors',
+    path: '/dashboard/othercontractors',
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies'],
+  },
+  {
+    label: 'Agencies',
+    path: '/dashboard/agencies',
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies'],
+  },
+  {
+    label: 'Professionals',
+    path: '/dashboard/professionals',
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'professionals', 'individuals', 'agencies'],
+  },
+];
+
+// Helper function to check if user has access to a specific dashboard route
+function hasAccessToRoute(userType: string, pathname: string): boolean {
+  // Allow access to profile route for all authenticated users
+  if (pathname === '/dashboard/profile') {
+    return true;
+  }
+  
+  // Find the most specific matching route (longest path match)
+  const matchingRoutes = navItems.filter(item => 
+    item.path && pathname.startsWith(item.path)
+  ).sort((a, b) => (b.path?.length || 0) - (a.path?.length || 0));
+  
+  console.log("Middleware - matching routes for", pathname, ":", matchingRoutes.map(r => r.path));
+  
+  if (matchingRoutes.length > 0) {
+    const route = matchingRoutes[0]; // Get the most specific match
+    console.log("Middleware - selected route:", route.path, "allowedTypes:", route.allowedTypes, "userType:", userType);
+    const hasAccess = route.allowedTypes.includes(userType);
+    console.log("Middleware - access check result:", hasAccess);
+    return hasAccess;
+  }
+  
+  // Allow access to other dashboard sub-routes by default
+  return true;
+}
+
 // Cache for subscription status to avoid repeated API calls
 const subscriptionCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -34,6 +104,7 @@ export default withAuth(
 
     // Check for dashboard routes
     if (pathname.startsWith("/dashboard")) {
+      console.log("Middleware - dashboard route:", pathname, "token exists:", !!token);
       if (!token) {
         return NextResponse.redirect(
           new URL(
@@ -41,6 +112,33 @@ export default withAuth(
             req.url
           )
         );
+      }
+
+      // Check role-based access
+      const userType = token.userType;
+      console.log("Middleware - userType:", userType, "pathname:", pathname);
+      
+      const hasAccess = hasAccessToRoute(userType, pathname);
+      console.log("Middleware - hasAccess result:", hasAccess);
+      
+      if (!hasAccess) {
+        console.log("Middleware - access denied for userType:", userType, "to path:", pathname);
+        // Redirect to user's default dashboard based on their role
+        let defaultDashboard = '/dashboard';
+        
+        // Only agencies and professionals get their specific dashboards
+        if (userType === 'agencies') {
+          defaultDashboard = '/dashboard/agencies';
+        } else if (userType === 'professionals') {
+          defaultDashboard = '/dashboard/professionals';
+        } else {
+          // All other user types (contractors, suppliers, subcontractors, consultants, admin, individuals, etc.)
+          // should only access the main dashboard
+          defaultDashboard = '/dashboard';
+        }
+        
+        console.log("Middleware - redirecting to:", defaultDashboard);
+        return NextResponse.redirect(new URL(defaultDashboard, req.url));
       }
 
       // Check subscription status with caching
@@ -66,18 +164,21 @@ export default withAuth(
 
           if (response.ok) {
             subscriptionData = await response.json();
-            
+            console.log("Middleware - subscription data:", subscriptionData);
           }
         
 
         if (subscriptionData) {
+          console.log("Middleware - processing subscription data");
           // If user has pending subscription, redirect to checkout
           if (subscriptionData.subscription?.status === "pending") {
+            console.log("Middleware - redirecting to checkout (pending subscription)");
             return NextResponse.redirect(new URL("/checkout", req.url));
           }
           
           // If user has active subscription, allow access to dashboard
           if (subscriptionData.has_active_subscription) {
+            console.log("Middleware - user has active subscription");
             const verificationExpiresAt = token.verificationExpiresAt;
             
             
@@ -86,20 +187,23 @@ export default withAuth(
               !verificationExpiresAt || // null or undefined
               new Date(verificationExpiresAt).getTime() < Date.now() // already expired
             ) {
+              console.log("Middleware - redirecting to profile completion (verification expired)");
               return NextResponse.redirect(
                 new URL("/profile-completion", req.url)
               );
             }
 
             // Verified & active subscription → allow dashboard access
+            console.log("Middleware - allowing dashboard access (verified & active)");
             return NextResponse.next();
           }
           if (subscriptionData.subscription?.status === "approved") {
-            return NextResponse.redirect(new URL("/dashboard", req.url));
+            console.log("Middleware - subscription approved, allowing access");
+            // Don't redirect here - let the role-based redirect in login page handle it
+            return NextResponse.next();
           }
 
-          
-
+          console.log("Middleware - no subscription, redirecting to choose plan");
           // If no subscription, redirect to choose plan
           return NextResponse.redirect(new URL("/choose-plan", req.url));
         }

@@ -180,7 +180,7 @@ export default function LaborsDetail() {
               onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Consultants
+              Back to Agencies
             </Button>
             <Button variant="outline" className="mt-4 ml-4">
               Retry

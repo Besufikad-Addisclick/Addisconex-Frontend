@@ -29,13 +29,13 @@ const DashboardHeader = memo(() => {
   const router = useRouter();
   const pathname = usePathname();
   
-  if (isLoading) {
-    return (
-      <div className="bg-gray-200 border-b border-gray-200 sticky top-0 z-50 h-16 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="bg-gray-200 border-b border-gray-200 sticky top-0 z-50 h-16 flex items-center justify-center">
+  //       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+  //     </div>
+  //   );
+  // }
 
   if (!session?.user) {
     return null; // Will be handled by ProtectedRoute
@@ -57,7 +57,7 @@ const DashboardHeader = memo(() => {
       label: 'Home',
       path: '/dashboard',
       icon: <Home className="h-4 w-4" />,
-      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','professionals','individuals','agencies'],
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
     },
     {
       label: 'Post',
@@ -130,15 +130,15 @@ const DashboardHeader = memo(() => {
                         alt="AddisConX"
                         width={70}
                         height={30}
-                        className="filter brightness-100"
+                        className="filter brightness-100 w-12 h-6 sm:w-16 sm:h-8 md:w-20 md:h-10 lg:w-24 lg:h-12"
                         priority
                       />
                     </div>
                   </Link>
          
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex flex-1 justify-center items-center space-x-2">
+          {/* Desktop Navigation (Large screens) */}
+          <nav className="hidden xl:flex flex-1 justify-center items-center space-x-2">
             {allowedNavItems.map(item => (
               <div key={item.path || item.label} className="relative group">
                 {item.submenu ? (
@@ -190,12 +190,12 @@ const DashboardHeader = memo(() => {
             ))}
           </nav>
 
-          {/* Medium Screen Navigation (Tablet) */}
-          <nav className="hidden md:flex lg:hidden flex-1 justify-center items-center space-x-1">
-            {allowedNavItems.slice(0, 4).map(item => (
+          {/* Large Tablet Navigation (lg screens) */}
+          <nav className="hidden lg:flex xl:hidden flex-1 justify-center items-center space-x-1">
+            {allowedNavItems.slice(0, 5).map(item => (
               <div key={item.path || item.label} className="relative group">
                 {item.submenu ? (
-                  // Submenu item for medium screens
+                  // Submenu item for large tablets
                   <Button
                     variant={pathname.startsWith('/dashboard/material-prices') || pathname.startsWith('/dashboard/machineries-prices') ? 'orange' : 'outline'}
                     size="sm"
@@ -206,7 +206,7 @@ const DashboardHeader = memo(() => {
                     <ChevronDown className="h-3 w-3 transition-transform duration-200 group-hover:rotate-180" />
                   </Button>
                 ) : (
-                  // Regular navigation item for medium screens
+                  // Regular navigation item for large tablets
                   <Button
                     variant={pathname === item.path ? 'orange' : 'outline'}
                     size="sm"
@@ -218,7 +218,7 @@ const DashboardHeader = memo(() => {
                   </Button>
                 )}
                 
-                {/* Submenu dropdown for medium screens */}
+                {/* Submenu dropdown for large tablets */}
                 {item.submenu && (
                   <motion.div
                     initial={{ opacity: 0, y: -10, scale: 0.95 }}
@@ -245,8 +245,118 @@ const DashboardHeader = memo(() => {
             ))}
           </nav>
 
+          {/* Medium Tablet Navigation (md screens) */}
+          <nav className="hidden md:flex lg:hidden flex-1 justify-center items-center space-x-1">
+            {allowedNavItems.slice(0, 3).map(item => (
+              <div key={item.path || item.label} className="relative group">
+                {item.submenu ? (
+                  // Submenu item for medium tablets
+                  <Button
+                    variant={pathname.startsWith('/dashboard/material-prices') || pathname.startsWith('/dashboard/machineries-prices') ? 'orange' : 'outline'}
+                    size="sm"
+                    className="flex items-center space-x-1 transition-all duration-300 hover:scale-105"
+                  >
+                    {item.icon}
+                    <span className="text-xs">{item.label}</span>
+                    <ChevronDown className="h-3 w-3 transition-transform duration-200 group-hover:rotate-180" />
+                  </Button>
+                ) : (
+                  // Regular navigation item for medium tablets
+                  <Button
+                    variant={pathname === item.path ? 'orange' : 'outline'}
+                    size="sm"
+                    className="flex items-center space-x-1 transition-all duration-300 hover:scale-105"
+                    onClick={() => item.path && router.push(item.path)}
+                  >
+                    {item.icon}
+                    <span className="text-xs">{item.label}</span>
+                  </Button>
+                )}
+                
+                {/* Submenu dropdown for medium tablets */}
+                {item.submenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    className="absolute top-full left-0 mt-2 min-w-[160px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50"
+                  >
+                    {item.submenu.map((subitem) => (
+                      <Link
+                        key={subitem.path}
+                        href={subitem.path}
+                        className={cn(
+                          "flex items-center space-x-2 px-3 py-2 text-xs text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200",
+                          pathname === subitem.path ? "bg-orange-50 text-orange-600" : ""
+                        )}
+                      >
+                        {subitem.icon}
+                        <span>{subitem.label}</span>
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+            ))}
+          </nav>
+
+          {/* Small Screen Navigation (sm screens) */}
+          <nav className="hidden sm:flex md:hidden flex-1 justify-center items-center space-x-1">
+            {allowedNavItems.slice(0, 2).map(item => (
+              <div key={item.path || item.label} className="relative group">
+                {item.submenu ? (
+                  // Submenu item for small screens
+                  <Button
+                    variant={pathname.startsWith('/dashboard/material-prices') || pathname.startsWith('/dashboard/machineries-prices') ? 'orange' : 'outline'}
+                    size="sm"
+                    className="flex items-center space-x-1 transition-all duration-300 hover:scale-105"
+                  >
+                    {item.icon}
+                    <span className="text-xs">{item.label}</span>
+                    <ChevronDown className="h-3 w-3 transition-transform duration-200 group-hover:rotate-180" />
+                  </Button>
+                ) : (
+                  // Regular navigation item for small screens
+                  <Button
+                    variant={pathname === item.path ? 'orange' : 'outline'}
+                    size="sm"
+                    className="flex items-center space-x-1 transition-all duration-300 hover:scale-105"
+                    onClick={() => item.path && router.push(item.path)}
+                  >
+                    {item.icon}
+                    <span className="text-xs">{item.label}</span>
+                  </Button>
+                )}
+                
+                {/* Submenu dropdown for small screens */}
+                {item.submenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    className="absolute top-full left-0 mt-2 min-w-[140px] invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-300 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50"
+                  >
+                    {item.submenu.map((subitem) => (
+                      <Link
+                        key={subitem.path}
+                        href={subitem.path}
+                        className={cn(
+                          "flex items-center space-x-2 px-3 py-2 text-xs text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-all duration-200",
+                          pathname === subitem.path ? "bg-orange-50 text-orange-600" : ""
+                        )}
+                      >
+                        {subitem.icon}
+                        <span>{subitem.label}</span>
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+            ))}
+          </nav>
+
           {/* Mobile Menu Trigger */}
-          <div className="lg:hidden flex items-center space-x-2">
+          <div className="sm:hidden flex items-center space-x-2">
             {/* Mobile Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -425,7 +535,7 @@ const DashboardHeader = memo(() => {
           </div>
 
           {/* User Actions (Desktop) */}
-          <div className="hidden lg:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

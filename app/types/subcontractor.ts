@@ -86,6 +86,9 @@ export interface Subcontractor {
   user_details: UserDetails;
   first_name?: string;
   last_name?: string;
+  salary_min?: string | null;
+  salary_max?: string | null;
+  salary_negotiable?: boolean;
 }
 
 

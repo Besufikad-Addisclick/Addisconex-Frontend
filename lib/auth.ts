@@ -98,6 +98,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           const data = await response.json();
+          console.log('NextAuth authorize - data:', data);
 
           if (!data.user.is_active) {
             throw new Error('User account is inactive');
@@ -112,6 +113,7 @@ export const authOptions: NextAuthOptions = {
             phoneNumber: data.user.phone_number,
             userType: data.user.user_type,
             verificationExpiresAt:data.user.verification_expires_at,
+            currentPackageName: data.user.current_package_name,
             isActive: data.user.is_active,
             accessToken: data.access,
             refreshToken: data.refresh,
@@ -136,6 +138,7 @@ export const authOptions: NextAuthOptions = {
         token.firstName = user.firstName;
         token.lastName = user.lastName;
         token.phoneNumber = user.phoneNumber;
+        token.currentPackageName = user.currentPackageName;
         token.isActive = user.isActive;
         token.verificationExpiresAt = user.verificationExpiresAt;
         token.accessTokenExpires = Date.now() + 60 * 60 * 1000; // 1 hour from now
@@ -181,17 +184,23 @@ export const authOptions: NextAuthOptions = {
       session.user.phoneNumber = token.phoneNumber as string;
       session.user.verificationExpiresAt = token.verificationExpiresAt as string;
       session.user.phoneNumber = token.phoneNumber as string;
-      session.user.isActive = token.isActive as boolean;
+      session.user.currentPackageName = token.currentPackageName as string;
+    session.user.isActive = token.isActive as boolean;
       session.user.id = token.sub as string;
       session.error = token.error as string;
       console.log('Session callback - session user:', session.user.email);
       console.log('Session callback - session user:', session.user.verificationExpiresAt);
+      console.log('Session callback - session user:', session.user.currentPackageName);
       return session;
     },
     async redirect({ url, baseUrl }) {
+      // If there's a specific URL requested, honor it
       if (url.startsWith('/')) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
+      
+      // Default fallback - role-based redirects are handled in the login page
+      // This will be overridden by the login page logic for specific user types
+      return `${baseUrl}/dashboard`;
     },
     async signIn({ user, account, profile, email, credentials }) {
       return true;

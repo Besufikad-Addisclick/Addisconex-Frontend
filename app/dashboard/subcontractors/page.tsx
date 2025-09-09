@@ -32,6 +32,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Subcontractor, Region, Category, SubcontractorsData } from "@/app/types/subcontractor";
+import AdsSection from "@/components/ads/AdsSection";
 
 
 
@@ -458,44 +459,69 @@ export default function SubcontractorsPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
-      <div className="lg:hidden">
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-full sm:w-[540px] overflow-y-auto">
-            <FilterSidebar
-              filters={filters}
-              onFilterChange={(newFilters) => {
-                setFilters(newFilters);
-                setIsSheetOpen(false);
-              }}
-              onClearFilters={clearFilters}
-              categories={data.categories}
-              regions={data.regions}
-              isMobile={true}
-            />
-          </SheetContent>
-        </Sheet>
-      </div>
+    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
+      {/* Main Content */}
+      <div className="flex-1 min-w-0">
+        {/* Filter Button - Always modal */}
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <div className="flex items-center gap-4">
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filters
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="w-full sm:w-[400px] overflow-y-auto"
+              >
+                <FilterSidebar
+                  filters={filters}
+                  onFilterChange={(newFilters) => {
+                    setFilters(newFilters);
+                    setIsSheetOpen(false);
+                  }}
+                  onClearFilters={clearFilters}
+                  categories={data.categories}
+                  regions={data.regions}
+                  isMobile={true}
+                />
+              </SheetContent>
+            </Sheet>
+            
+            {/* Active Filters Display */}
+            <div className="text-sm text-gray-600">
+              {filters.region && (
+                <span>Region: {data.regions.find(r => String(r.id) === String(filters.region))?.name || filters.region}</span>
+              )}
+              {filters.region && filters.categories.length > 0 && " • "}
+              {filters.categories.length > 0 && (
+                <span>
+                  Categories: {filters.categories.map(catId => 
+                    data.categories.find(cat => String(cat.id) === String(catId))?.name
+                  ).filter(Boolean).join(", ")}
+                </span>
+              )}
+              {(filters.region || filters.categories.length > 0) && (filters.minYears || filters.maxYears) && " • "}
+              {(filters.minYears || filters.maxYears) && (
+                <span>
+                  Experience: {filters.minYears ? `${filters.minYears}` : "0"} - {filters.maxYears || "∞"} years
+                </span>
+              )}
+            </div>
+          </div>
+          
+          {/* Results count */}
+          <div className="text-sm text-gray-600">
+            {data.count > 0 && (
+              <span>{data.subcontractors.length} of {data.count} subcontractors</span>
+            )}
+          </div>
+        </div>
 
-      <div className="hidden lg:block w-80 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
-        <FilterSidebar
-          filters={filters}
-          onFilterChange={setFilters}
-          onClearFilters={clearFilters}
-          categories={data.categories}
-          regions={data.regions}
-          isMobile={false}
-        />
-      </div>
-
-      <div className="flex-1 space-y-6">
-        <div className="space-y-4">
+        {/* Content */}
+        <div className="space-y-6">
           {data.subcontractors.length === 0 && data.next === null ? (
             <EmptyState />
           ) : (
@@ -519,6 +545,18 @@ export default function SubcontractorsPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Ads Section - Right side for larger screens */}
+      <div className="hidden lg:block w-1/4 xl:w-1/4 2xl:w-80 flex-shrink-0">
+        <AdsSection title="Sponsored Deals"
+            adType=""
+            display_location="ad_sections" />
+      </div>
+
+      {/* Ads Section - Bottom for smaller screens */}
+      <div className="lg:hidden mt-6">
+        <AdsSection title="Sponsored Subcontractors" />
       </div>
     </div>
   );

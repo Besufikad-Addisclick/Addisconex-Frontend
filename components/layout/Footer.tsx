@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <h3 className="text-white text-lg font-semibold mb-4">AddisCon-EX</h3>
             <p className="mb-4">
-              Your trusted partner in construction material procurement and price tracking.
+              Ethiopia's premier construction marketplace connecting suppliers, contractors, professionals, and agencies for seamless project delivery.
             </p>
             <div className="flex space-x-4">
               <Link href="#" className="hover:text-white transition-colors">
@@ -33,23 +33,28 @@ export default function Footer() {
             <h3 className="text-white text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="hover:text-white transition-colors">
-                  About Us
+                <Link href="/dashboard" className="hover:text-white transition-colors">
+                  Dashboard
                 </Link>
               </li>
               <li>
-                <Link href="/services" className="hover:text-white transition-colors">
-                  Our Services
+                <Link href="/dashboard/suppliers" className="hover:text-white transition-colors">
+                  Suppliers
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="hover:text-white transition-colors">
-                  Blog
+                <Link href="/dashboard/machineries" className="hover:text-white transition-colors">
+                  Machineries
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-white transition-colors">
-                  Contact Us
+                <Link href="/dashboard/consultants" className="hover:text-white transition-colors">
+                  Consultants
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard/agencies" className="hover:text-white transition-colors">
+                  Agencies
                 </Link>
               </li>
             </ul>
@@ -57,26 +62,31 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h3 className="text-white text-lg font-semibold mb-4">Services</h3>
+            <h3 className="text-white text-lg font-semibold mb-4">Platform Features</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/services/price-tracking" className="hover:text-white transition-colors">
-                  Price Tracking
+                <Link href="/dashboard" className="hover:text-white transition-colors">
+                  Material Price Tracking
                 </Link>
               </li>
               <li>
-                <Link href="/services/supplier-verification" className="hover:text-white transition-colors">
-                  Supplier Verification
+                <Link href="/dashboard/suppliers" className="hover:text-white transition-colors">
+                  Supplier Directory
                 </Link>
               </li>
               <li>
-                <Link href="/services/market-analysis" className="hover:text-white transition-colors">
-                  Market Analysis
+                <Link href="/dashboard/machineries" className="hover:text-white transition-colors">
+                  Machinery Rental
                 </Link>
               </li>
               <li>
-                <Link href="/services/procurement" className="hover:text-white transition-colors">
-                  Procurement Solutions
+                <Link href="/dashboard/consultants" className="hover:text-white transition-colors">
+                  Professional Services
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard/agencies" className="hover:text-white transition-colors">
+                  Labor Agencies
                 </Link>
               </li>
             </ul>
@@ -84,11 +94,11 @@ export default function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-white text-lg font-semibold mb-4">Contact Us</h3>
+            <h3 className="text-white text-lg font-semibold mb-4">Support</h3>
             <ul className="space-y-4">
               <li className="flex items-center">
                 <MapPin className="h-5 w-5 mr-2" />
-                <span>123 Construction Ave, Addis Ababa, Ethiopia</span>
+                <span>Addis Ababa, Ethiopia</span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-2" />
@@ -96,7 +106,12 @@ export default function Footer() {
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-2" />
-                <span>info@addiscinex.com</span>
+                <span>support@addisconex.com</span>
+              </li>
+              <li className="text-sm text-gray-400 mt-4">
+                <Link href="/help" className="hover:text-white transition-colors">
+                  Help Center
+                </Link>
               </li>
             </ul>
           </div>

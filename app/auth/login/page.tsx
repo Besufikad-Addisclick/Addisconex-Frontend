@@ -59,6 +59,45 @@ interface LoginErrors {
   non_field_errors?: string[];
 }
 
+// Helper function to get role-based redirect URL
+function getRoleBasedRedirectUrl(userType: string, fallbackUrl: string): string {
+  console.log("getRoleBasedRedirectUrl - userType:", userType, "fallbackUrl:", fallbackUrl);
+  
+  // Extract path from full URL if needed
+  let path = fallbackUrl;
+  try {
+    if (fallbackUrl.startsWith('http')) {
+      const url = new URL(fallbackUrl);
+      path = url.pathname;
+      console.log("getRoleBasedRedirectUrl - extracted path from URL:", path);
+    }
+  } catch (e) {
+    // If URL parsing fails, use the original fallbackUrl
+    path = fallbackUrl;
+  }
+  
+  // If there's a specific callback URL that's not the default dashboard, honor it
+  if (path && path !== '/dashboard' && path !== '/') {
+    console.log("getRoleBasedRedirectUrl - using specific callback URL:", path);
+    return path;
+  }
+  
+  // Role-based redirects with special default fallbacks
+  // Only agencies and professionals get their specific dashboards
+  if (userType === 'agencies') {
+    console.log("getRoleBasedRedirectUrl - redirecting agencies to /dashboard/agencies");
+    return '/dashboard/agencies';
+  } else if (userType === 'professionals') {
+    console.log("getRoleBasedRedirectUrl - redirecting professionals to /dashboard/professionals");
+    return '/dashboard/professionals';
+  } else {
+    // All other user types (contractors, suppliers, subcontractors, consultants, admin, individuals, etc.)
+    // should only access the main dashboard
+    console.log("getRoleBasedRedirectUrl - redirecting default to /dashboard for userType:", userType);
+    return '/dashboard';
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -91,9 +130,14 @@ export default function LoginPage() {
     async function checkAuth() {
       try {
         const session = await getSession();
+        console.log("[login] Initial auth check - session:", session);
         if (session) {
-          console.log("[login] User authenticated, redirecting to", desiredCallbackUrl);
-          router.replace(desiredCallbackUrl);
+          console.log("[login] Initial auth check - userType:", session.user.userType);
+          console.log("[login] Initial auth check - desiredCallbackUrl:", desiredCallbackUrl);
+          // Get role-based redirect URL
+          const redirectUrl = getRoleBasedRedirectUrl(session.user.userType, desiredCallbackUrl);
+          console.log("[login] User authenticated, redirecting to", redirectUrl);
+          router.replace(redirectUrl);
         }
       } catch (error) {
         console.error("[login] Auth check error:", error);
@@ -128,6 +172,7 @@ export default function LoginPage() {
         phone_number: data.phone_number,
         password: data.password,
         redirect: false, // Handle redirect manually to show errors
+        callbackUrl: desiredCallbackUrl, // Pass the callback URL
       });
 
       console.log("SignIn result:", result);
@@ -143,12 +188,33 @@ export default function LoginPage() {
           variant: "destructive",
         });
       } else if (result?.ok) {
-        console.log("Login successful, redirecting to:", desiredCallbackUrl);
+        // Get the session to determine user type for redirect
+        // Add a delay and retry to ensure session is available
+        let session = null;
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        while (!session && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          session = await getSession();
+          attempts++;
+          console.log(`Login successful - attempt ${attempts}, session:`, session);
+        }
+        
+        console.log("Login successful - final session:", session);
+        console.log("Login successful - userType:", session?.user?.userType);
+        console.log("Login successful - desiredCallbackUrl:", desiredCallbackUrl);
+        
+        const redirectUrl = session?.user?.userType 
+          ? getRoleBasedRedirectUrl(session.user.userType, desiredCallbackUrl)
+          : desiredCallbackUrl;
+        
+        console.log("Login successful, redirecting to:", redirectUrl);
         toast({
           title: "Success!",
           description: "You have been logged in successfully.",
         });
-        router.push(desiredCallbackUrl);
+        router.push(redirectUrl);
       }
     } catch (err: any) {
       console.log("Caught error:", err);

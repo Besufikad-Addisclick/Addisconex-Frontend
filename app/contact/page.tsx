@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, X, Building2, Truck, Wrench, Users, Hammer, HardHat, Cog, Mail, Phone, MapPin } from 'lucide-react';
 
 // Validation rules - keep in sync with API
 const VALIDATION_RULES = {
@@ -211,15 +211,61 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+      {/* Animated Background Icons */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Floating Icons */}
+        <div className="absolute top-20 left-10 animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}>
+          <Building2 className="h-6 w-6 text-blue-300 opacity-30" />
+        </div>
+        <div className="absolute top-40 right-20 animate-bounce" style={{ animationDelay: '1s', animationDuration: '4s' }}>
+          <Truck className="h-7 w-7 text-green-300 opacity-30" />
+        </div>
+        <div className="absolute top-60 left-1/4 animate-bounce" style={{ animationDelay: '2s', animationDuration: '3.5s' }}>
+          <Wrench className="h-5 w-5 text-orange-300 opacity-30" />
+        </div>
+        <div className="absolute top-80 right-1/3 animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '4.5s' }}>
+          <Users className="h-6 w-6 text-purple-300 opacity-30" />
+        </div>
+        <div className="absolute top-32 left-1/2 animate-bounce" style={{ animationDelay: '1.5s', animationDuration: '3.2s' }}>
+          <Hammer className="h-7 w-7 text-red-300 opacity-30" />
+        </div>
+        <div className="absolute top-96 left-16 animate-bounce" style={{ animationDelay: '2.5s', animationDuration: '4.2s' }}>
+          <HardHat className="h-6 w-6 text-yellow-300 opacity-30" />
+        </div>
+        <div className="absolute top-48 right-10 animate-bounce" style={{ animationDelay: '0.8s', animationDuration: '3.8s' }}>
+          <Cog className="h-5 w-5 text-indigo-300 opacity-30" />
+        </div>
+        
+        {/* Additional floating elements for bottom section */}
+        <div className="absolute bottom-40 left-20 animate-bounce" style={{ animationDelay: '1.2s', animationDuration: '3.6s' }}>
+          <Mail className="h-6 w-6 text-blue-300 opacity-25" />
+        </div>
+        <div className="absolute bottom-60 right-1/4 animate-bounce" style={{ animationDelay: '2.8s', animationDuration: '4.1s' }}>
+          <Phone className="h-6 w-6 text-green-300 opacity-25" />
+        </div>
+        <div className="absolute bottom-80 left-1/3 animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '3.3s' }}>
+          <MapPin className="h-5 w-5 text-orange-300 opacity-25" />
+        </div>
+        <div className="absolute bottom-32 right-16 animate-bounce" style={{ animationDelay: '1.8s', animationDuration: '4.3s' }}>
+          <Building2 className="h-5 w-5 text-purple-300 opacity-25" />
+        </div>
+        <div className="absolute bottom-52 left-1/2 animate-bounce" style={{ animationDelay: '2.2s', animationDuration: '3.7s' }}>
+          <Truck className="h-6 w-6 text-red-300 opacity-25" />
+        </div>
+        <div className="absolute bottom-72 right-1/2 animate-bounce" style={{ animationDelay: '0.7s', animationDuration: '4.4s' }}>
+          <Wrench className="h-5 w-5 text-yellow-300 opacity-25" />
+        </div>
+      </div>
+      
       <Header />
-      <main className="py-16 px-4 sm:px-6 lg:px-8">
+      <main className="py-16 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl p-8 flex flex-col md:flex-row gap-12 mt-8">
           {/* Form (Left) */}
           <div className="md:w-1/2 flex flex-col justify-center">
-            <h2 className="text-4xl font-extrabold text-primary mb-4">Contact Us</h2>
+            <h2 className="text-4xl font-extrabold text-primary mb-4">Get in Touch</h2>
             <p className="text-gray-600 mb-8 text-lg">
-              Have questions or want to work with us? Fill out the form or reach us at <a href="mailto:info@addisclick.com" className="text-primary underline">info@addisclick.com</a>.
+              Need help with your construction project? Have questions about our platform? Contact our team for support, partnerships, or general inquiries at <a href="mailto:support@addisconex.com" className="text-primary underline">support@addisconex.com</a>.
             </p>
             
             {isSuccess && (
@@ -351,28 +397,36 @@ export default function ContactPage() {
           {/* Info & Map (Right) */}
           <div className="md:w-1/2 flex flex-col justify-between">
             <div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Our Office</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">AddisCon-EX Headquarters</h3>
               <div className="text-gray-700 space-y-2 mb-6 text-base">
                 <div>
-                  <span className="font-semibold">Address:</span> Bole Road, Addis Ababa, Ethiopia
+                  <span className="font-semibold">Address:</span> Addis Ababa, Ethiopia
                 </div>
                 <div>
-                  <span className="font-semibold">Mobile:</span>{" "}
-                  <a href="tel:+251912345678" className="text-primary underline">+251 912 345 678</a>
+                  <span className="font-semibold">Phone:</span>{" "}
+                  <a href="tel:+251911223344" className="text-primary underline">+251 911 223 344</a>
                 </div>
                 <div>
-                  <span className="font-semibold">Fax:</span> +251 11 123 4567
+                  <span className="font-semibold">Support:</span>{" "}
+                  <a href="mailto:support@addisconex.com" className="text-primary underline">support@addisconex.com</a>
                 </div>
                 <div>
-                  <span className="font-semibold">Email:</span>{" "}
-                  <a href="mailto:info@addisclick.com" className="text-primary underline">info@addisclick.com</a>
+                  <span className="font-semibold">Business:</span>{" "}
+                  <a href="mailto:business@addisconex.com" className="text-primary underline">business@addisconex.com</a>
                 </div>
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-800 mb-2">Platform Support</h4>
+                <p className="text-blue-700 text-sm">
+                  Our team is available to help with platform features, supplier verification, project management, and technical support.
+                </p>
               </div>
             </div>
             <div className="flex-1 flex items-end">
               <iframe
-                title="AddisClick Location"
-                src="https://www.google.com/maps?q=Bole+Road,+Addis+Ababa,+Ethiopia&output=embed"
+                title="AddisCon-EX Location"
+                src="https://www.google.com/maps?q=Addis+Ababa,+Ethiopia&output=embed"
                 width="100%"
                 height="240"
                 style={{ border: 0, borderRadius: '0.75rem', minHeight: '180px' }}

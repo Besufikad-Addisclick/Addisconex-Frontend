@@ -183,7 +183,7 @@ const SingleAdCard = ({ ad, index }: SingleAdCardProps) => {
     >
       <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 relative group">
         <button
-          onClick={() => setIsVisible(false)}
+          // onClick={() => setIsVisible(false)}
           className="absolute top-2 right-2 z-10 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           aria-label="Close ad"
         >
@@ -320,8 +320,8 @@ export default function AdsSection({
               </div>
             )}
 
-            {/* Ads with time_out grouped with carousel, inside scrollable container */}
-            <div className="space-y-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
+            {/* Ads with time_out grouped with carousel, growing vertically */}
+            <div className="space-y-4">
               {groupedAdsWithTimeout.length > 0 ? (
                 groupedAdsWithTimeout.map((group, idx) => (
                   <AdCard key={idx} ads={group} index={idx} />
