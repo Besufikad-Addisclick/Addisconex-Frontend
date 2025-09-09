@@ -12,6 +12,9 @@ import {
   Typography,
   Divider,
   Checkbox,
+  Table,
+  Tag,
+  Space,
 } from "antd";
 import {
   UploadOutlined,
@@ -23,6 +26,9 @@ import {
   TeamOutlined,
   DeleteOutlined,
   PlusOutlined,
+  EyeOutlined,
+  DownloadOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { User, Shield, Bell, CreditCard, Lock, Building } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +36,7 @@ import { getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { handleApiError } from "@/app/utils/apiErrorHandler";
 import { signOut } from "next-auth/react";
+import { generatePaymentReceipt } from "@/lib/pdfGenerator";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -100,17 +107,44 @@ interface UserProfile {
     team_size: number;
   }>;
   categories: Array<{ id: string; name: string }>;
+  subscriptions: Array<{
+    id: string;
+    package_name: string;
+    subscription_plan: string;
+    amount: number;
+    status: string;
+    start_date: string;
+    end_date: string;
+    payment_method: string;
+    payment_id: string | null;
+    screenshot: string | null;
+    created_at: string;
+    updated_at: string;
+    subscriber_name: string;
+  }>;
+  user_preferences?: {
+    id: string;
+    looking_for: string[];
+    preferred_communication_channel: string;
+    communication_channel_url: string | null;
+    open_for_partnerships: boolean;
+    created_at: string;
+    updated_at: string;
+  } | null;
 }
 
 export default function ClientProfilePage() {
   const [activeTab, setActiveTab] = useState("profile");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [subscriptionDetailModal, setSubscriptionDetailModal] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState<any>(null);
   const [regions, setRegions] = useState<UserProfile["regions"]>([]);
   const [categories, setCategories] = useState<UserProfile["categories"]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
+  const [preferencesForm] = Form.useForm();
   const { toast } = useToast();
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -245,6 +279,24 @@ export default function ClientProfilePage() {
                 : [],
             })) ?? [],
         });
+
+        // Populate preferences form
+        if (data.user_preferences) {
+          preferencesForm.setFieldsValue({
+            lookingFor: data.user_preferences.looking_for || [],
+            preferredCommunicationChannel: data.user_preferences.preferred_communication_channel || 'email',
+            communicationChannelUrl: data.user_preferences.communication_channel_url || '',
+            openForPartnerships: data.user_preferences.open_for_partnerships || false,
+          });
+        } else {
+          // Set default values if no preferences exist
+          preferencesForm.setFieldsValue({
+            lookingFor: [],
+            preferredCommunicationChannel: 'email',
+            communicationChannelUrl: '',
+            openForPartnerships: false,
+          });
+        }
       } catch (err: any) {
         // console.error("Error fetching subcontractor:", err.message);
         if (
@@ -630,16 +682,385 @@ export default function ClientProfilePage() {
   );
 
   const renderNotificationSettings = () => (
-    <Card title="Notification Settings" className="shadow-sm">
-      <Text type="secondary">Notification settings coming soon...</Text>
-    </Card>
+    <div className="space-y-6">
+      <Card title="Notification Settings" className="shadow-sm">
+        <Text type="secondary">Notification settings coming soon...</Text>
+      </Card>
+      
+      <Card title="User Preferences" className="shadow-sm">
+        <Form
+          form={preferencesForm}
+          layout="vertical"
+          onFinish={handlePreferencesSave}
+          className="space-y-4"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Form.Item
+              name="lookingFor"
+              label="Looking For"
+              help="Select the types of users you're interested in connecting with"
+            >
+              <Select
+                mode="multiple"
+                placeholder="Select user types"
+                options={[
+                  { value: 'suppliers', label: 'Suppliers' },
+                  { value: 'contractors', label: 'Contractors' },
+                  { value: 'subcontractors', label: 'Subcontractors' },
+                  { value: 'consultants', label: 'Consultants' },
+                  { value: 'professionals', label: 'Professionals' },
+                  { value: 'agencies', label: 'Agencies' },
+                  { value: 'investors', label: 'Investors' },
+                ]}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="preferredCommunicationChannel"
+              label="Preferred Communication Channel"
+              help="How would you like to be contacted?"
+            >
+              <Select placeholder="Select communication method">
+                <Option value="email">Email</Option>
+                <Option value="phone">Phone</Option>
+                <Option value="whatsapp">WhatsApp</Option>
+                <Option value="telegram">Telegram</Option>
+                <Option value="in_person">In Person</Option>
+              </Select>
+            </Form.Item>
+          </div>
+
+          <Form.Item
+            name="communicationChannelUrl"
+            label="Contact Details"
+            help="Provide your contact details (e.g., WhatsApp number, Telegram username, email, or website)"
+            rules={[
+              {
+                max: 255,
+                message: 'Contact details must be less than 255 characters',
+              },
+            ]}
+          >
+            <Input placeholder="Enter your contact details" />
+          </Form.Item>
+
+          <Form.Item
+            name="openForPartnerships"
+            valuePropName="checked"
+            help="Allow other users to see that you're open for partnerships"
+          >
+            <Checkbox>Open for Partnerships</Checkbox>
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              className="bg-blue-600 hover:bg-blue-700 border-blue-600"
+            >
+              Save Preferences
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+    </div>
   );
 
-  const renderPaymentSettings = () => (
-    <Card title="Payment Settings" className="shadow-sm">
-      <Text type="secondary">Payment settings coming soon...</Text>
-    </Card>
-  );
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'approved':
+        return 'success';
+      case 'pending':
+        return 'warning';
+      case 'rejected':
+        return 'error';
+      case 'canceled':
+        return 'default';
+      case 'expired':
+        return 'orange';
+      default:
+        return 'default';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('en-ET', {
+      style: 'currency',
+      currency: 'ETB',
+      minimumFractionDigits: 2
+    }).format(amount);
+  };
+
+  const handleViewDetails = (subscription: any) => {
+    setSelectedSubscription(subscription);
+    setSubscriptionDetailModal(true);
+  };
+
+
+  const handleDownloadReceipt = (subscription: any) => {
+    if (!userProfile) {
+      toast({
+        title: "Error",
+        description: "User profile not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Generate professional PDF receipt
+      generatePaymentReceipt(subscription, {
+        first_name: userProfile.first_name,
+        last_name: userProfile.last_name,
+        email: userProfile.email,
+        phone_number: userProfile.phone_number,
+        user_type: userProfile.user_type,
+      });
+
+      toast({
+        title: "Download Started",
+        description: `Receipt for ${subscription.package_name} is being downloaded`,
+      });
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate receipt. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadScreenshot = (subscription: any) => {
+    if (subscription.screenshot) {
+      const link = document.createElement('a');
+      link.href = subscription.screenshot;
+      link.download = `payment-screenshot-${subscription.id}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const fetchPreferences = async () => {
+    try {
+      const response = await fetch("/api/preferences", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          handleApiError({ status: 401, message: "Unauthorized" }, router);
+          return;
+        }
+        throw new Error("Failed to fetch preferences");
+      }
+
+      const data = await response.json();
+      preferencesForm.setFieldsValue({
+        lookingFor: data.looking_for || [],
+        preferredCommunicationChannel: data.preferred_communication_channel || 'email',
+        communicationChannelUrl: data.communication_channel_url || '',
+        openForPartnerships: data.open_for_partnerships || false,
+      });
+
+      // Update the user profile state
+      if (userProfile) {
+        setUserProfile({
+          ...userProfile,
+          user_preferences: data,
+        });
+      }
+    } catch (error: any) {
+      console.error("Error fetching preferences:", error);
+    }
+  };
+
+  const handlePreferencesSave = async (values: any) => {
+    setLoading(true);
+    try {
+      const preferencesData = {
+        looking_for: values.lookingFor || [],
+        preferred_communication_channel: values.preferredCommunicationChannel || 'email',
+        communication_channel_url: values.communicationChannelUrl || null,
+        open_for_partnerships: values.openForPartnerships || false,
+      };
+
+      console.log('Frontend sending preferences data:', preferencesData);
+
+      const formData = new FormData();
+      formData.append("user_preferences", JSON.stringify(preferencesData));
+
+      const response = await fetch("/api/preferences", {
+        method: "PUT",
+        body: formData,
+        credentials: "include",
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          handleApiError({ status: 401, message: result.error }, router);
+          return;
+        }
+        throw new Error(result.error || "Failed to update preferences");
+      }
+
+      toast({
+        title: "Success!",
+        description: "Preferences updated successfully.",
+      });
+
+      // Update the user profile state
+      if (userProfile) {
+        setUserProfile({
+          ...userProfile,
+          user_preferences: result,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error!",
+        description: error.message || "Failed to update preferences",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderSubscriptionSettings = () => {
+    const subscriptions = userProfile?.subscriptions || [];
+    
+    const columns = [
+      {
+        title: 'Subscriber',
+        dataIndex: 'subscriber_name',
+        key: 'subscriber_name',
+        render: (text: string) => (
+          <div className="flex items-center">
+            <UserOutlined className="mr-2 text-gray-500" />
+            <span className="font-medium">{text}</span>
+          </div>
+        ),
+      },
+      {
+        title: 'Package',
+        dataIndex: 'package_name',
+        key: 'package_name',
+        render: (text: string, record: any) => (
+          <div>
+            <div className="font-medium">{text}</div>
+            <div className="text-sm text-gray-500">{record.subscription_plan} Plan</div>
+          </div>
+        ),
+      },
+      {
+        title: 'Amount',
+        dataIndex: 'amount',
+        key: 'amount',
+        render: (amount: number) => (
+          <span className="font-semibold text-green-600">
+            {formatAmount(amount)}
+          </span>
+        ),
+      },
+      {
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        render: (status: string) => (
+          <Tag color={getStatusColor(status)}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </Tag>
+        ),
+      },
+      {
+        title: 'Duration',
+        key: 'duration',
+        render: (record: any) => (
+          <div className="text-sm">
+            <div>{formatDate(record.start_date)}</div>
+            <div className="text-gray-500">to {formatDate(record.end_date)}</div>
+          </div>
+        ),
+      },
+      {
+        title: 'Payment Method',
+        dataIndex: 'payment_method',
+        key: 'payment_method',
+        render: (method: string) => (
+          <span className="text-sm text-gray-600">{method}</span>
+        ),
+      },
+      {
+        title: 'Actions',
+        key: 'actions',
+        render: (record: any) => (
+          <Space>
+            <Button
+              type="default"
+              size="small"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetails(record)}
+            >
+              View
+            </Button>
+            <Button
+              size="small"
+              icon={<DownloadOutlined />}
+              onClick={() => handleDownloadScreenshot(record)}
+              disabled={!record.screenshot}
+            >
+              Screenshot
+            </Button>
+          </Space>
+        ),
+      },
+    ];
+
+    return (
+      <Card title="User Subscriptions" className="shadow-sm">
+        {subscriptions.length === 0 ? (
+          <div className="text-center py-8">
+            <Text type="secondary">No subscriptions found.</Text>
+            <div className="mt-4">
+              <Button type="primary" className="bg-blue-600 hover:bg-blue-700 border-blue-600">
+                Subscribe to a Plan
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <Table
+              columns={columns}
+              dataSource={subscriptions}
+              rowKey="id"
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showQuickJumper: true,
+                showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} subscriptions`,
+              }}
+              scroll={{ x: 800 }}
+            />
+            
+            
+          </div>
+        )}
+      </Card>
+    );
+  };
 
   const renderPrivacySettings = () => (
     <Card title="Privacy Settings" className="shadow-sm">
@@ -1642,8 +2063,8 @@ export default function ClientProfilePage() {
                   icon: <Bell className="w-4 h-4" />,
                 },
                 {
-                  key: "payment",
-                  label: "Payment",
+                  key: "user_subscription",
+                  label: "User Subscription",
                   icon: <CreditCard className="w-4 h-4" />,
                 },
                 {
@@ -1673,7 +2094,7 @@ export default function ClientProfilePage() {
           {activeTab === "profile" && renderProfileSettings()}
           {activeTab === "security" && renderSecuritySettings()}
           {activeTab === "notifications" && renderNotificationSettings()}
-          {activeTab === "payment" && renderPaymentSettings()}
+          {activeTab === "user_subscription" && renderSubscriptionSettings()}
           {activeTab === "privacy" && renderPrivacySettings()}
         </div>
       </div>
@@ -1703,6 +2124,120 @@ export default function ClientProfilePage() {
           </Text>
           <Input placeholder="Type 'DELETE' to confirm" />
         </div>
+      </Modal>
+
+      {/* Subscription Detail Modal */}
+      <Modal
+        title="Subscription Details"
+        open={subscriptionDetailModal}
+        onCancel={() => setSubscriptionDetailModal(false)}
+        width={800}
+        footer={[
+          <Button key="close" onClick={() => setSubscriptionDetailModal(false)}>
+            Close
+          </Button>,
+          <Button
+            key="receipt"
+            type="primary"
+            icon={<FileTextOutlined />}
+            onClick={() => selectedSubscription && handleDownloadReceipt(selectedSubscription)}
+            className="bg-orange-600 hover:bg-orange-700 border-orange-600"
+          >
+            Download Receipt
+          </Button>,
+        ]}
+      >
+        {selectedSubscription && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex justify-between items-start border-b pb-4">
+              <div>
+                <Title level={3} className="mb-1">{selectedSubscription.package_name}</Title>
+                <Text type="secondary" className="text-lg">
+                  {selectedSubscription.subscription_plan} Plan
+                </Text>
+              </div>
+              <Tag color={getStatusColor(selectedSubscription.status)} className="text-lg px-4 py-2">
+                {selectedSubscription.status.charAt(0).toUpperCase() + selectedSubscription.status.slice(1)}
+              </Tag>
+            </div>
+
+            {/* Subscriber Info */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <Title level={4} className="mb-3">Subscriber Information</Title>
+              <div className="flex items-center">
+                <UserOutlined className="mr-3 text-xl text-gray-500" />
+                <div>
+                  <div className="font-semibold text-lg">{selectedSubscription.subscriber_name}</div>
+                  <div className="text-gray-600">{userProfile?.email}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Title level={4} className="mb-3">Payment Information</Title>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <Text strong>Amount:</Text>
+                    <Text className="text-lg font-semibold text-green-600">
+                      {formatAmount(selectedSubscription.amount)}
+                    </Text>
+                  </div>
+                  <div className="flex justify-between">
+                    <Text strong>Payment Method:</Text>
+                    <Text>{selectedSubscription.payment_method}</Text>
+                  </div>
+                  {selectedSubscription.payment_id && (
+                    <div className="flex justify-between">
+                      <Text strong>Payment ID:</Text>
+                      <Text className="font-mono text-sm">{selectedSubscription.payment_id}</Text>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Title level={4} className="mb-3">Subscription Period</Title>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <Text strong>Start Date:</Text>
+                    <Text>{formatDate(selectedSubscription.start_date)}</Text>
+                  </div>
+                  <div className="flex justify-between">
+                    <Text strong>End Date:</Text>
+                    <Text>{formatDate(selectedSubscription.end_date)}</Text>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Screenshot */}
+            {selectedSubscription.screenshot && (
+              <div>
+                <Title level={4} className="mb-3">Payment Screenshot</Title>
+                <div className="text-center">
+                  <img
+                    src={selectedSubscription.screenshot}
+                    alt="Payment Screenshot"
+                    className="max-w-full h-auto rounded border shadow-sm"
+                    style={{ maxHeight: '400px' }}
+                  />
+                  <div className="mt-3">
+                    <Button
+                      icon={<DownloadOutlined />}
+                      onClick={() => handleDownloadScreenshot(selectedSubscription)}
+                    >
+                      Download Screenshot
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );

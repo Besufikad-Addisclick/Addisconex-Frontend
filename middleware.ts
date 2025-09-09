@@ -46,10 +46,25 @@ const navItems = [
 ];
 
 // Helper function to check if user has access to a specific dashboard route
-function hasAccessToRoute(userType: string, pathname: string): boolean {
+function hasAccessToRoute(userType: string, pathname: string, currentPackageName?: string): boolean {
   // Allow access to profile route for all authenticated users
   if (pathname === '/dashboard/profile') {
     return true;
+  }
+  
+  // Check package-based access for specific routes
+  if (pathname === '/dashboard/material-prices') {
+    const allowedPackages = ['Material Supplier - Essential', 'Material Supplier - Pro'];
+    const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
+    console.log("Middleware - material-prices access check:", { currentPackageName, hasPackageAccess });
+    return hasPackageAccess;
+  }
+  
+  if (pathname === '/dashboard/machineries-prices') {
+    const allowedPackages = ['Machinery Supplier - Essential', 'Machinery Supplier - Pro'];
+    const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
+    console.log("Middleware - machineries-prices access check:", { currentPackageName, hasPackageAccess });
+    return hasPackageAccess;
   }
   
   // Find the most specific matching route (longest path match)
@@ -116,9 +131,10 @@ export default withAuth(
 
       // Check role-based access
       const userType = token.userType;
-      console.log("Middleware - userType:", userType, "pathname:", pathname);
+      const currentPackageName = token.currentPackageName;
+      console.log("Middleware - userType:", userType, "pathname:", pathname, "currentPackageName:", currentPackageName);
       
-      const hasAccess = hasAccessToRoute(userType, pathname);
+      const hasAccess = hasAccessToRoute(userType, pathname, currentPackageName);
       console.log("Middleware - hasAccess result:", hasAccess);
       
       if (!hasAccess) {

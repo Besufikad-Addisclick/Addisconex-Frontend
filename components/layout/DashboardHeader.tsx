@@ -115,8 +115,56 @@ const DashboardHeader = memo(() => {
     },
   ];
 
-  // Filter nav items based on user_type
-  const allowedNavItems = navItems.filter(item => item.allowedTypes.includes(session.user.userType));
+  // Filter nav items based on user_type and package access
+  const allowedNavItems = navItems.filter(item => {
+    const hasUserTypeAccess = item.allowedTypes.includes(session.user.userType);
+    
+    // Check package-based access for Post submenu items
+    if (item.label === 'Post' && item.submenu) {
+      const currentPackageName = session.user.currentPackageName;
+      
+      // Filter submenu items based on package access
+      const allowedSubmenuItems = item.submenu.filter(subitem => {
+        if (subitem.path === '/dashboard/material-prices') {
+          const allowedPackages = ['Material Supplier - Essential', 'Material Supplier - Pro'];
+          return currentPackageName && allowedPackages.includes(currentPackageName);
+        }
+        if (subitem.path === '/dashboard/machineries-prices') {
+          const allowedPackages = ['Machinery Supplier - Essential', 'Machinery Supplier - Pro'];
+          return currentPackageName && allowedPackages.includes(currentPackageName);
+        }
+        return true; // Allow other submenu items
+      });
+      
+      // Only show Post menu if user has access to at least one submenu item
+      return hasUserTypeAccess && allowedSubmenuItems.length > 0;
+    }
+    
+    return hasUserTypeAccess;
+  }).map(item => {
+    // Update submenu items for Post menu based on package access
+    if (item.label === 'Post' && item.submenu) {
+      const currentPackageName = session.user.currentPackageName;
+      const allowedSubmenuItems = item.submenu.filter(subitem => {
+        if (subitem.path === '/dashboard/material-prices') {
+          const allowedPackages = ['Material Supplier - Essential', 'Material Supplier - Pro'];
+          return currentPackageName && allowedPackages.includes(currentPackageName);
+        }
+        if (subitem.path === '/dashboard/machineries-prices') {
+          const allowedPackages = ['Machinery Supplier - Essential', 'Machinery Supplier - Pro'];
+          return currentPackageName && allowedPackages.includes(currentPackageName);
+        }
+        return true;
+      });
+      
+      return {
+        ...item,
+        submenu: allowedSubmenuItems
+      };
+    }
+    
+    return item;
+  });
 
   return (
     <header className="bg-gray-200 border-b border-gray-200 sticky top-0 z-50">
