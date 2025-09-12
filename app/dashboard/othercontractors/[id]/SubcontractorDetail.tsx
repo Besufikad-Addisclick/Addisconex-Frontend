@@ -59,6 +59,7 @@ export default function OtherContractorDetail() {
 
         const data = await response.json();
         console.log("Fetched subcontractor data:", data);
+        console.log("Equipment data:", data.user_details?.equipment);
 
         const subcontractorData: Subcontractor = {
           id: data.id,
@@ -92,7 +93,20 @@ export default function OtherContractorDetail() {
             created_at: project.created_at,
             updated_at: project.updated_at,
           })),
-          equipment: data.user_details.equipment || [],
+          equipment: Array.isArray(data.user_details.equipment) 
+            ? data.user_details.equipment.map((item: any) => {
+                // Handle both string arrays and object arrays
+                if (typeof item === 'string') {
+                  return item;
+                } else if (typeof item === 'object' && item !== null) {
+                  const name = item?.name || item?.equipment_name || 'Unknown Equipment';
+                  const quantity = item?.quantity || item?.qty || 'N/A';
+                  return `${name} (${quantity})`;
+                } else {
+                  return 'Unknown Equipment';
+                }
+              })
+            : [],
           teamSize: data.user_details.team_size || 0,
           profile_picture: data.profile_picture || FALLBACK_IMAGE_URL,
           user_type: data.user_type || "Unknown",

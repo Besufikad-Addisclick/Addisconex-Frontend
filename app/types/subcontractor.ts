@@ -74,7 +74,7 @@ export interface Subcontractor {
   certifications: Document[];
   keyProjects: KeyProject[];
   labor_categories?: LaborCategory[];
-  equipment: string[];
+  equipment: string[]; // Transformed from Array<{name: string, quantity: string}> to string[]
   teamSize: number;
   profile_picture: string;
   user_type: string;

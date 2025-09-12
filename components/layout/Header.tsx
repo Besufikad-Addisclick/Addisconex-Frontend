@@ -117,9 +117,9 @@ const Header = memo(() => {
           
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8 overflow-x-auto scrollbar-hide min-w-0 flex-1">
             {navLinks.map((link) => (
-              <div key={link.name} className="relative group">
+              <div key={link.name} className="relative group flex-shrink-0">
                 <Link
                   href={link.href}
                   className={cn(
@@ -222,7 +222,7 @@ const Header = memo(() => {
                   {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[250px] p-4">
+              <SheetContent side="right" className="w-[250px] p-4 overflow-y-auto">
                 <nav className="flex flex-col space-y-4">
                   {navLinks.map((link) => (
                     <div key={link.name}>
@@ -249,7 +249,7 @@ const Header = memo(() => {
                           </button>
                           {isProductsSubmenuOpen && (
                             <div className="pl-4 mt-2 space-y-2 border-l-2 border-gray-200">
-                              <div className="bg-gray-50 rounded-lg p-2">
+                              <div className="bg-gray-50 rounded-lg p-2 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                                 <div className="grid grid-cols-1 gap-1">
                                   {link.submenu.map((sublink) => (
                                     <Link
