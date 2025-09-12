@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import { useState, memo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Bell, User, LogOut, ChevronDown, PlusCircle, Wrench, Building2, Building, Menu, Home, X } from 'lucide-react';
+import { Bell, User, LogOut, ChevronDown, PlusCircle, Wrench, Building2, Building, Menu, Home, X, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
@@ -57,6 +57,12 @@ const DashboardHeader = memo(() => {
       label: 'Home',
       path: '/dashboard',
       icon: <Home className="h-4 w-4" />,
+      allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
+    },
+    {
+      label: 'Materials',
+      path: '/dashboard/materials',
+      icon: <Package className="h-4 w-4" />,
       allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin','individuals'],
     },
     {
