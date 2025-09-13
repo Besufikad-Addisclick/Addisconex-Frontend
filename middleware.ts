@@ -6,7 +6,12 @@ const navItems = [
   {
     label: 'Home',
     path: '/dashboard',
-    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals'],
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies', 'investors', 'professionals'],
+  },
+  {
+    label: 'Materials',
+    path: '/dashboard/materials',
+    allowedTypes: ['contractors', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies', 'investors'],
   },
   {
     label: 'Post',
@@ -16,7 +21,7 @@ const navItems = [
   {
     label: 'Machineries',
     path: '/dashboard/machineries',
-    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals'],
+    allowedTypes: ['contractors', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies', 'investors'],
   },
   {
     label: 'Subcontractors',
@@ -26,7 +31,7 @@ const navItems = [
   {
     label: 'Consultants',
     path: '/dashboard/consultants',
-    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals'],
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies', 'investors'],
   },
   {
     label: 'Contractors',
@@ -36,17 +41,28 @@ const navItems = [
   {
     label: 'Agencies',
     path: '/dashboard/agencies',
-    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies'],
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'individuals', 'agencies', 'investors'],
   },
   {
     label: 'Professionals',
     path: '/dashboard/professionals',
-    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'professionals', 'individuals', 'agencies'],
+    allowedTypes: ['contractors', 'suppliers', 'subcontractors', 'consultants', 'admin', 'professionals', 'individuals', 'agencies', 'investors'],
   },
 ];
 
 // Helper function to check if user has access to a specific dashboard route
 function hasAccessToRoute(userType: string, pathname: string, currentPackageName?: string): boolean {
+  // Admin can access all pages
+  if (userType === 'admin') {
+    console.log("Middleware - admin access granted for:", pathname);
+    return true;
+  }
+  
+  // Allow access to main dashboard for all authenticated users
+  if (pathname === '/dashboard') {
+    return true;
+  }
+  
   // Allow access to profile route for all authenticated users
   if (pathname === '/dashboard/profile') {
     return true;
@@ -65,6 +81,72 @@ function hasAccessToRoute(userType: string, pathname: string, currentPackageName
     const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
     console.log("Middleware - machineries-prices access check:", { currentPackageName, hasPackageAccess });
     return hasPackageAccess;
+  }
+  
+  // Check package-based access for Pro-only routes
+  if (pathname === '/dashboard/subcontractors' || pathname === '/dashboard/othercontractors') {
+    const allowedPackages = ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'Consultant - Pro', 'PRO'];
+    const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
+    console.log("Middleware - Pro-only route access check:", { pathname, currentPackageName, hasPackageAccess });
+    return hasPackageAccess;
+  }
+  
+  // Check package-based access for Premium-only routes (contractors, consultants, and investors)
+  if (pathname === '/dashboard/agencies' || pathname === '/dashboard/professionals' || pathname === '/dashboard/consultants' || pathname === '/dashboard/machineries') {
+    const allowedPackages = ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Agency - Pro', 'Premium', 'Consultant - Pro', 'PRO'];
+    const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
+    console.log("Middleware - Premium-only route access check:", { pathname, currentPackageName, hasPackageAccess });
+    return hasPackageAccess;
+  }
+  
+  // Check package-based access for contractor/consultant/subcontractor materials (Essential/Pro/Premium/Consultant packages)
+  if (pathname === '/dashboard/materials') {
+    const allowedPackages = ['Essential', 'Pro', 'Premium', 'Consultant - Essential', 'Consultant - Pro', 'PRO'];
+    const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
+    console.log("Middleware - Materials route access check:", { pathname, currentPackageName, hasPackageAccess });
+    return hasPackageAccess;
+  }
+  
+  // Handle detail pages by checking if pathname matches a detail page pattern
+  const detailPagePatterns = [
+    '/dashboard/materials/[id]',
+    '/dashboard/subcontractors/[id]',
+    '/dashboard/consultants/[id]',
+    '/dashboard/othercontractors/[id]',
+    '/dashboard/agencies/[id]',
+    '/dashboard/professionals/[id]',
+    '/dashboard/suppliers/[id]',
+    '/dashboard/constructionWorkers/[id]'
+  ];
+  
+  // Check if this is a detail page
+  for (const pattern of detailPagePatterns) {
+    const basePath = pattern.replace('/[id]', '');
+    if (pathname.startsWith(basePath + '/') && pathname !== basePath) {
+      // This is a detail page, apply the same access control as the base path
+      console.log("Middleware - detail page access check:", { pathname, basePath, userType, currentPackageName });
+      
+      // Apply the same package restrictions as the base path
+      if (basePath === '/dashboard/materials') {
+        const allowedPackages = ['Essential', 'Pro', 'Premium', 'Consultant - Essential', 'Consultant - Pro', 'PRO'];
+        const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
+        return hasPackageAccess;
+      } else if (basePath === '/dashboard/subcontractors' || basePath === '/dashboard/othercontractors') {
+        const allowedPackages = ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'Consultant - Pro', 'PRO'];
+        const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
+        return hasPackageAccess;
+      } else if (basePath === '/dashboard/agencies' || basePath === '/dashboard/professionals' || basePath === '/dashboard/consultants' || basePath === '/dashboard/machineries') {
+        const allowedPackages = ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Agency - Pro', 'Premium', 'Consultant - Pro', 'PRO'];
+        const hasPackageAccess = !!(currentPackageName && allowedPackages.includes(currentPackageName));
+        return hasPackageAccess;
+      } else {
+        // For other detail pages, check user type
+        const baseRoute = navItems.find(item => item.path === basePath);
+        if (baseRoute) {
+          return baseRoute.allowedTypes.includes(userType);
+        }
+      }
+    }
   }
   
   // Find the most specific matching route (longest path match)
@@ -139,6 +221,13 @@ export default withAuth(
       
       if (!hasAccess) {
         console.log("Middleware - access denied for userType:", userType, "to path:", pathname);
+        
+        // Prevent redirect loops - if we're already at the default dashboard, don't redirect
+        if (pathname === '/dashboard') {
+          console.log("Middleware - already at dashboard, allowing access to prevent loop");
+          return NextResponse.next();
+        }
+        
         // Redirect to user's default dashboard based on their role
         let defaultDashboard = '/dashboard';
         

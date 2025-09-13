@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import {
   Supplier,
   Category,
@@ -77,7 +78,7 @@ interface FormErrors {
   status?: string;
 }
 
-export default function MachineriesPrice() {
+function MachineriesPrice() {
   const { toast } = useToast();
   const router = useRouter();
   const [supplierMaterials, setSupplierMaterials] = useState<MachineryPrice[]>(
@@ -1659,5 +1660,13 @@ export default function MachineriesPrice() {
         )}
       </motion.div>
     </div>
+  );
+}
+
+export default function ProtectedMachineriesPrice() {
+  return (
+    <ProtectedRoute>
+      <MachineriesPrice />
+    </ProtectedRoute>
   );
 }

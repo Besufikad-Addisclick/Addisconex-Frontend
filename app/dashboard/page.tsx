@@ -361,14 +361,7 @@ export default function DashboardPage() {
               color="orange"
               href="/dashboard/machineries"
             />
-            <StatCard
-              title="Total Ads"
-              value={analytics.totalAds || 0}
-              change={analytics.newAds}
-              icon={FileText}
-              color="red"
-              href="/dashboard/ads"
-            />
+            
             <StatCard
               title="Total News"
               value={analytics.totalNews || 0}
@@ -411,14 +404,7 @@ export default function DashboardPage() {
               color="green"
               href="/dashboard/machineries"
             />
-            <StatCard
-              title="Total Ads"
-              value={analytics.totalAds || 0}
-              change={analytics.newAds}
-              icon={FileText}
-              color="purple"
-              href="/dashboard/ads"
-            />
+            
           </>
         )}
 
@@ -448,14 +434,7 @@ export default function DashboardPage() {
               color="purple"
               href="/dashboard/professionals"
             />
-            <StatCard
-              title="Total Ads"
-              value={analytics.totalAds || 0}
-              change={analytics.newAds}
-              icon={FileText}
-              color="red"
-              href="/dashboard/ads"
-            />
+            
           </>
         )}
 
@@ -775,6 +754,6 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
   );
 }

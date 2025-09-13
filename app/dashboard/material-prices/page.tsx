@@ -26,6 +26,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { getSession } from "next-auth/react";
 import { Supplier, Category } from "@/app/types/supplier";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 interface Material {
   id: string;
@@ -74,7 +75,7 @@ interface Materials {
   price_date: string;
 }
 
-export default function PricesPage() {
+function PricesPage() {
   const { toast } = useToast();
   // const { user } = useAuth();
   const router = useRouter();
@@ -1058,5 +1059,13 @@ console.log("pricedMaterials",pricedMaterials)
         )}
       </motion.div>
     </div>
+  );
+}
+
+export default function ProtectedPricesPage() {
+  return (
+    <ProtectedRoute>
+      <PricesPage />
+    </ProtectedRoute>
   );
 }

@@ -1,65 +1,114 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useSession } from "next-auth/react";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { hasPageAccess, UserAccess } from "@/lib/access-control";
+import { Loader, AlertCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredUserType?: string;
-  fallbackUrl?: string;
+  fallback?: React.ReactNode;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  requiredUserType,
-  fallbackUrl = '/auth/login',
-}) => {
-  const { session, status, isLoading, isAuthenticated } = useAuth();
+export default function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push(fallbackUrl);
-    }
-  }, [status, router, fallbackUrl]);
+    if (status === "loading") return;
 
-  useEffect(() => {
-    if (isAuthenticated && requiredUserType && session?.user?.userType !== requiredUserType) {
-      // Redirect to appropriate dashboard based on user type
-      const userTypeRoutes: Record<string, string> = {
-        contractor: '/dashboard',
-        supplier: '/dashboard/supplier',
-        subcontractor: '/dashboard/subcontractor',
-        consultant: '/dashboard/consultant',
-        admin: '/dashboard/admin',
-      };
-      
-      const userType = session?.user?.userType;
-const redirectUrl = userType ? userTypeRoutes[userType] || '/dashboard' : '/dashboard';
-router.push(redirectUrl);
+    if (!session?.user) {
+      router.push("/auth/signin");
+      return;
     }
-  }, [isAuthenticated, requiredUserType, session, router]);
 
-  if (isLoading) {
+    // Check if user has access to current page
+    const userAccess: UserAccess = {
+      userType: session.user.userType || 'unknown',
+      currentPackageName: session.user.currentPackageName,
+    };
+
+    const hasAccess = hasPageAccess(userAccess, pathname);
+
+    if (!hasAccess) {
+      setIsChecking(false);
+      return;
+    }
+
+    setIsChecking(false);
+  }, [session, status, pathname, router]);
+
+  if (status === "loading" || isChecking) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-lg font-medium text-gray-700">
+            Checking access...
+          </p>
         </div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return null; // Will redirect to login
+  if (!session?.user) {
+    return null; // Will redirect to signin
   }
 
-  if (requiredUserType && session?.user?.userType !== requiredUserType) {
-    return null; // Will redirect to appropriate dashboard
+  const userAccess: UserAccess = {
+    userType: session.user.userType || 'unknown',
+    currentPackageName: session.user.currentPackageName,
+  };
+
+  const hasAccess = hasPageAccess(userAccess, pathname);
+
+  if (!hasAccess) {
+    return (
+      <div className="max-w-2xl mx-auto py-12">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+              Access Denied
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600">
+              You don't have permission to access this page.
+            </p>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-700">
+                <strong>User Type:</strong> {session.user.userType}
+              </p>
+              {session.user.currentPackageName && (
+                <p className="text-sm text-gray-700">
+                  <strong>Package:</strong> {session.user.currentPackageName}
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button asChild>
+                <Link href="/dashboard">
+                  Go to Dashboard
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard/profile">
+                  View Profile
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return <>{children}</>;
-};
+}

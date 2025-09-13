@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Image from 'next/image';
 import { ProfileOutlined } from '@ant-design/icons';
 import { cn } from '@/lib/utils';
+import { hasPageAccess, hasFeatureAccess, UserAccess } from '@/lib/access-control';
 
 const DashboardHeader = memo(() => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -121,46 +122,36 @@ const DashboardHeader = memo(() => {
     },
   ];
 
-  // Filter nav items based on user_type and package access
+  // Create user access object
+  const userAccess: UserAccess = {
+    userType: session.user.userType || 'unknown',
+    currentPackageName: session.user.currentPackageName,
+  };
+
+  // Filter nav items based on access control
   const allowedNavItems = navItems.filter(item => {
-    const hasUserTypeAccess = item.allowedTypes.includes(session.user.userType);
+    // Check if user has access to the main item
+    if (item.path && !hasPageAccess(userAccess, item.path)) {
+      return false;
+    }
     
     // Check package-based access for Post submenu items
     if (item.label === 'Post' && item.submenu) {
-      const currentPackageName = session.user.currentPackageName;
-      
-      // Filter submenu items based on package access
+      // Filter submenu items based on access control
       const allowedSubmenuItems = item.submenu.filter(subitem => {
-        if (subitem.path === '/dashboard/material-prices') {
-          const allowedPackages = ['Material Supplier - Essential', 'Material Supplier - Pro'];
-          return currentPackageName && allowedPackages.includes(currentPackageName);
-        }
-        if (subitem.path === '/dashboard/machineries-prices') {
-          const allowedPackages = ['Machinery Supplier - Essential', 'Machinery Supplier - Pro'];
-          return currentPackageName && allowedPackages.includes(currentPackageName);
-        }
-        return true; // Allow other submenu items
+        return hasPageAccess(userAccess, subitem.path);
       });
       
       // Only show Post menu if user has access to at least one submenu item
-      return hasUserTypeAccess && allowedSubmenuItems.length > 0;
+      return allowedSubmenuItems.length > 0;
     }
     
-    return hasUserTypeAccess;
+    return true;
   }).map(item => {
-    // Update submenu items for Post menu based on package access
+    // Update submenu items for Post menu based on access control
     if (item.label === 'Post' && item.submenu) {
-      const currentPackageName = session.user.currentPackageName;
       const allowedSubmenuItems = item.submenu.filter(subitem => {
-        if (subitem.path === '/dashboard/material-prices') {
-          const allowedPackages = ['Material Supplier - Essential', 'Material Supplier - Pro'];
-          return currentPackageName && allowedPackages.includes(currentPackageName);
-        }
-        if (subitem.path === '/dashboard/machineries-prices') {
-          const allowedPackages = ['Machinery Supplier - Essential', 'Machinery Supplier - Pro'];
-          return currentPackageName && allowedPackages.includes(currentPackageName);
-        }
-        return true;
+        return hasPageAccess(userAccess, subitem.path);
       });
       
       return {
