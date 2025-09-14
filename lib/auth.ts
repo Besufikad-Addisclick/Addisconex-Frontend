@@ -275,12 +275,12 @@ export interface ApiResponse {
   subscription_plans: SubscriptionPlan[];
   active_subscription: UserSubscription | null;
 }
-
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 export const auth = {
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
     try {
       console.log('Fetching subscription plans...');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/subscription-plans/`, {
+      const response = await fetch(`${apiUrl}/subscription-plans/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

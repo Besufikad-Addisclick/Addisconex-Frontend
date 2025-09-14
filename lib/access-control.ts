@@ -21,38 +21,38 @@ export const PAGE_ACCESS_RULES: PageAccess[] = [
   },
   {
     path: '/dashboard/materials',
-    allowedUserTypes: ['admin', 'contractors', 'consultants', 'subcontractors', 'professionals', 'individuals', 'agencies'],
+    allowedUserTypes: ['admin', 'contractors', 'consultants', 'subcontractors', 'individuals'],
     allowedPackages: ['Essential', 'Pro', 'Premium', 'Consultant - Essential', 'Consultant - Pro', 'PRO'], // Contractors, consultants, and subcontractors need packages for materials
   },
   {
     path: '/dashboard/machineries',
-    allowedUserTypes: ['admin', 'contractors', 'consultants', 'subcontractors', 'professionals', 'individuals', 'agencies', 'investors'],
+    allowedUserTypes: ['admin', 'contractors', 'consultants', 'subcontractors', 'individuals', 'investors'],
     allowedPackages: ['Premium', 'Consultant - Pro', 'PRO'], // Premium contractors, Pro consultants, and Pro investors can access machinery
   },
   {
     path: '/dashboard/subcontractors',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies'],
-    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'PRO'], // Pro packages + contractor Pro/Premium + subcontractor PRO
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals', 'agencies', 'investors'],
+    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'PRO'], // Pro packages + contractor Pro/Premium + subcontractor PRO + investor PRO
   },
   {
     path: '/dashboard/consultants',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies', 'investors'],
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals', 'investors'],
     allowedPackages: ['Premium', 'Consultant - Pro', 'PRO'], // Premium contractors, Pro consultants, and Pro investors can access consultants
   },
   {
     path: '/dashboard/othercontractors',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies'],
-    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'Consultant - Pro', 'PRO'], // Pro packages + contractor Pro/Premium + consultant Pro + subcontractor/agency PRO
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals', 'agencies', 'investors'],
+    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'Consultant - Pro', 'PRO'], // Pro packages + contractor Pro/Premium + consultant Pro + subcontractor PRO + investor PRO
   },
   {
     path: '/dashboard/agencies',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies', 'investors'],
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals', 'investors'],
     allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Agency - Pro', 'Premium', 'Consultant - Pro', 'PRO'], // Pro packages + contractor Premium + consultant Pro + investor PRO
   },
   {
     path: '/dashboard/professionals',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies', 'investors'],
-    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Premium', 'Consultant - Pro', 'PRO'], // Pro packages + contractor Premium + consultant Pro + investor PRO
+    allowedUserTypes: ['admin', 'contractors', 'subcontractors', 'consultants', 'professionals', 'individuals', 'investors'],
+    allowedPackages: ['Pro', 'Premium', 'Machinery Supplier - Pro', 'Consultant - Pro', 'PRO'], // Exclude Essential package for contractors, include PRO for investors
   },
   {
     path: '/dashboard/profile',
@@ -62,41 +62,41 @@ export const PAGE_ACCESS_RULES: PageAccess[] = [
   // Detail pages - same access as their main pages
   {
     path: '/dashboard/materials/[id]',
-    allowedUserTypes: ['admin', 'contractors', 'consultants', 'subcontractors', 'professionals', 'individuals', 'agencies'],
+    allowedUserTypes: ['admin', 'contractors', 'consultants', 'subcontractors', 'individuals'],
     allowedPackages: ['Essential', 'Pro', 'Premium', 'Consultant - Essential', 'Consultant - Pro', 'PRO'], // Contractors, consultants, and subcontractors need packages for materials
   },
   {
     path: '/dashboard/subcontractors/[id]',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies'],
-    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'PRO'], // Pro packages + contractor Pro/Premium + subcontractor PRO
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals', 'agencies', 'investors'],
+    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'PRO'], // Pro packages + contractor Pro/Premium + subcontractor PRO + investor PRO
   },
   {
     path: '/dashboard/consultants/[id]',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies', 'investors'],
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals', 'investors'],
     allowedPackages: ['Premium', 'Consultant - Pro', 'PRO'], // Premium contractors, Pro consultants, and Pro investors can access consultants
   },
   {
     path: '/dashboard/othercontractors/[id]',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies'],
-    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'Consultant - Pro', 'PRO'], // Pro packages + contractor Pro/Premium + consultant Pro + subcontractor/agency PRO
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals', 'agencies', 'investors'],
+    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'Consultant - Pro', 'PRO'], // Pro packages + contractor Pro/Premium + consultant Pro + subcontractor PRO + investor PRO
   },
   {
     path: '/dashboard/agencies/[id]',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies', 'investors'],
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals', 'investors'],
     allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Agency - Pro', 'Premium', 'Consultant - Pro', 'PRO'], // Pro packages + contractor Premium + consultant Pro + investor PRO
   },
   {
     path: '/dashboard/professionals/[id]',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies', 'investors'],
-    allowedPackages: ['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Premium', 'Consultant - Pro', 'PRO'], // Pro packages + contractor Premium + consultant Pro + investor PRO
+    allowedUserTypes: ['admin', 'contractors', 'subcontractors', 'consultants', 'professionals', 'individuals', 'investors'],
+    allowedPackages: ['Pro', 'Premium', 'Machinery Supplier - Pro', 'Consultant - Pro', 'PRO'], // Exclude Essential package for contractors, include PRO for investors
   },
   {
     path: '/dashboard/suppliers/[id]',
-    allowedUserTypes: ['admin', 'suppliers', 'contractors', 'consultants', 'subcontractors', 'professionals', 'individuals', 'agencies'],
+    allowedUserTypes: ['admin', 'suppliers', 'contractors', 'consultants', 'subcontractors', 'individuals'],
   },
   {
     path: '/dashboard/constructionWorkers/[id]',
-    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'professionals', 'individuals', 'agencies'],
+    allowedUserTypes: ['admin', 'contractors', 'suppliers', 'subcontractors', 'consultants', 'individuals'],
   },
   
   // Package-specific access rules

@@ -1655,6 +1655,7 @@ export default function ClientProfilePage() {
           {userRole !== "suppliers" &&
             userRole !== "individuals" &&
             userRole !== "agencies" &&
+            userRole !== "investors" &&
             userRole !== "admin" && (
               <>
                 <Divider orientation="left">Key Projects</Divider>
@@ -1819,7 +1820,7 @@ export default function ClientProfilePage() {
                 </Form.List>
               </>
             )}
-          {userRole !== "individuals" && userRole !== "admin" && (
+          {userRole !== "individuals" && userRole !== "admin" && userRole !== "investors" && (
             <>
               <Divider orientation="left">Documents</Divider>
 
