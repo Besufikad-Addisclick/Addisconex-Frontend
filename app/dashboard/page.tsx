@@ -29,52 +29,50 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 interface AnalyticsData {
-  // Suppliers
-  totalMaterials?: number;
-  totalMachineries?: number;
-  totalAds?: number;
-  newMaterials?: number;
-  newMachineries?: number;
-  newAds?: number;
-  
-  // Contractors
-  totalProjects?: number;
-  totalSubcontractors?: number;
-  totalProfessionals?: number;
-  newProjects?: number;
-  newSubcontractors?: number;
-  newProfessionals?: number;
-  
-  // Consultants
-  totalAgencies?: number;
-  totalNews?: number;
-  newAgencies?: number;
-  newNews?: number;
-  
-  // Admin
-  totalUsers?: number;
-  activeUsers?: number;
-  newUsers?: number;
-  totalSubscriptions?: number;
-  activeSubscriptions?: number;
-  newSubscriptions?: number;
-  userBreakdown?: {
+  // Backend returns snake_case
+  total_users?: number;
+  active_users?: number;
+  new_users?: number;
+  total_materials?: number;
+  new_materials?: number;
+  total_machineries?: number;
+  new_machineries?: number;
+  total_ads?: number;
+  new_ads?: number;
+  total_news?: number;
+  new_news?: number;
+  total_subscriptions?: number;
+  active_subscriptions?: number;
+  pending_subscriptions?: number;
+  expired_subscriptions?: number;
+  new_subscriptions?: number;
+  total_projects?: number;
+  new_projects?: number;
+  total_subcontractors?: number;
+  new_subcontractors?: number;
+  total_professionals?: number;
+  new_professionals?: number;
+  total_agencies?: number;
+  new_agencies?: number;
+  average_rating?: number;
+  total_ratings?: number;
+  user_breakdown?: {
     suppliers: number;
     contractors: number;
     consultants: number;
     professionals: number;
   };
-  recentActivity?: {
-    recentUsers: Array<{
+  recent_activity?: {
+    recent_users: Array<{
       id: string;
       first_name: string;
       last_name: string;
       user_type: string;
-      date_joined: string;
+      created_at: string;
     }>;
-    recentMaterials: Array<{
-  id: string;
-  name: string;
+    recent_materials: Array<{
+      id: string;
+      name: string;
       created_at: string;
     }>;
   };
@@ -186,6 +184,7 @@ export default function DashboardPage() {
       }
       
       const data: DashboardResponse = await response.json();
+      console.log(data);
       
       if (data.analytics) {
         setAnalytics(data.analytics);
@@ -278,6 +277,45 @@ export default function DashboardPage() {
   }
 
   const userType = session?.user?.userType || 'unknown';
+  const currentPackageName = session?.user?.currentPackageName;
+
+  // Helper functions to check package access
+  const hasPackageAccess = (allowedPackages: string[]) => {
+    if (userType === 'admin') return true;
+    return !!(currentPackageName && allowedPackages.includes(currentPackageName));
+  };
+
+  const canAccessMaterials = () => {
+    if (userType === 'admin') return true;
+    if (userType === 'suppliers') return false; // Suppliers don't access materials page
+    return hasPackageAccess(['Essential', 'Pro', 'Premium', 'Consultant - Essential', 'Consultant - Pro', 'PRO']);
+  };
+
+  const canAccessMachineries = () => {
+    if (userType === 'admin') return true;
+    return hasPackageAccess(['Premium', 'Consultant - Pro', 'PRO']);
+  };
+
+  const canAccessSubcontractors = () => {
+    if (userType === 'admin') return true;
+    return hasPackageAccess(['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Pro', 'Premium', 'Consultant - Pro', 'PRO']);
+  };
+
+  const canAccessConsultants = () => {
+    if (userType === 'admin') return true;
+    return hasPackageAccess(['Premium', 'Consultant - Pro', 'PRO']);
+  };
+
+  const canAccessAgencies = () => {
+    if (userType === 'admin') return true;
+    return hasPackageAccess(['Material Supplier - Pro', 'Machinery Supplier - Pro', 'Agency - Pro', 'Premium', 'Consultant - Pro', 'PRO']);
+  };
+
+  const canAccessProfessionals = () => {
+    if (userType === 'admin') return true;
+    if (userType === 'professionals') return true; // Professionals can always access their own page
+    return hasPackageAccess(['Pro', 'Premium', 'Machinery Supplier - Pro', 'Consultant - Pro', 'PRO']);
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -334,29 +372,29 @@ export default function DashboardPage() {
           <>
             <StatCard
               title="Total Users"
-              value={analytics.totalUsers || 0}
-              change={analytics.newUsers}
+              value={analytics.total_users || 0}
+              change={analytics.new_users}
               icon={Users}
               color="blue"
             />
             <StatCard
               title="Active Users"
-              value={analytics.activeUsers || 0}
+              value={analytics.active_users || 0}
               icon={Activity}
               color="green"
             />
             <StatCard
               title="Total Materials"
-              value={analytics.totalMaterials || 0}
-              change={analytics.newMaterials}
+              value={analytics.total_materials || 0}
+              change={analytics.new_materials}
               icon={Package}
               color="purple"
               href="/dashboard/materials"
             />
             <StatCard
               title="Total Machineries"
-              value={analytics.totalMachineries || 0}
-              change={analytics.newMachineries}
+              value={analytics.total_machineries || 0}
+              change={analytics.new_machineries}
               icon={Wrench}
               color="orange"
               href="/dashboard/machineries"
@@ -364,22 +402,34 @@ export default function DashboardPage() {
             
             <StatCard
               title="Total News"
-              value={analytics.totalNews || 0}
-              change={analytics.newNews}
+              value={analytics.total_news || 0}
+              change={analytics.new_news}
               icon={Newspaper}
               color="blue"
               href="/dashboard/news"
             />
             <StatCard
               title="Active Subscriptions"
-              value={analytics.activeSubscriptions || 0}
-              change={analytics.newSubscriptions}
+              value={analytics.active_subscriptions || 0}
               icon={TrendingUp}
               color="green"
             />
             <StatCard
+              title="Pending Subscriptions"
+              value={analytics.pending_subscriptions || 0}
+              icon={Activity}
+              color="orange"
+            />
+            <StatCard
+              title="Expired Subscriptions"
+              value={analytics.expired_subscriptions || 0}
+              icon={TrendingDown}
+              color="red"
+            />
+            <StatCard
               title="Total Subscriptions"
-              value={analytics.totalSubscriptions || 0}
+              value={analytics.total_subscriptions || 0}
+              change={analytics.new_subscriptions}
               icon={BarChart3}
               color="purple"
             />
@@ -390,16 +440,16 @@ export default function DashboardPage() {
           <>
             <StatCard
               title="Total Materials"
-              value={analytics.totalMaterials || 0}
-              change={analytics.newMaterials}
+              value={analytics.total_materials || 0}
+              change={analytics.new_materials}
               icon={Package}
               color="blue"
               href="/dashboard/materials"
             />
             <StatCard
               title="Total Machineries"
-              value={analytics.totalMachineries || 0}
-              change={analytics.newMachineries}
+              value={analytics.total_machineries || 0}
+              change={analytics.new_machineries}
               icon={Wrench}
               color="green"
               href="/dashboard/machineries"
@@ -412,57 +462,128 @@ export default function DashboardPage() {
           <>
             <StatCard
               title="Total Projects"
-              value={analytics.totalProjects || 0}
-              change={analytics.newProjects}
+              value={analytics.total_projects || 0}
+              change={analytics.new_projects}
               icon={Briefcase}
               color="blue"
               href="/dashboard/othercontractors"
             />
+            {canAccessSubcontractors() && (
+              <StatCard
+                title="Subcontractors"
+                value={analytics.total_subcontractors || 0}
+                change={analytics.new_subcontractors}
+                icon={Users}
+                color="green"
+                href="/dashboard/subcontractors"
+              />
+            )}
+            {canAccessProfessionals() && (
+              <StatCard
+                title="Professionals"
+                value={analytics.total_professionals || 0}
+                change={analytics.new_professionals}
+                icon={Building2}
+                color="purple"
+                href="/dashboard/professionals"
+              />
+            )}
             <StatCard
-              title="Subcontractors"
-              value={analytics.totalSubcontractors || 0}
-              change={analytics.newSubcontractors}
+              title="Average Rating"
+              value={analytics.average_rating ? parseFloat(analytics.average_rating.toFixed(1)) : 0}
+              icon={TrendingUp}
+              color="orange"
+            />
+            <StatCard
+              title="Total Ratings"
+              value={analytics.total_ratings || 0}
               icon={Users}
-              color="green"
-              href="/dashboard/subcontractors"
+              color="red"
             />
-            <StatCard
-              title="Professionals"
-              value={analytics.totalProfessionals || 0}
-              change={analytics.newProfessionals}
-              icon={Building2}
-              color="purple"
-              href="/dashboard/professionals"
-            />
-            
           </>
         )}
 
         {userType === 'consultants' && (
           <>
-            <StatCard
-              title="Total Agencies"
-              value={analytics.totalAgencies || 0}
-              change={analytics.newAgencies}
-              icon={Building2}
-              color="blue"
-              href="/dashboard/agencies"
-            />
+            {canAccessAgencies() && (
+              <StatCard
+                title="Total Agencies"
+                value={analytics.total_agencies || 0}
+                change={analytics.new_agencies}
+                icon={Building2}
+                color="blue"
+                href="/dashboard/agencies"
+              />
+            )}
             <StatCard
               title="News Articles"
-              value={analytics.totalNews || 0}
-              change={analytics.newNews}
+              value={analytics.total_news || 0}
+              change={analytics.new_news}
               icon={Newspaper}
               color="green"
               href="/dashboard/news"
             />
             <StatCard
-              title="Total Ads"
-              value={analytics.totalAds || 0}
-              change={analytics.newAds}
-              icon={FileText}
+              title="Average Rating"
+              value={analytics.average_rating ? parseFloat(analytics.average_rating.toFixed(1)) : 0}
+              icon={TrendingUp}
+              color="orange"
+            />
+            <StatCard
+              title="Total Ratings"
+              value={analytics.total_ratings || 0}
+              icon={Users}
               color="red"
-              href="/dashboard/ads"
+            />
+          </>
+        )}
+
+        {userType === 'subcontractors' && (
+          <>
+            <StatCard
+              title="Total Projects"
+              value={analytics.total_projects || 0}
+              change={analytics.new_projects}
+              icon={Briefcase}
+              color="blue"
+              href="/dashboard/othercontractors"
+            />
+            <StatCard
+              title="Average Rating"
+              value={analytics.average_rating ? parseFloat(analytics.average_rating.toFixed(1)) : 0}
+              icon={TrendingUp}
+              color="orange"
+            />
+            <StatCard
+              title="Total Ratings"
+              value={analytics.total_ratings || 0}
+              icon={Users}
+              color="red"
+            />
+          </>
+        )}
+
+        {userType === 'professionals' && (
+          <>
+            <StatCard
+              title="Total Projects"
+              value={analytics.total_projects || 0}
+              change={analytics.new_projects}
+              icon={Briefcase}
+              color="blue"
+              href="/dashboard/othercontractors"
+            />
+            <StatCard
+              title="Average Rating"
+              value={analytics.average_rating ? parseFloat(analytics.average_rating.toFixed(1)) : 0}
+              icon={TrendingUp}
+              color="orange"
+            />
+            <StatCard
+              title="Total Ratings"
+              value={analytics.total_ratings || 0}
+              icon={Users}
+              color="red"
             />
           </>
         )}
@@ -546,12 +667,6 @@ export default function DashboardPage() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="h-20 flex-col gap-2">
-                  <Link href="/dashboard/ads">
-                    <FileText className="h-6 w-6" />
-                    <span>Ads</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-20 flex-col gap-2">
                   <Link href="/dashboard/profile">
                     <Users className="h-6 w-6" />
                     <span>Profile</span>
@@ -568,24 +683,22 @@ export default function DashboardPage() {
                     <span>Projects</span>
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="h-20 flex-col gap-2">
-                  <Link href="/dashboard/subcontractors">
-                    <Users className="h-6 w-6" />
-                    <span>Subcontractors</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-20 flex-col gap-2">
-                  <Link href="/dashboard/professionals">
-                    <Building2 className="h-6 w-6" />
-                    <span>Professionals</span>
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-20 flex-col gap-2">
-                  <Link href="/dashboard/ads">
-                    <FileText className="h-6 w-6" />
-                    <span>Ads</span>
-                  </Link>
-                </Button>
+                {canAccessSubcontractors() && (
+                  <Button asChild variant="outline" className="h-20 flex-col gap-2">
+                    <Link href="/dashboard/subcontractors">
+                      <Users className="h-6 w-6" />
+                      <span>Subcontractors</span>
+                    </Link>
+                  </Button>
+                )}
+                {canAccessProfessionals() && (
+                  <Button asChild variant="outline" className="h-20 flex-col gap-2">
+                    <Link href="/dashboard/professionals">
+                      <Building2 className="h-6 w-6" />
+                      <span>Professionals</span>
+                    </Link>
+                  </Button>
+                )}
                 <Button asChild variant="outline" className="h-20 flex-col gap-2">
                   <Link href="/dashboard/profile">
                     <Users className="h-6 w-6" />
@@ -597,12 +710,14 @@ export default function DashboardPage() {
 
             {userType === 'consultants' && (
               <>
-                <Button asChild className="h-20 flex-col gap-2">
-                  <Link href="/dashboard/agencies">
-                    <Building2 className="h-6 w-6" />
-                    <span>Agencies</span>
-                  </Link>
-                </Button>
+                {canAccessAgencies() && (
+                  <Button asChild className="h-20 flex-col gap-2">
+                    <Link href="/dashboard/agencies">
+                      <Building2 className="h-6 w-6" />
+                      <span>Agencies</span>
+                    </Link>
+                  </Button>
+                )}
                 <Button asChild variant="outline" className="h-20 flex-col gap-2">
                   <Link href="/dashboard/news">
                     <Newspaper className="h-6 w-6" />
@@ -610,9 +725,37 @@ export default function DashboardPage() {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="h-20 flex-col gap-2">
-                  <Link href="/dashboard/ads">
-                    <FileText className="h-6 w-6" />
-                    <span>Ads</span>
+                  <Link href="/dashboard/profile">
+                    <Users className="h-6 w-6" />
+                    <span>Profile</span>
+                  </Link>
+                </Button>
+              </>
+            )}
+
+            {userType === 'subcontractors' && (
+              <>
+                <Button asChild className="h-20 flex-col gap-2">
+                  <Link href="/dashboard/othercontractors">
+                    <Briefcase className="h-6 w-6" />
+                    <span>Projects</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="h-20 flex-col gap-2">
+                  <Link href="/dashboard/profile">
+                    <Users className="h-6 w-6" />
+                    <span>Profile</span>
+                  </Link>
+                </Button>
+              </>
+            )}
+
+            {userType === 'professionals' && (
+              <>
+                <Button asChild className="h-20 flex-col gap-2">
+                  <Link href="/dashboard/othercontractors">
+                    <Briefcase className="h-6 w-6" />
+                    <span>Projects</span>
                   </Link>
                 </Button>
                 <Button asChild variant="outline" className="h-20 flex-col gap-2">
@@ -628,7 +771,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* User Breakdown for Admin */}
-      {userType === 'admin' && analytics.userBreakdown && (
+      {userType === 'admin' && analytics.user_breakdown && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -642,7 +785,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                       <div>
                     <p className="text-sm font-medium text-blue-600">Suppliers</p>
-                    <p className="text-2xl font-bold text-blue-900">{analytics.userBreakdown.suppliers}</p>
+                    <p className="text-2xl font-bold text-blue-900">{analytics.user_breakdown.suppliers}</p>
                   </div>
                   <Package className="h-8 w-8 text-blue-600" />
                 </div>
@@ -651,7 +794,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-green-600">Contractors</p>
-                    <p className="text-2xl font-bold text-green-900">{analytics.userBreakdown.contractors}</p>
+                    <p className="text-2xl font-bold text-green-900">{analytics.user_breakdown.contractors}</p>
                         </div>
                   <Briefcase className="h-8 w-8 text-green-600" />
                         </div>
@@ -660,7 +803,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-purple-600">Consultants</p>
-                    <p className="text-2xl font-bold text-purple-900">{analytics.userBreakdown.consultants}</p>
+                    <p className="text-2xl font-bold text-purple-900">{analytics.user_breakdown.consultants}</p>
                       </div>
                   <Building2 className="h-8 w-8 text-purple-600" />
                       </div>
@@ -669,7 +812,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-orange-600">Professionals</p>
-                    <p className="text-2xl font-bold text-orange-900">{analytics.userBreakdown.professionals}</p>
+                    <p className="text-2xl font-bold text-orange-900">{analytics.user_breakdown.professionals}</p>
                       </div>
                   <Users className="h-8 w-8 text-orange-600" />
                       </div>
@@ -688,7 +831,7 @@ export default function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {userType === 'admin' && analytics.recentActivity ? (
+          {userType === 'admin' && analytics.recent_activity ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Users */}
               <div>
@@ -697,7 +840,7 @@ export default function DashboardPage() {
                   Recent Users
                 </h4>
                 <div className="space-y-3">
-                  {analytics.recentActivity.recentUsers.map((user, index) => (
+                  {analytics.recent_activity.recent_users.map((user, index) => (
                     <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -713,7 +856,7 @@ export default function DashboardPage() {
                         </div>
             </div>
                       <span className="text-xs text-gray-400">
-                        {new Date(user.date_joined).toLocaleDateString()}
+                        {new Date(user.created_at).toLocaleDateString()}
                       </span>
       </div>
                   ))}
@@ -727,7 +870,7 @@ export default function DashboardPage() {
                   Recent Materials
                 </h4>
                 <div className="space-y-3">
-                  {analytics.recentActivity.recentMaterials.map((material, index) => (
+                  {analytics.recent_activity.recent_materials.map((material, index) => (
                     <div key={material.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
