@@ -1,14 +1,12 @@
 // components/layout/Header.tsx
 "use client";
 
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Search, X, LanguagesIcon, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useSession, signOut } from "next-auth/react";
 import { motion } from "framer-motion";
@@ -23,16 +21,16 @@ const Header = memo(() => {
   const pathname = usePathname();
   const router = useRouter();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+  const handleScroll = useCallback(() => {
+    setIsScrolled(window.scrollY > 10);
   }, []);
 
-  const handleLogout = async () => {
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
+  const handleLogout = useCallback(async () => {
     try {
       await signOut({
         redirect: false,
@@ -43,9 +41,9 @@ const Header = memo(() => {
     } catch (error) {
       console.error("[navbar] Logout error:", error);
     }
-  };
+  }, []);
 
-  const productLinks = [
+  const productLinks = useMemo(() => [
     { name: "Concrete Work", href: "/products?category=concrete-work" },
     { name: "Finishing", href: "/products?category=finishing" },
     {
@@ -78,16 +76,16 @@ const Header = memo(() => {
     { name: "Admixtures", href: "/products?category=admixtures" },
     { name: "Bitumen", href: "/products?category=bitumen" },
     { name: "Others", href: "/products?category=others" },
-  ];
+  ], []);
 
-  const navLinks = [
+  const navLinks = useMemo(() => [
     { name: "Home", href: "/" },
     { name: "Products", href: "/products", submenu: productLinks },
     { name: "Pricing", href: "/pricing" },
     { name: "News", href: "/blog" },
     { name: "What we serve", href: "/service" },
     { name: "Contact us", href: "/contact" },
-  ];
+  ], [productLinks]);
 
   return (
     <header
@@ -106,7 +104,7 @@ const Header = memo(() => {
               <Image
                 key="header-logo"
                 src="/acx.png"
-                alt="AddisConX"
+                alt="AddisPrice"
                 width={200}
                 height={30}
                 className="filter brightness-100"
@@ -117,9 +115,9 @@ const Header = memo(() => {
           
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8 overflow-x-auto scrollbar-hide min-w-0 flex-1">
+          <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <div key={link.name} className="relative group flex-shrink-0">
+              <div key={link.name} className="relative group">
                 <Link
                   href={link.href}
                   className={cn(
@@ -223,6 +221,7 @@ const Header = memo(() => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[250px] p-4 overflow-y-auto">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <nav className="flex flex-col space-y-4">
                   {navLinks.map((link) => (
                     <div key={link.name}>

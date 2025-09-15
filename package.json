@@ -3,11 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo",
+    "dev:fast": "next dev --turbo --port 3000",
     "build": "next build",
     "start": "set NODE_ENV=production && node ./server.js",
     "testn": "cross-env NODE_ENV=production next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "perf": "node scripts/performance-check.js",
+    "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",

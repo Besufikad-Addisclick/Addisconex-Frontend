@@ -192,13 +192,19 @@ export default function LoginPage() {
         // Add a delay and retry to ensure session is available
         let session = null;
         let attempts = 0;
-        const maxAttempts = 5;
+        const maxAttempts = 10; // Increased attempts
         
         while (!session && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise(resolve => setTimeout(resolve, 300)); // Increased delay
           session = await getSession();
           attempts++;
           console.log(`Login successful - attempt ${attempts}, session:`, session);
+          
+          // If we have a session with user data, break early
+          if (session?.user?.userType) {
+            console.log("Session with userType found, breaking early");
+            break;
+          }
         }
         
         console.log("Login successful - final session:", session);
@@ -214,7 +220,21 @@ export default function LoginPage() {
           title: "Success!",
           description: "You have been logged in successfully.",
         });
-        router.push(redirectUrl);
+        
+        // Use replace instead of push to avoid back button issues
+        // Add a small delay to ensure session is fully established
+        setTimeout(() => {
+          console.log("Attempting redirect to:", redirectUrl);
+          router.replace(redirectUrl);
+          
+          // Fallback: if redirect doesn't work, try window.location
+          setTimeout(() => {
+            if (window.location.pathname === '/auth/login') {
+              console.log("Router redirect failed, using window.location");
+              window.location.href = redirectUrl;
+            }
+          }, 1000);
+        }, 100);
       }
     } catch (err: any) {
       console.log("Caught error:", err);
