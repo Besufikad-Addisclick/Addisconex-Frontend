@@ -404,7 +404,15 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <span className="font-semibold">Phone:</span>{" "}
-                  <a href="tel:+251911223344" className="text-primary underline">+251 911 223 344</a>
+                  <a href="tel:+251975888811" className="text-primary underline">+251 975 888 811</a>
+                </div>
+                <div>
+                  <span className="font-semibold">Phone:</span>{" "}
+                  <a href="tel:+51975666611" className="text-primary underline">+251 975 666 611</a>
+                </div>
+                <div>
+                  <span className="font-semibold">Phone:</span>{" "}
+                  <a href="tel:+251976666644" className="text-primary underline">+251 911 223 344</a>
                 </div>
                 <div>
                   <span className="font-semibold">Support:</span>{" "}
