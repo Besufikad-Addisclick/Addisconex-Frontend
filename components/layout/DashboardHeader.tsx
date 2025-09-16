@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import Image from 'next/image';
 import { ProfileOutlined } from '@ant-design/icons';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,15 @@ const DashboardHeader = memo(() => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSubmenuOpen, setIsMobileSubmenuOpen] = useState(false);
   const { session, isLoading, logout } = useAuth();
+  const { 
+    notifications, 
+    loading: notificationsLoading, 
+    markAsRead, 
+    getUnreadCount, 
+    getPriorityColor, 
+    getTypeIcon, 
+    formatTimeAgo 
+  } = useNotifications();
   const router = useRouter();
   const pathname = usePathname();
   
@@ -407,56 +417,76 @@ const DashboardHeader = memo(() => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+                  {getUnreadCount() > 0 && (
+                    <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-sm border border-gray-100 shadow-xl rounded-xl max-h-96 overflow-y-auto">
                 <div className="p-3 border-b border-gray-100">
                   <h3 className="font-semibold text-gray-900">Notifications</h3>
-                  <p className="text-sm text-gray-500">You have 3 new notifications</p>
+                  <p className="text-sm text-gray-500">
+                    {notificationsLoading ? 'Loading...' : 
+                     getUnreadCount() > 0 ? `You have ${getUnreadCount()} new notifications` : 
+                     'No new notifications'}
+                  </p>
                 </div>
                 
-                {/* Sample Notifications */}
+                {/* Real Notifications */}
                 <div className="p-2 space-y-2">
-                  <DropdownMenuItem className="cursor-pointer p-3 hover:bg-orange-50 transition-colors duration-200 rounded-lg">
-                    <div className="flex items-start space-x-3 w-full">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">New Material Price Update</p>
-                        <p className="text-xs text-gray-500 mt-1">Cement prices have been updated for this week</p>
-                        <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
-                      </div>
+                  {notificationsLoading ? (
+                    <div className="p-3 text-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
+                      <p className="text-sm text-gray-500 mt-2">Loading notifications...</p>
                     </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem className="cursor-pointer p-3 hover:bg-orange-50 transition-colors duration-200 rounded-lg">
-                    <div className="flex items-start space-x-3 w-full">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">New Machinery Available</p>
-                        <p className="text-xs text-gray-500 mt-1">Excavator rental is now available in your area</p>
-                        <p className="text-xs text-gray-400 mt-1">5 hours ago</p>
-                      </div>
+                  ) : notifications.length > 0 ? (
+                    notifications.map((notification) => (
+                      <DropdownMenuItem 
+                        key={notification.id}
+                        className={cn(
+                          "cursor-pointer p-3 transition-colors duration-200 rounded-lg",
+                          notification.is_read 
+                            ? "bg-gray-50 hover:bg-gray-100 border-l-4 border-gray-300" 
+                            : "bg-orange-50 hover:bg-orange-100 border-l-4 border-orange-500"
+                        )}
+                        onClick={() => !notification.is_read && markAsRead(notification.id)}
+                      >
+                        <div className="flex items-start space-x-3 w-full">
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            <span className="text-lg">{getTypeIcon(notification.type)}</span>
+                            <div className={cn("w-2 h-2 rounded-full", getPriorityColor(notification.priority))}></div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn(
+                              "text-sm font-medium",
+                              notification.is_read ? "text-gray-700" : "text-gray-900"
+                            )}>
+                              {notification.title}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {formatTimeAgo(notification.created_at)}
+                            </p>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))
+                  ) : (
+                    <div className="p-3 text-center">
+                      <p className="text-sm text-gray-500">No notifications yet</p>
                     </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem className="cursor-pointer p-3 hover:bg-orange-50 transition-colors duration-200 rounded-lg">
-                    <div className="flex items-start space-x-3 w-full">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">Profile Update Required</p>
-                        <p className="text-xs text-gray-500 mt-1">Please update your contact information</p>
-                        <p className="text-xs text-gray-400 mt-1">1 day ago</p>
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
+                  )}
                 </div>
                 
-                <div className="p-3 border-t border-gray-100">
-                  <Button variant="outline" className="w-full text-sm">
-                    View All Notifications
-                  </Button>
-                </div>
+                {notifications.length > 0 && (
+                  <div className="p-3 border-t border-gray-100">
+                    <Button variant="outline" className="w-full text-sm">
+                      View All Notifications
+                    </Button>
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -591,60 +621,80 @@ const DashboardHeader = memo(() => {
               aria-label="Notifications"
             >
                   <Bell className="h-5 w-5 text-gray-600 group-hover:text-orange-600 transition-colors duration-200" />
-                  <motion.span 
-                    className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
+                  {getUnreadCount() > 0 && (
+                    <motion.span 
+                      className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                  )}
                 </motion.button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-sm border border-gray-100 shadow-xl rounded-xl max-h-96 overflow-y-auto">
                 <div className="p-3 border-b border-gray-100">
                   <h3 className="font-semibold text-gray-900">Notifications</h3>
-                  <p className="text-sm text-gray-500">You have 3 new notifications</p>
+                  <p className="text-sm text-gray-500">
+                    {notificationsLoading ? 'Loading...' : 
+                     getUnreadCount() > 0 ? `You have ${getUnreadCount()} new notifications` : 
+                     'No new notifications'}
+                  </p>
                 </div>
                 
-                {/* Sample Notifications */}
+                {/* Real Notifications */}
                 <div className="p-2 space-y-2">
-                  <DropdownMenuItem className="cursor-pointer p-3 hover:bg-orange-50 transition-colors duration-200 rounded-lg">
-                    <div className="flex items-start space-x-3 w-full">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">New Material Price Update</p>
-                        <p className="text-xs text-gray-500 mt-1">Cement prices have been updated for this week</p>
-                        <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
-                      </div>
+                  {notificationsLoading ? (
+                    <div className="p-3 text-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500 mx-auto"></div>
+                      <p className="text-sm text-gray-500 mt-2">Loading notifications...</p>
                     </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem className="cursor-pointer p-3 hover:bg-orange-50 transition-colors duration-200 rounded-lg">
-                    <div className="flex items-start space-x-3 w-full">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">New Machinery Available</p>
-                        <p className="text-xs text-gray-500 mt-1">Excavator rental is now available in your area</p>
-                        <p className="text-xs text-gray-400 mt-1">5 hours ago</p>
-                      </div>
+                  ) : notifications.length > 0 ? (
+                    notifications.map((notification) => (
+                      <DropdownMenuItem 
+                        key={notification.id}
+                        className={cn(
+                          "cursor-pointer p-3 transition-colors duration-200 rounded-lg",
+                          notification.is_read 
+                            ? "bg-gray-50 hover:bg-gray-100 border-l-4 border-gray-300" 
+                            : "bg-orange-50 hover:bg-orange-100 border-l-4 border-orange-500"
+                        )}
+                        onClick={() => !notification.is_read && markAsRead(notification.id)}
+                      >
+                        <div className="flex items-start space-x-3 w-full">
+                          <div className="flex items-center space-x-2 flex-shrink-0">
+                            <span className="text-lg">{getTypeIcon(notification.type)}</span>
+                            <div className={cn("w-2 h-2 rounded-full", getPriorityColor(notification.priority))}></div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn(
+                              "text-sm font-medium",
+                              notification.is_read ? "text-gray-700" : "text-gray-900"
+                            )}>
+                              {notification.title}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {formatTimeAgo(notification.created_at)}
+                            </p>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))
+                  ) : (
+                    <div className="p-3 text-center">
+                      <p className="text-sm text-gray-500">No notifications yet</p>
                     </div>
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem className="cursor-pointer p-3 hover:bg-orange-50 transition-colors duration-200 rounded-lg">
-                    <div className="flex items-start space-x-3 w-full">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">Profile Update Required</p>
-                        <p className="text-xs text-gray-500 mt-1">Please update your contact information</p>
-                        <p className="text-xs text-gray-400 mt-1">1 day ago</p>
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
+                  )}
                 </div>
                 
-                <div className="p-3 border-t border-gray-100">
-                  <Button variant="outline" className="w-full text-sm">
-                    View All Notifications
-                  </Button>
-                </div>
+                {notifications.length > 0 && (
+                  <div className="p-3 border-t border-gray-100">
+                    <Button variant="outline" className="w-full text-sm">
+                      View All Notifications
+                    </Button>
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 

@@ -218,8 +218,8 @@ export default function ServicePage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Truck className="h-8 w-8 text-green-600" />
                 </div>
-                <h4 className="text-lg font-semibold text-gray-800 mb-2">Reliable Logistics</h4>
-                <p className="text-gray-600 text-sm">Efficient supply chain and logistics management</p>
+                <h4 className="text-lg font-semibold text-gray-800 mb-2">Secure Payments</h4>
+                <p className="text-gray-600 text-sm">Safe and secure payment processing for all transactions</p>
               </div>
               
               <div className="text-center p-6 bg-white rounded-lg shadow-md border border-gray-200">
