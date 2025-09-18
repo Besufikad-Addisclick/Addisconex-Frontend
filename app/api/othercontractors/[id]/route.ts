@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, context: RouteParams) {
 
 
   try {
-    const url = `${API_BASE_URL}/auth/users/${id}/`;
+    const url = `${API_BASE_URL}/users/${id}/`;
     // console.log(`Fetching from backend: ${url}`);
     
     const response = await fetch(url, {

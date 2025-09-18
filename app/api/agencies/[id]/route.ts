@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, context: RouteParams) {
   const { id } = await context.params;
 
   try {
-    const url = `${API_BASE_URL}/auth/users/${id}/`;
+    const url = `${API_BASE_URL}/users/${id}/`;
     const response = await fetch(url, {
       method: "GET",
       headers: {

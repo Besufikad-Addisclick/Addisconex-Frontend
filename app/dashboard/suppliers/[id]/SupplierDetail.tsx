@@ -19,21 +19,44 @@ import {
   Copy,
   Check,
   FileText,
+  MessageSquare,
+  ThumbsUp,
+  User,
+  Loader
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Rating } from "@/components/ui/rating";
+import { useToast } from "@/hooks/use-toast";
 import AdsSection from "@/components/ads/AdsSection";
 import { fetchSupplierDetail } from "./../../../services/materialService";
 import { SupplierDetailResponse, Price } from "./../../../types/material";
 
 const ITEMS_PER_PAGE = 5;
 
+interface Rate {
+  id: string;
+  value: number;
+  comment: string;
+  created_at: string;
+  user_first_name: string;
+  user_last_name: string;
+  user_email: string;
+  rated_by_first_name: string;
+  rated_by_last_name: string;
+  rated_by_email: string;
+}
+
 export default function SupplierDetail() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const supplierId = params.id as string;
   const materialId = searchParams.get("materialId");
 
@@ -49,6 +72,88 @@ export default function SupplierDetail() {
   const [loadingMoreMachinery, setLoadingMoreMachinery] = useState(false);
   const [materialsLoading, setMaterialsLoading] = useState(false);
   const [machineryLoading, setMachineryLoading] = useState(false);
+  const [rates, setRates] = useState<Rate[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [ratingComment, setRatingComment] = useState("");
+
+  const fetchRates = async () => {
+    try {
+      const response = await fetch(`/api/reviews/${supplierId}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRates(data.results || []);
+      }
+    } catch (err) {
+      console.error("Error fetching rates:", err);
+    }
+  };
+
+  const handleRatingSubmit = async () => {
+    if (rating === 0) {
+      toast({
+        title: "Error",
+        description: "Please select a rating",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!ratingComment.trim()) {
+      toast({
+        title: "Error",
+        description: "Please write a review comment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/rate/${supplierId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          value: rating,
+          comment: ratingComment,
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Rating and review submitted successfully",
+        });
+        setRating(0);
+        setRatingComment("");
+        fetchRates(); // Refresh rates
+        // Refresh supplier data to get updated rating
+        window.location.reload();
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData.error || "Failed to submit rating and review",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to submit rating and review",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const loadSupplierData = async () => {
@@ -69,6 +174,7 @@ export default function SupplierDetail() {
 
     if (supplierId) {
       loadSupplierData();
+      fetchRates();
     }
   }, [supplierId, materialPage, machineryPage]);
 
@@ -740,8 +846,101 @@ export default function SupplierDetail() {
                 
               </CardContent>
             </Card>
+
+            {/* Rating and Review Section */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Star className="h-5 w-5 text-yellow-400" />
+                  Rate & Review This Supplier
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="rating" className="text-sm sm:text-base">Your Rating</Label>
+                  <Rating
+                    value={rating}
+                    onChange={setRating}
+                    size="lg"
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="rating-comment" className="text-sm sm:text-base">Your Review</Label>
+                  <Textarea
+                    id="rating-comment"
+                    placeholder="Share your detailed experience with this supplier..."
+                    value={ratingComment}
+                    onChange={(e) => setRatingComment(e.target.value)}
+                    className="mt-2"
+                    rows={4}
+                  />
+                </div>
+                <Button
+                  onClick={handleRatingSubmit}
+                  disabled={isSubmitting || rating === 0 || !ratingComment.trim()}
+                  className="w-full"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader className="h-4 w-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <ThumbsUp className="h-4 w-4 mr-2" />
+                      Submit Rating & Review
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
+
+        {/* Ratings & Reviews Section */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-400" />
+              Ratings & Reviews ({rates.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {rates.length > 0 ? (
+              <div className="space-y-6">
+                {rates.map((rate) => (
+                  <div key={rate.id} className="border-b last:border-0 pb-6 last:pb-0">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-medium text-gray-900">
+                            {rate.rated_by_first_name} {rate.rated_by_last_name}
+                          </h4>
+                          <Rating value={rate.value} readonly size="sm" />
+                          <span className="text-sm text-gray-500">
+                            {new Date(rate.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed">
+                          {rate.comment}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Star className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No ratings and reviews yet. Be the first to rate and review this supplier!</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Fixed Ads Section */}

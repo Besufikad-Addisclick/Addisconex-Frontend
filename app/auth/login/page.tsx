@@ -188,31 +188,17 @@ export default function LoginPage() {
           variant: "destructive",
         });
       } else if (result?.ok) {
-        // Get the session to determine user type for redirect
-        // Add a delay and retry to ensure session is available
-        let session = null;
-        let attempts = 0;
-        const maxAttempts = 10; // Increased attempts
+        // Get user type from session since it's not in the signIn result
+        const session = await getSession();
+        const userType = session?.user?.userType;
         
-        while (!session && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 300)); // Increased delay
-          session = await getSession();
-          attempts++;
-          console.log(`Login successful - attempt ${attempts}, session:`, session);
-          
-          // If we have a session with user data, break early
-          if (session?.user?.userType) {
-            console.log("Session with userType found, breaking early");
-            break;
-          }
-        }
-        
-        console.log("Login successful - final session:", session);
-        console.log("Login successful - userType:", session?.user?.userType);
+        console.log("Login successful - result:", result);
+        console.log("Login successful - session:", session);
+        console.log("Login successful - userType from session:", userType);
         console.log("Login successful - desiredCallbackUrl:", desiredCallbackUrl);
         
-        const redirectUrl = session?.user?.userType 
-          ? getRoleBasedRedirectUrl(session.user.userType, desiredCallbackUrl)
+        const redirectUrl = userType 
+          ? getRoleBasedRedirectUrl(userType, desiredCallbackUrl)
           : desiredCallbackUrl;
         
         console.log("Login successful, redirecting to:", redirectUrl);
@@ -222,19 +208,7 @@ export default function LoginPage() {
         });
         
         // Use replace instead of push to avoid back button issues
-        // Add a small delay to ensure session is fully established
-        setTimeout(() => {
-          console.log("Attempting redirect to:", redirectUrl);
-          router.replace(redirectUrl);
-          
-          // Fallback: if redirect doesn't work, try window.location
-          setTimeout(() => {
-            if (window.location.pathname === '/auth/login') {
-              console.log("Router redirect failed, using window.location");
-              window.location.href = redirectUrl;
-            }
-          }, 1000);
-        }, 100);
+        router.replace(redirectUrl);
       }
     } catch (err: any) {
       console.log("Caught error:", err);
