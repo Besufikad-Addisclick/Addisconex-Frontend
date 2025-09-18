@@ -70,6 +70,7 @@ export interface Price {
   };
   price: string;
   price_date: string;
+  remark?: string;
   created_at: string;
   updated_at: string;
 }
@@ -135,6 +136,7 @@ export interface MaterialPrice {
   user_details: Supplier;
   price: string;
   price_date: string;
+  remark?: string;
   created_at: string;
   updated_at: string;
 }

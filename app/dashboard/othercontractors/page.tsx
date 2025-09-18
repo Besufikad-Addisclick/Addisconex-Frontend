@@ -48,8 +48,15 @@ interface FilterSidebarProps {
     categories: string[];
     minYears: string;
     maxYears: string;
+    sortBy: string;
+  };
+  localInputs: {
+    searchQuery: string;
+    minYears: string;
+    maxYears: string;
   };
   onFilterChange: (filters: any) => void;
+  onLocalInputChange: (field: string, value: string) => void;
   onClearFilters: () => void;
   categories: Category[];
   regions: Region[];
@@ -59,7 +66,9 @@ interface FilterSidebarProps {
 const FilterSidebar = ({
   className = "",
   filters,
+  localInputs,
   onFilterChange,
+  onLocalInputChange,
   onClearFilters,
   categories,
   regions,
@@ -95,8 +104,11 @@ const FilterSidebar = ({
           <Input
             placeholder="Search contractors..."
             className="pl-10"
-            value={filters.searchQuery}
-            onChange={(e) => onFilterChange({ ...filters, searchQuery: e.target.value })}
+            value={localInputs.searchQuery}
+            onChange={(e) => {
+              const value = e.target.value;
+              onLocalInputChange('searchQuery', value);
+            }}
           />
         </div>
       </div>
@@ -146,26 +158,61 @@ const FilterSidebar = ({
         </div>
       </div>
 
-      <div>
+      <div className="mb-6">
         <h3 className="font-semibold mb-4">Years of Experience</h3>
         <div className="space-y-4">
           <Input
             type="number"
             placeholder="Minimum years"
-            value={filters.minYears}
-            onChange={(e) => onFilterChange({ ...filters, minYears: e.target.value })}
+            value={localInputs.minYears}
+            onChange={(e) => {
+              const value = e.target.value;
+              onLocalInputChange('minYears', value);
+            }}
             min="0"
             className="w-full"
           />
           <Input
             type="number"
             placeholder="Maximum years"
-            value={filters.maxYears}
-            onChange={(e) => onFilterChange({ ...filters, maxYears: e.target.value })}
+            value={localInputs.maxYears}
+            onChange={(e) => {
+              const value = e.target.value;
+              onLocalInputChange('maxYears', value);
+            }}
             min="0"
             className="w-full"
           />
         </div>
+      </div>
+
+      <div>
+        <h3 className="font-semibold mb-4">Sort By</h3>
+        <RadioGroup
+          value={filters.sortBy}
+          onValueChange={(value) => onFilterChange({ ...filters, sortBy: value })}
+        >
+          <div className="flex items-center space-x-2 mb-2">
+            <RadioGroupItem value="default" id="sort-default" />
+            <Label htmlFor="sort-default">Default (Newest + Highest Rated)</Label>
+          </div>
+          <div className="flex items-center space-x-2 mb-2">
+            <RadioGroupItem value="rating_desc" id="sort-rating-desc" />
+            <Label htmlFor="sort-rating-desc">Highest Average Rating</Label>
+          </div>
+          <div className="flex items-center space-x-2 mb-2">
+            <RadioGroupItem value="newest" id="sort-newest" />
+            <Label htmlFor="sort-newest">Newest First</Label>
+          </div>
+          <div className="flex items-center space-x-2 mb-2">
+            <RadioGroupItem value="oldest" id="sort-oldest" />
+            <Label htmlFor="sort-oldest">Oldest First</Label>
+          </div>
+          <div className="flex items-center space-x-2 mb-2">
+            <RadioGroupItem value="rating_asc" id="sort-rating-asc" />
+            <Label htmlFor="sort-rating-asc">Lowest Average Rating</Label>
+          </div>
+        </RadioGroup>
       </div>
     </div>
   );
@@ -308,6 +355,14 @@ export default function OtherContractorsPage() {
     categories: [] as string[],
     minYears: "",
     maxYears: "",
+    sortBy: "default",
+  });
+  
+  // Local state for input fields to provide immediate feedback
+  const [localInputs, setLocalInputs] = useState({
+    searchQuery: "",
+    minYears: "",
+    maxYears: "",
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -325,6 +380,7 @@ export default function OtherContractorsPage() {
           categories: filters.categories.join(","),
           min_years: filters.minYears,
           max_years: filters.maxYears,
+          sort_by: filters.sortBy,
           page: pageNum,
           page_size: 10,
         };
@@ -404,20 +460,69 @@ export default function OtherContractorsPage() {
         setIsLoading(false);
         setIsLoadingMore(false);
       }
-    }, 300),
+    }, 500),
     []
   );
+
+  // Debounced functions for specific fields
+  const debouncedSearch = useCallback(
+    debounce((searchQuery: string) => {
+      setFilters(prev => ({ ...prev, searchQuery }));
+      setIsSheetOpen(false); // Close modal after search
+    }, 500),
+    []
+  );
+
+  const debouncedMinYears = useCallback(
+    debounce((minYears: string) => {
+      setFilters(prev => ({ ...prev, minYears }));
+      setIsSheetOpen(false); // Close modal after filter
+    }, 500),
+    []
+  );
+
+  const debouncedMaxYears = useCallback(
+    debounce((maxYears: string) => {
+      setFilters(prev => ({ ...prev, maxYears }));
+      setIsSheetOpen(false); // Close modal after filter
+    }, 500),
+    []
+  );
+    
 
   useEffect(() => {
     fetchData(filters, 1);
     setPage(1);
   }, [filters, fetchData]);
 
+  // Sync local inputs with filters when filters change from other sources
+  useEffect(() => {
+    setLocalInputs(prev => ({
+      ...prev,
+      searchQuery: filters.searchQuery,
+      minYears: filters.minYears,
+      maxYears: filters.maxYears,
+    }));
+  }, [filters.searchQuery, filters.minYears, filters.maxYears]);
+
   const handleLoadMore = () => {
     if (data.next) {
       const nextPage = page + 1;
       setPage(nextPage);
       fetchData(filters, nextPage);
+    }
+  };
+
+  const handleLocalInputChange = (field: string, value: string) => {
+    setLocalInputs(prev => ({ ...prev, [field]: value }));
+    
+    // Trigger debounced function based on field
+    if (field === 'searchQuery') {
+      debouncedSearch(value);
+    } else if (field === 'minYears') {
+      debouncedMinYears(value);
+    } else if (field === 'maxYears') {
+      debouncedMaxYears(value);
     }
   };
 
@@ -428,13 +533,19 @@ export default function OtherContractorsPage() {
       categories: [],
       minYears: "",
       maxYears: "",
+      sortBy: "default",
+    });
+    setLocalInputs({
+      searchQuery: "",
+      minYears: "",
+      maxYears: "",
     });
     setIsSheetOpen(false);
   };
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gray-100 bg-opacity-75 z-50">
+      <div className="fixed inset-0 flex items-center justify-center z-50">
         <motion.div
           className="flex flex-col items-center gap-4"
           initial={{ opacity: 0, scale: 0.8 }}
@@ -451,7 +562,7 @@ export default function OtherContractorsPage() {
               scale: { repeat: Infinity, duration: 1, ease: "easeInOut" },
             }}
           >
-            <Loader className="w-12 h-12 text-primary" />
+            <Building2 className="w-12 h-12 text-primary" />
           </motion.div>
           <p className="text-lg font-medium text-gray-700">
             Loading contractors...
@@ -481,10 +592,12 @@ export default function OtherContractorsPage() {
               >
                 <FilterSidebar
                   filters={filters}
+                  localInputs={localInputs}
                   onFilterChange={(newFilters) => {
                     setFilters(newFilters);
                     setIsSheetOpen(false);
                   }}
+                  onLocalInputChange={handleLocalInputChange}
                   onClearFilters={clearFilters}
                   categories={data.categories}
                   regions={data.regions}
@@ -495,10 +608,14 @@ export default function OtherContractorsPage() {
             
             {/* Active Filters Display */}
             <div className="text-sm text-gray-600">
+              {filters.searchQuery && (
+                <span>Search: "{filters.searchQuery}"</span>
+              )}
+              {filters.searchQuery && filters.region && " • "}
               {filters.region && (
                 <span>Region: {data.regions.find(r => String(r.id) === String(filters.region))?.name || filters.region}</span>
               )}
-              {filters.region && filters.categories.length > 0 && " • "}
+              {(filters.searchQuery || filters.region) && filters.categories.length > 0 && " • "}
               {filters.categories.length > 0 && (
                 <span>
                   Categories: {filters.categories.map(catId => 
@@ -506,10 +623,22 @@ export default function OtherContractorsPage() {
                   ).filter(Boolean).join(", ")}
                 </span>
               )}
-              {(filters.region || filters.categories.length > 0) && (filters.minYears || filters.maxYears) && " • "}
+              {(filters.searchQuery || filters.region || filters.categories.length > 0) && (filters.minYears || filters.maxYears) && " • "}
               {(filters.minYears || filters.maxYears) && (
                 <span>
                   Experience: {filters.minYears ? `${filters.minYears}` : "0"} - {filters.maxYears || "∞"} years
+                </span>
+              )}
+              {(filters.searchQuery || filters.region || filters.categories.length > 0 || filters.minYears || filters.maxYears) && filters.sortBy !== "default" && " • "}
+              {filters.sortBy !== "default" && (
+                <span>
+                  Sort: {
+                    filters.sortBy === "rating_desc" ? "Highest Rating" :
+                    filters.sortBy === "newest" ? "Newest First" :
+                    filters.sortBy === "oldest" ? "Oldest First" :
+                    filters.sortBy === "rating_asc" ? "Lowest Rating" :
+                    "Default"
+                  }
                 </span>
               )}
             </div>

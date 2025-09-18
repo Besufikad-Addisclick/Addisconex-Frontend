@@ -32,6 +32,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Rating } from "@/components/ui/rating";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import AdsSection from "@/components/ads/AdsSection";
 import { fetchSupplierDetail } from "./../../../services/materialService";
@@ -559,6 +565,23 @@ export default function SupplierDetail() {
                             <div className="font-medium text-gray-900">
                                {parseFloat(material.price).toLocaleString()} ETB
                             </div>
+                            {material.remark && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="mt-2 flex justify-center">
+                                      <MessageSquare className="h-4 w-4 text-blue-500 hover:text-blue-600 cursor-help" />
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-[300px]">
+                                    <div className="text-sm">
+                                      <div className="font-medium mb-1">Remark:</div>
+                                      <div className="break-words">{material.remark}</div>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
                           </td>
                           <td className="py-4 px-4 text-center">
                             <div className="text-sm text-gray-600">

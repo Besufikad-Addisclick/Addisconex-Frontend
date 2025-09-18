@@ -63,6 +63,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           user: price.user || null,
           price: parseFloat(price.price) || 0, // Convert to number
           price_date: price.price_date,
+          remark: price.remark || "", // Add remark field
           created_at: price.created_at,
           updated_at: price.updated_at,
           user_id: price.user_id || null,

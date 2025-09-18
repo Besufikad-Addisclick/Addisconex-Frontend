@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { getSession } from "next-auth/react";
@@ -35,6 +36,7 @@ interface Material {
   unit: string;
   lastPrice: number;
   priceDate: string;
+  remark?: string;
 }
 interface MaterialPrice {
   id: string;
@@ -57,12 +59,14 @@ interface NewMaterialForm {
   category: string;
   material: string;
   price: string;
+  remark: string;
 }
 
 interface FormErrors {
   category?: string;
   material?: string;
   price?: string;
+  remark?: string;
 }
 
 interface Materials {
@@ -86,11 +90,13 @@ function PricesPage() {
   const [useLastPrice, setUseLastPrice] = useState<{ [key: string]: boolean }>(
     {}
   );
+  const [remarks, setRemarks] = useState<{ [key: string]: string }>({});
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newMaterial, setNewMaterial] = useState<NewMaterialForm>({
     category: "",
     material: "",
     price: "",
+    remark: "",
   });
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
@@ -176,12 +182,13 @@ function PricesPage() {
               unit: m.unit || m.material?.unit || "",
               lastPrice: parseFloat(m.price) || 0,
               priceDate: m.price_date || "",
+              remark: m.remark || "",
             };
           });
           setSupplierMaterials(mappedMaterials);
           console.log("[PricesPage] Mapped materials:", mappedMaterials);
 
-          // Set initial prices and useLastPrice
+          // Set initial prices, useLastPrice, and remarks
           setPrices(
             mappedMaterials.reduce(
               (acc: { [key: string]: string }, material: any) => ({
@@ -196,6 +203,15 @@ function PricesPage() {
               (acc: { [key: string]: boolean }, material: any) => ({
                 ...acc,
                 [material.id]: false,
+              }),
+              {}
+            )
+          );
+          setRemarks(
+            mappedMaterials.reduce(
+              (acc: { [key: string]: string }, material: any) => ({
+                ...acc,
+                [material.id]: material.remark || "",
               }),
               {}
             )
@@ -296,6 +312,7 @@ function PricesPage() {
             unit: m.unit || m.material?.unit || "",
             lastPrice: parseFloat(m.price) || 0,
             priceDate: m.price_date || "",
+            remark: m.remark || "",
           };
         });
         console.log("[PricesPage] Mapped materials:", mappedMaterials);
@@ -315,6 +332,15 @@ function PricesPage() {
             (acc: { [key: string]: boolean }, material: any) => ({
               ...acc,
               [material.id]: false,
+            }),
+            {}
+          )
+        );
+        setRemarks(
+          mappedMaterials.reduce(
+            (acc: { [key: string]: string }, material: any) => ({
+              ...acc,
+              [material.id]: material.remark || "",
             }),
             {}
           )
@@ -365,6 +391,11 @@ function PricesPage() {
   }, [selectedSupplier, toast, router]);
 
   const handlePriceChange = (materialId: string, value: string) => {
+    // Limit to 8 digits
+    if (value.length > 9) {
+      return;
+    }
+    
     setPrices((prev) => ({
       ...prev,
       [materialId]: value,
@@ -404,6 +435,18 @@ function PricesPage() {
     }
   };
 
+  const handleRemarkChange = (materialId: string, value: string) => {
+    // Limit to 100 characters
+    if (value.length > 100) {
+      return;
+    }
+    
+    setRemarks((prev) => ({
+      ...prev,
+      [materialId]: value,
+    }));
+  };
+
   // const validatePrices = () => {
   //   const errors: { [key: string]: string } = {};
   //   Object.entries(prices).forEach(([materialId, price]) => {
@@ -428,6 +471,8 @@ function PricesPage() {
         const numPrice = parseFloat(price);
         if (isNaN(numPrice) || numPrice <= 0) {
           errors[materialId] = "Invalid price";
+        } else if (price.length > 9) {
+          errors[materialId] = "Price cannot exceed 9 digits";
         } else {
           hasValidPrice = true; // At least one valid price found
         }
@@ -465,11 +510,15 @@ function PricesPage() {
 
     try {
       console.log("prices", prices);
+      console.log("remarks", remarks);
       const pricedMaterials = Object.entries(prices).filter(([materialId, price]) => price !== "").reduce((acc, [materialId, price]) => ({ ...acc, [materialId]: price }), {})
+      const remarkMaterials = Object.entries(remarks).filter(([materialId, remark]) => remark !== "").reduce((acc, [materialId, remark]) => ({ ...acc, [materialId]: remark }), {})
 console.log("pricedMaterials",pricedMaterials)
+console.log("remarkMaterials",remarkMaterials)
       const payload = {
         user_id: selectedSupplier,
         prices:pricedMaterials,
+        remarks: remarkMaterials,
       };
       const response = await fetch(`/api/material-price/update`, {
         method: "POST",
@@ -521,6 +570,7 @@ console.log("pricedMaterials",pricedMaterials)
           unit: m.unit || m.material?.unit || "",
           lastPrice: parseFloat(m.price) || 0,
           priceDate: m.price_date || "",
+          remark: m.remark || "",
         };
       });
       console.log("[PricesPage] Mapped materials:", mappedMaterials);
@@ -540,6 +590,15 @@ console.log("pricedMaterials",pricedMaterials)
           (acc: { [key: string]: boolean }, material: any) => ({
             ...acc,
             [material.id]: false,
+          }),
+          {}
+        )
+      );
+      setRemarks(
+        mappedMaterials.reduce(
+          (acc: { [key: string]: string }, material: any) => ({
+            ...acc,
+            [material.id]: material.remark || "",
           }),
           {}
         )
@@ -569,6 +628,11 @@ console.log("pricedMaterials",pricedMaterials)
       parseFloat(newMaterial.price) <= 0
     ) {
       errors.price = "Invalid price";
+    } else if (newMaterial.price.length > 9) {
+      errors.price = "Price cannot exceed 9 digits";
+    }
+    if (newMaterial.remark && newMaterial.remark.length > 100) {
+      errors.remark = "Remark cannot exceed 100 characters";
     }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -591,7 +655,10 @@ console.log("pricedMaterials",pricedMaterials)
     try {
       const payload = {
         user_id: selectedSupplier,
-        ...newMaterial,
+        category: newMaterial.category,
+        material: newMaterial.material,
+        price: newMaterial.price,
+        remark: newMaterial.remark,
       };
 
       const response = await fetch(`/api/suppliers/add-material`, {
@@ -620,6 +687,7 @@ console.log("pricedMaterials",pricedMaterials)
         category: "",
         material: "",
         price: "",
+        remark: "",
       });
       setFormErrors({});
       setIsDialogOpen(false);
@@ -650,6 +718,7 @@ console.log("pricedMaterials",pricedMaterials)
           unit: m.unit || m.material?.unit || "",
           lastPrice: parseFloat(m.price) || 0,
           priceDate: m.price_date || "",
+          remark: m.remark || "",
         };
       });
       console.log("[PricesPage] Mapped materials:", mappedMaterials);
@@ -669,6 +738,15 @@ console.log("pricedMaterials",pricedMaterials)
           (acc: { [key: string]: boolean }, material: any) => ({
             ...acc,
             [material.id]: false,
+          }),
+          {}
+        )
+      );
+      setRemarks(
+        mappedMaterials.reduce(
+          (acc: { [key: string]: string }, material: any) => ({
+            ...acc,
+            [material.id]: material.remark || "",
           }),
           {}
         )
@@ -904,18 +982,58 @@ console.log("pricedMaterials",pricedMaterials)
                       type="number"
                       value={newMaterial.price}
                       onChange={(e) => {
+                        const value = e.target.value;
+                        // Limit to 8 digits
+                        if (value.length > 9) {
+                          return;
+                        }
                         setNewMaterial((prev) => ({
                           ...prev,
-                          price: e.target.value,
+                          price: value,
                         }));
                         setFormErrors((prev) => ({ ...prev, price: "" }));
                       }}
+                      maxLength={9}
                       placeholder="Enter price"
                       className={formErrors.price ? "border-red-500" : ""}
                     />
                     {formErrors.price && (
                       <p className="text-sm text-red-500">{formErrors.price}</p>
                     )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="remark">Remark (Optional)</Label>
+                    <Textarea
+                      id="remark"
+                      value={newMaterial.remark}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Limit to 100 characters
+                        if (value.length > 100) {
+                          return;
+                        }
+                        setNewMaterial((prev) => ({
+                          ...prev,
+                          remark: value,
+                        }));
+                        setFormErrors((prev) => ({ ...prev, remark: "" }));
+                      }}
+                      placeholder="Enter any additional remarks..."
+                      className={formErrors.remark ? "border-red-500" : ""}
+                      rows={3}
+                      maxLength={100}
+                    />
+                    <div className="flex justify-between items-center">
+                      <div>
+                        {formErrors.remark && (
+                          <p className="text-sm text-red-500">{formErrors.remark}</p>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {newMaterial.remark.length}/100
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <div className="flex justify-end">
@@ -983,6 +1101,9 @@ console.log("pricedMaterials",pricedMaterials)
                   <th className="text-left p-2 sm:p-4 font-semibold text-gray-600 min-w-[200px]">
                     New Price (ETB)
                   </th>
+                  <th className="text-left p-2 sm:p-4 font-semibold text-gray-600">
+                    Remark
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1021,6 +1142,7 @@ console.log("pricedMaterials",pricedMaterials)
                             onChange={(e) =>
                               handlePriceChange(material.id, e.target.value)
                             }
+                            maxLength={9}
                             className={
                               priceErrors[material.id] ? "border-red-500" : ""
                             }
@@ -1049,6 +1171,21 @@ console.log("pricedMaterials",pricedMaterials)
                             Use last price
                           </label>
                         </div>
+                      </div>
+                    </td>
+                    <td className="p-2 sm:p-4">
+                      <div className="max-w-[200px]">
+                        <Textarea
+                          value={remarks[material.id] || ""}
+                          onChange={(e) => handleRemarkChange(material.id, e.target.value)}
+                          placeholder="Enter remark..."
+                          className="text-sm resize-none min-h-[60px]"
+                          rows={2}
+                          maxLength={100}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {(remarks[material.id] || "").length}/100
+                        </p>
                       </div>
                     </td>
                   </tr>

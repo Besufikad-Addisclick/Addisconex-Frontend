@@ -100,7 +100,7 @@ export const generateSubscriptionInvoice = (
   doc.setFontSize(11);
   doc.setFont('helvetica', 'normal');
   doc.text(`${userProfile.first_name} ${userProfile.last_name}`, 20, 90);
-  doc.text(userProfile.email, 20, 95);
+  doc.text(userProfile.email , 20, 95);
   doc.text(userProfile.phone_number, 20, 100);
   doc.text(`User Type: ${userProfile.user_type.charAt(0).toUpperCase() + userProfile.user_type.slice(1)}`, 20, 105);
   
@@ -272,7 +272,7 @@ export const generatePaymentReceipt = (
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text(`${userProfile.first_name} ${userProfile.last_name}`, 15, 63);
-  doc.text(userProfile.email, 15, 68);
+  doc.text(userProfile.email , 15, 68);
   
   // Payment Details Section
   let currentY = 80;
@@ -336,8 +336,8 @@ export const generatePaymentReceipt = (
   // Watermark Logo
   try {
     // Add watermark logo in center
-    const logoUrl = '/logotransparent.png';
-    doc.addImage(logoUrl, 'PNG', 60, 50, 50, 25, undefined, 'FAST');
+    const logoUrl = '/stamp.png';
+    doc.addImage(logoUrl, 'PNG', 60, 50, 40, 40, undefined, 'FAST');
   } catch (error) {
     console.log('Logo not found, continuing without watermark');
   }

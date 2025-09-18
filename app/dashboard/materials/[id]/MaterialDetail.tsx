@@ -18,6 +18,7 @@ import {
   TrendingUp,
   TrendingDown,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -515,6 +522,23 @@ export default function MaterialDetail() {
                           Date:{" "}
                           {new Date(price.price_date).toLocaleDateString()}
                         </div>
+                        {price.remark && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="mt-2 flex justify-center">
+                                  <MessageSquare className="h-4 w-4 text-blue-500 hover:text-blue-600 cursor-help" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-[300px]">
+                                <div className="text-sm">
+                                  <div className="font-medium mb-1">Remark:</div>
+                                  <div className="break-words">{price.remark}</div>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </td>
                      
                       <td className="px-6 py-4 text-center">

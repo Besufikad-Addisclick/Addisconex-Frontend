@@ -390,6 +390,8 @@ function MachineriesPrice() {
       errors.price = "Price is required";
     } else if (isNaN(parseFloat(form.price)) || parseFloat(form.price) <= 0) {
       errors.price = "Invalid price";
+    } else if (form.price.length > 9) {
+      errors.price = "Price cannot exceed 9 digits";
     }
     // if (!form.image_file && !("image_url" in form && form.image_url)) {
     //   errors.image_file = "Image is required";
@@ -822,12 +824,18 @@ function MachineriesPrice() {
                         type="number"
                         value={newMaterial.price}
                         onChange={(e) => {
+                          const value = e.target.value;
+                          // Limit to 9 digits
+                          if (value.length > 9) {
+                            return;
+                          }
                           setNewMaterial((prev) => ({
                             ...prev,
-                            price: e.target.value,
+                            price: value,
                           }));
                           setFormErrors((prev) => ({ ...prev, price: "" }));
                         }}
+                        maxLength={9}
                         placeholder="Enter price"
                         className={formErrors.price ? "border-red-500" : ""}
                       />
@@ -1183,11 +1191,17 @@ function MachineriesPrice() {
                           type="number"
                           value={editMaterial.price}
                           onChange={(e) => {
+                            const value = e.target.value;
+                            // Limit to 9 digits
+                            if (value.length > 9) {
+                              return;
+                            }
                             setEditMaterial((prev) =>
-                              prev ? { ...prev, price: e.target.value } : prev
+                              prev ? { ...prev, price: value } : prev
                             );
                             setFormErrors((prev) => ({ ...prev, price: "" }));
                           }}
+                          maxLength={9}
                           placeholder="Enter price"
                           className={formErrors.price ? "border-red-500" : ""}
                         />

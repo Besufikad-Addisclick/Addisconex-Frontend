@@ -119,6 +119,7 @@ export interface MaterialPrice {
   user: string; // Supplier ID
   price: string; // Decimal as string
   price_date: string;
+  remark: string; // Remark field
   created_at: string;
   updated_at: string;
   user_id: string; // Duplicate of user for consistency
