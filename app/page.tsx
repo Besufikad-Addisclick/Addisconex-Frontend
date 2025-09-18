@@ -31,6 +31,7 @@ const Home = memo(() => {
           throw new Error("Failed to fetch featured ads");
         }
         const data: FeaturedAdsResponse = await response.json();
+        console.log(data);
         setFeaturedAds(data);
       } catch (error: any) {
         setError(error?.message || "Error fetching featured ads");

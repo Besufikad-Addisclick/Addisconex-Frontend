@@ -14,6 +14,8 @@ interface Category {
   id: string;
   name: string;
   description?: string;
+  parent?: string;
+  subcategories?: Category[];
   created_at?: string;
   updated_at?: string;
 }
@@ -41,6 +43,7 @@ interface Materials {
 
 interface CategoryMaterialsResponse {
   categories: Category[];
+  main_categories: Category[];
   regions: Region[];
   materials: {
     count: number;
@@ -85,6 +88,7 @@ async function fetchCategoryMaterials(filters: any, accessToken: string): Promis
 
     return {
       categories: data.categories || [],
+      main_categories: data.main_categories || [],
       regions: data.regions || [],
       materials: {
         count: data.materials.count || 0,
@@ -116,6 +120,7 @@ async function fetchCategoryMaterials(filters: any, accessToken: string): Promis
     console.error(`[fetchCategoryMaterials] Failed:`, error);
     return {
       categories: [],
+      main_categories: [],
       regions: [],
       materials: {
         count: 0,
@@ -146,6 +151,7 @@ export async function GET(req: Request) {
         {
           error: 'Unauthorized: Please log in.',
           categories: [],
+          main_categories: [],
           regions: [],
           materials: { count: 0, next: null, previous: null, results: [] },
         },
@@ -161,6 +167,7 @@ export async function GET(req: Request) {
       {
         error: 'Failed to fetch materials data',
         categories: [],
+        main_categories: [],
         regions: [],
         materials: { count: 0, next: null, previous: null, results: [] },
       },

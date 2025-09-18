@@ -66,6 +66,7 @@ interface MaterialStats {
 }
 export interface CategoryMaterialsResponse {
   categories: Category[];
+  main_categories: Category[];
   regions: Region[];
   materials: {
     count: number;
@@ -82,6 +83,9 @@ interface Region {
 interface Category {
   id: string;
   name: string;
+  description?: string;
+  parent?: string;
+  subcategories?: Category[];
 }
 // app/utils/api.tsx
 interface SuppliersData {

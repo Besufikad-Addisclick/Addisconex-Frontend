@@ -22,6 +22,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -94,7 +99,7 @@ interface FilterSidebarProps {
   };
   onFilterChange: (filters: any) => void;
   onClearFilters: () => void;
-  categories: { id: string; name: string }[];
+  mainCategories: { id: string; name: string; subcategories?: { id: string; name: string }[] }[];
   regions: { id: string; name: string }[];
 }
 
@@ -103,7 +108,7 @@ const FilterSidebar = ({
   filters,
   onFilterChange,
   onClearFilters,
-  categories,
+  mainCategories,
   regions,
 }: FilterSidebarProps) => {
   return (
@@ -122,20 +127,57 @@ const FilterSidebar = ({
       </div>
 
       <div className="mb-6">
-        <h3 className="font-semibold mb-4">Category</h3>
+        <h3 className="font-semibold mb-4">Categories</h3>
         <RadioGroup
           value={filters.searchQuery}
           onValueChange={(value) =>
             onFilterChange({ ...filters, searchQuery: value })
           }
         >
-          {categories.map((category) => (
-            <div key={category.id} className="flex items-center space-x-2">
-              <RadioGroupItem
-                value={category.name}
-                id={`category-${category.id}`}
-              />
-              <Label htmlFor={`category-${category.id}`}>{category.name}</Label>
+          {mainCategories.map((category) => (
+            <div key={category.id} className="mb-2">
+              {/* Main Category */}
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem
+                  value={category.name}
+                  id={`category-${category.id}`}
+                />
+                <Label htmlFor={`category-${category.id}`} className="font-medium">
+                  {category.name}
+                </Label>
+              </div>
+              
+              {/* Subcategories (if any) */}
+              {category.subcategories && category.subcategories.length > 0 && (
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="ml-6 h-6 px-2 text-xs text-gray-600 hover:text-gray-900"
+                    >
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      {category.subcategories.length} subcategories
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="ml-6 mt-1 space-y-1">
+                    {category.subcategories.map((subcategory) => (
+                      <div key={subcategory.id} className="flex items-center space-x-2">
+                        <RadioGroupItem
+                          value={subcategory.name}
+                          id={`subcategory-${subcategory.id}`}
+                        />
+                        <Label 
+                          htmlFor={`subcategory-${subcategory.id}`} 
+                          className="text-sm text-gray-600"
+                        >
+                          {subcategory.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              )}
             </div>
           ))}
         </RadioGroup>
@@ -206,6 +248,7 @@ export default function MaterialsPage() {
   });
   const [data, setData] = useState<CategoryMaterialsResponse>({
     categories: [],
+    main_categories: [],
     regions: [],
     materials: {
       count: 0,
@@ -523,7 +566,7 @@ export default function MaterialsPage() {
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                {data.categories.map((category) => (
+                {data.main_categories.map((category) => (
                   <SelectItem key={category.id} value={category.name}>
                     {category.name}
                   </SelectItem>
@@ -586,17 +629,17 @@ export default function MaterialsPage() {
                  side="left"
                  className="w-full sm:w-[540px] overflow-y-auto"
                >
-                 <FilterSidebar
-                   filters={filters}
-                   onFilterChange={(newFilters) => {
-                     setFilters({ ...newFilters, page: "1" });
-                     setSelectedCategory(newFilters.searchQuery); // Update selectedCategory
-                     setVisibleCount(INITIAL_ITEMS);
-                   }}
-                   onClearFilters={clearFilters}
-                   categories={data.categories}
-                   regions={data.regions}
-                 />
+                  <FilterSidebar
+                    filters={filters}
+                    onFilterChange={(newFilters) => {
+                      setFilters({ ...newFilters, page: "1" });
+                      setSelectedCategory(newFilters.searchQuery); // Update selectedCategory
+                      setVisibleCount(INITIAL_ITEMS);
+                    }}
+                    onClearFilters={clearFilters}
+                    mainCategories={data.main_categories}
+                    regions={data.regions}
+                  />
                </SheetContent>
              </Sheet>
              <div className="text-right">

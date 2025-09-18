@@ -5,10 +5,8 @@
   "scripts": {
     "dev": "next dev --turbo",
     "dev:fast": "next dev --turbo --port 3000",
-    "build": "next build",
-    "start": "cross-env NODE_ENV=production node server.js",
-    "start:back": "set NODE_ENV=production && node ./server.js",
-    "testn": "cross-env NODE_ENV=production next start",
+    "build": "cross-env NODE_ENV=production next build",
+    "start": "cross-env NODE_ENV=production next start",
     "lint": "next lint",
     "perf": "node scripts/performance-check.js",
     "analyze": "ANALYZE=true next build"
