@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.optimized
+      args:
+        - NODE_ENV=production
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Uncomment the following service if you need a database
+  # database:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: your_database_name
+  #     POSTGRES_USER: your_username
+  #     POSTGRES_PASSWORD: your_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+
+# volumes:
+#   postgres_data:
