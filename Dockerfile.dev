@@ -16,11 +16,11 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 
 # Expose port
-EXPOSE 3000
+EXPOSE 3010
 
 # Set environment
 ENV NODE_ENV development
-ENV PORT 3000
+ENV PORT 3010
 ENV HOSTNAME 0.0.0.0
 
 # Start development server

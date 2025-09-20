@@ -169,7 +169,7 @@ const LogoutButton = () => {
 
 ```env
 NEXTAUTH_SECRET=your-secret-key-here
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3010
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
 ```
 
